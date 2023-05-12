@@ -6,12 +6,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Config *yamlConfig
+var Cfg *Config
 
-type yamlConfig struct {
+type Config struct {
 	Api struct {
 		Host, Key string
 	}
+	Season int
 }
 
 func SetupViper() {
@@ -35,8 +36,8 @@ func SetupConfigFile(configFile string) {
 		bindViperEnvVars()
 	}
 
-	Config = &yamlConfig{}
-	if err := viper.Unmarshal(Config); err != nil {
+	Cfg = &Config{}
+	if err := viper.Unmarshal(Cfg); err != nil {
 		Log.Fatalf("Error decoding Config struct: %v", err)
 	} else {
 		Log.Infof("Config successfully initialized")
