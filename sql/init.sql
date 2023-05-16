@@ -1,0 +1,9 @@
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON nice_fixture.* TO 'go';
+
+CREATE TABLE `nice_fixture`.`leagues` (
+  `id` INT NOT NULL,
+  `name` VARCHAR(100) NULL,
+  `country_name` VARCHAR(100) NULL,
+  `country_code` VARCHAR(3) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE);

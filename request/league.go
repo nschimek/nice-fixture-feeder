@@ -1,12 +1,14 @@
 package request
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/response"
 )
 
 const (
@@ -32,5 +34,8 @@ func (r *LeagueRequest) Request(id, season int) {
 	p.Add("id", strconv.Itoa(id))
 	p.Add("season", strconv.Itoa(season))
 
-	fmt.Println(string(r.requester.Get(leaguesEndpoint, p)))
+	var response response.League
+	json.Unmarshal(r.requester.Get(leaguesEndpoint, p), &response)
+
+	fmt.Printf("%+v\n", response)
 }

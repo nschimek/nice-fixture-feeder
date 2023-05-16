@@ -9,7 +9,7 @@ config/*
 !config/sample.yaml
  
 # Compiled application
-nba-scraper*
+nice-fixture-feeder*
 
 docker.env
 

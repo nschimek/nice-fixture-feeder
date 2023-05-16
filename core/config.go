@@ -9,10 +9,15 @@ import (
 var Cfg *Config
 
 type Config struct {
+	Season        int
+	Debug         bool
 	Api struct {
 		Host, Key string
 	}
-	Season int
+	Database struct {
+		User, Password, Location, Name string
+		Port                           int
+	}
 }
 
 func SetupViper() {
@@ -32,7 +37,7 @@ func SetupConfigFile(configFile string) {
 			Log.Fatalf("Could not load config file: %s!", configFile)
 		}
 	} else {
-		Log.Info("Config file NOT being used...requiring NS_ENVIRONMENT_VARIABLES")
+		Log.Info("Config file NOT being used...requiring NF_ENVIRONMENT_VARIABLES")
 		bindViperEnvVars()
 	}
 
@@ -48,4 +53,9 @@ func SetupConfigFile(configFile string) {
 func bindViperEnvVars() {
 	viper.BindEnv("api.host")
 	viper.BindEnv("api.key")
+	viper.BindEnv("database.user")
+	viper.BindEnv("database.password")
+	viper.BindEnv("database.location")
+	viper.BindEnv("database.port")
+	viper.BindEnv("database.name")
 }

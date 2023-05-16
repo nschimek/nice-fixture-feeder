@@ -12,6 +12,7 @@ const (
 func main() {
 	core.SetupViper()
 	core.SetupConfigFile(defaultConfig)
+	core.SetupDatabase(core.Cfg)
 
 	req := request.NewLeagueRequest(core.Cfg)
 	req.Request(39, 2022)
