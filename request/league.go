@@ -2,8 +2,9 @@ package request
 
 import (
 	"fmt"
-	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
 )
@@ -13,27 +14,23 @@ const (
 )
 
 type LeagueRequest struct {
-	Config *core.Config
-	request *http.Request
+	config *core.Config
+	requester *Requester
 	client *http.Client
 }
 
 func NewLeagueRequest(config *core.Config) *LeagueRequest {
 	return &LeagueRequest{
-		Config: config,
-		request: NewHttpRequest(config, leaguesEndpoint),
+		config: config,
+		requester: NewRequester(config),
 		client: http.DefaultClient,
 	}
 }
 
-func (r *LeagueRequest) Request() {
-	res, err := r.client.Do(r.request)
-	core.IfErrorFatal(err)
+func (r *LeagueRequest) Request(id, season int) {
+	p := url.Values{}
+	p.Add("id", strconv.Itoa(id))
+	p.Add("season", strconv.Itoa(season))
 
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	core.IfErrorFatal(err)
-
-	fmt.Println(string(body))
+	fmt.Println(string(r.requester.Get(leaguesEndpoint, p)))
 }

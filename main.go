@@ -14,5 +14,5 @@ func main() {
 	core.SetupConfigFile(defaultConfig)
 
 	req := request.NewLeagueRequest(core.Cfg)
-	req.Request()
+	req.Request(39, 2022)
 }
