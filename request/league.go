@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
-	"github.com/nschimek/nice-fixture-feeder/response"
+	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
 const (
@@ -34,7 +34,7 @@ func (r *LeagueRequest) Request(id, season int) {
 	p.Add("id", strconv.Itoa(id))
 	p.Add("season", strconv.Itoa(season))
 
-	var response response.League
+	var response Response[model.League]
 	json.Unmarshal(r.requester.Get(leaguesEndpoint, p), &response)
 
 	fmt.Printf("%+v\n", response)
