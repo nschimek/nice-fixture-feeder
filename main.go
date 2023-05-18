@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/request"
 )
 
@@ -14,6 +15,7 @@ func main() {
 	core.SetupConfigFile(defaultConfig)
 	core.SetupDatabase(core.Cfg)
 
-	req := request.NewLeagueRequest(core.Cfg)
-	req.Request(39, 2022)
+	req := request.NewLeagueRequest(core.Cfg, &repository.LeagueRepository{DB: core.DB})
+	req.Request(2022, 39)
+	req.Persist()
 }
