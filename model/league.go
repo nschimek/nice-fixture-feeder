@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 type League struct {
 	League struct {
 		Id int `json:"id" gorm:"primaryKey"`
@@ -14,6 +16,11 @@ type League struct {
 	} `json:"country" gorm:"embedded;embeddedPrefix:country_"`
 	Seasons []LeagueSeason`json:"seasons"`
 	Audit `json:"-"`
+	ModelError
+}
+
+func (l *League) LogErrors () {
+	l.logErrors(fmt.Sprint("league", l.League.Id))
 }
 
 type LeagueSeason struct {
@@ -23,4 +30,9 @@ type LeagueSeason struct {
 	End CivilTime `json:"end"`
 	Current bool `json:"current"`
 	Audit `json:"-"`
+	ModelError
+}
+
+func (ls *LeagueSeason) LogErrors() {
+	ls.logErrors(fmt.Sprintf("league %d season %d", ls.LeagueId, ls.Season))
 }

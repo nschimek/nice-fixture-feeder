@@ -38,11 +38,17 @@ func (r *LeagueRequest) Request(season, id int) {
 	p.Add("season", strconv.Itoa(season))
 
 	var response Response[model.League]
-	json.Unmarshal(r.requester.Get(leaguesEndpoint, p), &response)
+	err := json.Unmarshal(r.requester.Get(leaguesEndpoint, p), &response)
 
-	r.RequestedData = append(r.RequestedData, response.Response...)
+	if err != nil {
+		r.RequestedData = append(r.RequestedData, response.Response...)
+	} else {
+		core.Log.Error("could not unmarshal league %d JSON: %v", id, err)
+	}
 }
 
 func (r *LeagueRequest) Persist() {
-	r.repo.UpsertLeagues(r.RequestedData)
+	rs := r.repo.UpsertLeagues(r.RequestedData)
+	rs.LogErrors()
+	rs.LogSuccesses()
 }
