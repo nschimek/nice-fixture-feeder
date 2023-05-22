@@ -18,6 +18,9 @@ type Config struct {
 		User, Password, Location, Name string
 		Port                           int
 	}
+	AWS struct {
+		Region, AccessKeyId, SecretAccessKey string
+	}
 }
 
 func SetupViper() {
