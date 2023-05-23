@@ -20,7 +20,10 @@ type Config struct {
 		Port                           int
 	}
 	AWS struct {
-		Region, AccessKeyId, SecretAccessKey, BucketName string
+		Region string
+		AccessKeyId string `mapstructure:"access-key-id"`
+		SecretAccessKey string `mapstructure:"secret-access-key"`
+		BucketName string `mapstructure:"bucket-name"`
 	}
 }
 
@@ -67,4 +70,8 @@ func bindViperEnvVars() {
 	viper.BindEnv("database.location")
 	viper.BindEnv("database.port")
 	viper.BindEnv("database.name")
+	viper.BindEnv("aws.region")
+	viper.BindEnv("aws.access-key-id")
+	viper.BindEnv("aws.secret-access-key")
+	viper.BindEnv("aws.bucket-name")
 }
