@@ -2,6 +2,7 @@ package request
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -9,10 +10,12 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
+	"github.com/nschimek/nice-fixture-feeder/service"
 )
 
 const (
 	leaguesEndpoint = "leagues"
+	keyFormat = "images/logos/leagues/%s"
 )
 
 type LeagueRequest struct {
@@ -20,14 +23,16 @@ type LeagueRequest struct {
 	requester *Requester
 	client *http.Client
 	repo *repository.LeagueRepository
+	imageService *service.ImageService
 	RequestedData []model.League
 }
 
-func NewLeagueRequest(config *core.Config, repo *repository.LeagueRepository) *LeagueRequest {
+func NewLeagueRequest(config *core.Config, repo *repository.LeagueRepository, is *service.ImageService) *LeagueRequest {
 	return &LeagueRequest{
 		config: config,
 		requester: NewRequester(config),
 		client: http.DefaultClient,
+		imageService: is,
 		repo: repo,
 	}
 }
@@ -51,4 +56,10 @@ func (r *LeagueRequest) Persist() {
 	rs := r.repo.UpsertLeagues(r.RequestedData)
 	rs.LogErrors()
 	rs.LogSuccesses()
+}
+
+func (r *LeagueRequest) PostPersist() {
+	for _, league := range r.RequestedData {
+		r.imageService.TransferURL(fmt.Sprintf(keyFormat, league.League.Logo), r.config.AWS.BucketName)
+	}
 }

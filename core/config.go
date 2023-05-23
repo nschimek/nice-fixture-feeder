@@ -19,7 +19,7 @@ type Config struct {
 		Port                           int
 	}
 	AWS struct {
-		Region, AccessKeyId, SecretAccessKey string
+		Region, AccessKeyId, SecretAccessKey, BucketName string
 	}
 }
 

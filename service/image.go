@@ -20,7 +20,7 @@ func NewImageService(s3 *core.AwsS3) *ImageService {
 }
 
 func (is *ImageService) TransferURL(url, bucket string) bool {
-	core.Log.Infof("Transferring image %s to S3 bucket %s", url, bucket)
+	core.Log.Infof("Transferring image %s to S3 bucket %s...", url, bucket)
 	fileName := path.Base(url)
 
 	if e, err := is.s3.Exists(bucket, fileName); !e {
