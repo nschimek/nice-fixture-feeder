@@ -45,6 +45,7 @@ func getAwsConfig(cfg *Config) aws.Config {
 } 
 
 func (as *AwsS3) Exists(bucket, key string) (bool, error) {
+	Log.Debugf("Checking if key %s exists in bucket %s...", key, bucket)
 	_, err := as.client.HeadObject(context.TODO(), &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
 		Key: aws.String(key),
@@ -60,11 +61,15 @@ func (as *AwsS3) Exists(bucket, key string) (bool, error) {
 }
 
 func (as *AwsS3) Upload(data []byte, bucket, key string) error {
+	Log.Debugf("Starting upload of key %s to bucket %s...", key, bucket)
 	uploader := manager.NewUploader(as.client)
 	_, err := uploader.Upload(context.TODO(), &s3.PutObjectInput{
 			Bucket: aws.String(bucket),
 			Key: aws.String(key),
 			Body: strings.NewReader(string(data)),
 	})
+	if err == nil {
+		Log.Debugf("Upload of key %s to bucket %s successful!", key, bucket)
+	}
 	return err
 }

@@ -2,7 +2,6 @@ package request
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,7 +14,8 @@ import (
 
 const (
 	leaguesEndpoint = "leagues"
-	keyFormat = "images/logos/leagues/%s"
+	leagueKeyFormat = "images/logos/leagues/%s"
+	countryKeyFormat = "images/flags/%s"
 )
 
 type LeagueRequest struct {
@@ -43,12 +43,18 @@ func (r *LeagueRequest) Request(season, id int) {
 	p.Add("season", strconv.Itoa(season))
 
 	var response Response[model.League]
-	err := json.Unmarshal(r.requester.Get(leaguesEndpoint, p), &response)
-
+	data, err := r.requester.Get(leaguesEndpoint, p)
+	
 	if err != nil {
+		core.Log.Error("Could not get league %d: %v", id, err)
+	}
+
+	err = json.Unmarshal(data, &response)
+
+	if err == nil {
 		r.RequestedData = append(r.RequestedData, response.Response...)
 	} else {
-		core.Log.Error("could not unmarshal league %d JSON: %v", id, err)
+		core.Log.Errorf("Could not unmarshal league %d JSON: %v", id, err)
 	}
 }
 
@@ -60,6 +66,7 @@ func (r *LeagueRequest) Persist() {
 
 func (r *LeagueRequest) PostPersist() {
 	for _, league := range r.RequestedData {
-		r.imageService.TransferURL(fmt.Sprintf(keyFormat, league.League.Logo), r.config.AWS.BucketName)
+		r.imageService.TransferURL(league.League.Logo, r.config.AWS.BucketName, leagueKeyFormat)
+		r.imageService.TransferURL(league.Country.Flag, r.config.AWS.BucketName, countryKeyFormat)
 	}
 }

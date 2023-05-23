@@ -3,6 +3,7 @@ package core
 import (
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -42,6 +43,11 @@ func SetupConfigFile(configFile string) {
 	} else {
 		Log.Info("Config file NOT being used...requiring NF_ENVIRONMENT_VARIABLES")
 		bindViperEnvVars()
+	}
+
+	if viper.GetBool("debug") {
+		Log.SetLevel(logrus.DebugLevel)
+		Log.Debug("Debug logging enabled!")
 	}
 
 	Cfg = &Config{}

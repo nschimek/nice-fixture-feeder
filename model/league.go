@@ -16,7 +16,7 @@ type League struct {
 	} `json:"country" gorm:"embedded;embeddedPrefix:country_"`
 	Seasons []LeagueSeason`json:"seasons"`
 	Audit `json:"-"`
-	ModelError
+	ModelError `json:"-"`
 }
 
 func (l *League) LogErrors () {
@@ -26,10 +26,10 @@ func (l *League) LogErrors () {
 type LeagueSeason struct {
 	LeagueId int `json:"-" gorm:"primaryKey"`
 	Season int `json:"year" gorm:"primaryKey"`
-	Start CivilTime `json:"start"`
-	End CivilTime `json:"end"`
-	Current bool `json:"current"`
-	Audit `json:"-"`
+	Start CivilTime `json:""`
+	End CivilTime `json:""`
+	Current bool `json:""`
+	Audit
 	ModelError
 }
 

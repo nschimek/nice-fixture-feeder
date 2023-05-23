@@ -27,7 +27,7 @@ func NewRequester(config *core.Config) *Requester {
 	}
 }
 
-func (r *Requester) Get(endpoint string, params url.Values) []byte {
+func (r *Requester) Get(endpoint string, params url.Values) ([]byte, error) {
 	req, err := http.NewRequest("GET", baseUrl + "/" + endpoint, nil)
 	core.IfErrorFatal(err)
 
@@ -41,16 +41,22 @@ func (r *Requester) Get(endpoint string, params url.Values) []byte {
 	return r.doRequest(req)
 }
 
-func (r *Requester) doRequest(req *http.Request) []byte {
+func (r *Requester) doRequest(req *http.Request) ([]byte, error) {
 	core.Log.Infof("Requesting %s...", req.URL.String())
 
 	res, err := r.client.Do(req)
-	core.IfErrorFatal(err)
+	
+	if err != nil {
+		return nil, err
+	}
 
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
-	core.IfErrorFatal(err)
 
-	return body
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
