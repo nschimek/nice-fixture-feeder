@@ -20,19 +20,19 @@ func (lr *LeagueRepository) UpsertLeagues(leagues []model.League) *ResultStats {
 		r1 := lr.DB.Gorm.Clauses(updateAll).Omit("Seasons").Create(&league)
 
 		if r1.Error == nil && len(league.Seasons) > 0 {
-			rs.Success["season"]++
+			rs.Success["league"]++
 			for i := range league.Seasons {
 				league.Seasons[i].LeagueId = league.League.Id
 			}
 			r2 := lr.DB.Gorm.Clauses(updateAll).Create(league.Seasons)
 			if r2.Error == nil {
 				core.Log.WithField("seasons", len(league.Seasons)).Infof("Successfully create/updated league %d along with seasons", league.League.Id)
-				rs.Success["league"]++
+				rs.Success["season"] = rs.Success["season"] + len(league.Seasons)
 			} else {
-				rs.Error["league"]++
+				rs.Error["season"] = rs.Error["season"] + len(league.Seasons)
 			}
 		} else if r1.Error != nil {
-			rs.Error["season"]++
+			rs.Error["league"]++
 			league.CaptureError(r1.Error)
 		}
 	}
