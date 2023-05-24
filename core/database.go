@@ -8,15 +8,28 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
 )
 
-var DB *Database
+var DB *database
 
-type Database struct {
-	Config *Config
-	Gorm *gorm.DB
+var updateAll = clause.OnConflict{UpdateAll: true}
+
+type Database interface {
+	Upsert(value interface{}) DatabaseResult
+	UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult
+}
+
+type DatabaseResult struct {
+	RowsAffected int64
+	Error error
+}
+
+type database struct {
+	config *Config
+	gorm *gorm.DB
 }
 
 const (
@@ -24,35 +37,50 @@ const (
 )
 
 func SetupDatabase(config *Config) {
-	db := &Database{
-		Config: config,
+	db := &database{
+		config: config,
 	}
 	db.connect()
 	DB = db
 }
 
-func (db *Database) connect() {
+func (db *database) Upsert(value interface{}) DatabaseResult {
+	return gormReturn(db.gorm.Clauses(updateAll).Create(value))
+}
+
+func (db *database) UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult {
+	return gormReturn(db.gorm.Clauses(updateAll).Omit(omitColumns...).Create(value))
+}
+
+func (db *database) connect() {
 	Log.WithFields(logrus.Fields{
-		"name":     db.Config.Database.Name,
-		"location": db.Config.Database.Location,
-		"port":     db.Config.Database.Port,
+		"name":     db.config.Database.Name,
+		"location": db.config.Database.Location,
+		"port":     db.config.Database.Port,
 	}).Info("Connecting to database...")
-	dsn := fmt.Sprintf(dsnFormat, db.Config.Database.User, db.Config.Database.Password,
-		db.Config.Database.Location, db.Config.Database.Port, db.Config.Database.Name)
+	dsn := fmt.Sprintf(dsnFormat, db.config.Database.User, db.config.Database.Password,
+		db.config.Database.Location, db.config.Database.Port, db.config.Database.Name)
 	gorm, err := gorm.Open(mysql.Open(dsn), db.getGormConfig())
 
 	if err != nil {
 		Log.Fatal(err)
 	}
 
-	db.Gorm = gorm
+	db.gorm = gorm
 }
 
+// simplifies our DAL return signatures to just what we need from GORM
+func gormReturn(gorm *gorm.DB) DatabaseResult {
+	return DatabaseResult{
+		RowsAffected: gorm.RowsAffected,
+		Error: gorm.Error,
+	}
+}
 
-func (db *Database) getGormConfig() *gorm.Config {
+func (db *database) getGormConfig() *gorm.Config {
 	var logMode logger.LogLevel
 
-	if db.Config.Debug {
+	if db.config.Debug {
 		logMode = logger.Info
 	} else {
 		logMode = logger.Error
@@ -81,15 +109,15 @@ func (l *gormLogger) LogMode(logLevel logger.LogLevel) logger.Interface {
 }
 
 func (l *gormLogger) Info(ctx context.Context, s string, args ...interface{}) {
-	l.log.WithContext(ctx).Infof(s, args)
+	l.log.WithContext(ctx).Infof(s, args...)
 }
 
 func (l *gormLogger) Warn(ctx context.Context, s string, args ...interface{}) {
-	l.log.WithContext(ctx).Warnf(s, args)
+	l.log.WithContext(ctx).Warnf(s, args...)
 }
 
 func (l *gormLogger) Error(ctx context.Context, s string, args ...interface{}) {
-	l.log.WithContext(ctx).Errorf(s, args)
+	l.log.WithContext(ctx).Errorf(s, args...)
 }
 
 func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {

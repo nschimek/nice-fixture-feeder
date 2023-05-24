@@ -46,7 +46,7 @@ func (r *LeagueRequest) Request(season, id int) {
 	data, err := r.requester.Get(leaguesEndpoint, p)
 	
 	if err != nil {
-		core.Log.Error("Could not get league %d: %v", id, err)
+		core.Log.Errorf("Could not get league %d: %v", id, err)
 	}
 
 	err = json.Unmarshal(data, &response)
