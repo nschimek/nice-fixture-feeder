@@ -12,19 +12,23 @@ var Cfg *Config
 type Config struct {
 	Season        int
 	Debug         bool
-	Api struct {
-		Host, Key string
-	}
-	Database struct {
-		User, Password, Location, Name string
-		Port                           int
-	}
-	AWS struct {
-		Region string
-		AccessKeyId string `mapstructure:"access-key-id"`
-		SecretAccessKey string `mapstructure:"secret-access-key"`
-		BucketName string `mapstructure:"bucket-name"`
-	}
+	Api configApi
+	Database configDatabase
+	AWS configAWS
+}
+
+type configApi struct {
+	Host, Key string
+}
+type configDatabase struct {
+	User, Password, Location, Name string
+	Port                           int
+}
+type configAWS struct {
+	Region string
+	AccessKeyId string `mapstructure:"access-key-id"`
+	SecretAccessKey string `mapstructure:"secret-access-key"`
+	BucketName string `mapstructure:"bucket-name"`
 }
 
 func SetupViper() {

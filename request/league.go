@@ -1,8 +1,6 @@
 package request
 
 import (
-	"encoding/json"
-	"net/http"
 	"net/url"
 	"strconv"
 
@@ -20,9 +18,8 @@ const (
 
 type LeagueRequest struct {
 	config *core.Config
-	requester *Requester
-	client *http.Client
-	repo *repository.LeagueRepository
+	requester Requester[model.League]
+	repo repository.Repository[model.League]
 	imageService *service.ImageService
 	RequestedData []model.League
 }
@@ -30,8 +27,7 @@ type LeagueRequest struct {
 func NewLeagueRequest(config *core.Config, repo *repository.LeagueRepository, is *service.ImageService) *LeagueRequest {
 	return &LeagueRequest{
 		config: config,
-		requester: NewRequester(config),
-		client: http.DefaultClient,
+		requester: NewRequester[model.League](config),
 		imageService: is,
 		repo: repo,
 	}
@@ -42,19 +38,12 @@ func (r *LeagueRequest) Request(season, id int) {
 	p.Add("id", strconv.Itoa(id))
 	p.Add("season", strconv.Itoa(season))
 
-	var response Response[model.League]
-	data, err := r.requester.Get(leaguesEndpoint, p)
+	resp, err := r.requester.Get(leaguesEndpoint, p)
 	
 	if err != nil {
 		core.Log.Errorf("Could not get league %d: %v", id, err)
-	}
-
-	err = json.Unmarshal(data, &response)
-
-	if err == nil {
-		r.RequestedData = append(r.RequestedData, response.Response...)
 	} else {
-		core.Log.Errorf("Could not unmarshal league %d JSON: %v", id, err)
+		r.RequestedData = append(r.RequestedData, resp.Response...)
 	}
 }
 

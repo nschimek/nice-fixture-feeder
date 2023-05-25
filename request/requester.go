@@ -1,6 +1,7 @@
 package request
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -8,11 +9,14 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
-type Requester struct {
+type Requester[T any] interface {
+	Get(endpoint string, params url.Values) (*Response[T], error)
+}
+
+type requester[T any] struct {
 	config *core.Config
 	client *http.Client
 }
-
 
 const (
 	headerKey = "X-RapidAPI-Key"
@@ -20,14 +24,14 @@ const (
 	baseUrl = "https://api-football-v1.p.rapidapi.com/v3"
 )
 
-func NewRequester(config *core.Config) *Requester {
-	return &Requester{
+func NewRequester[T any](config *core.Config) *requester[T] {
+	return &requester[T]{
 		config: config,
 		client: http.DefaultClient,
 	}
 }
 
-func (r *Requester) Get(endpoint string, params url.Values) ([]byte, error) {
+func (r *requester[T]) Get(endpoint string, params url.Values) (*Response[T], error) {
 	req, err := http.NewRequest("GET", baseUrl + "/" + endpoint, nil)
 
 	if err != nil {
@@ -41,10 +45,16 @@ func (r *Requester) Get(endpoint string, params url.Values) ([]byte, error) {
 		req.URL.RawQuery = params.Encode()
 	}
 
-	return r.doRequest(req)
+	bytes, err := r.doRequest(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.unmarshal(bytes)
 }
 
-func (r *Requester) doRequest(req *http.Request) ([]byte, error) {
+func (r *requester[T]) doRequest(req *http.Request) ([]byte, error) {
 	core.Log.Infof("Requesting %s...", req.URL.String())
 
 	res, err := r.client.Do(req)
@@ -62,4 +72,15 @@ func (r *Requester) doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func (r *requester[T]) unmarshal(bytes []byte) (*Response[T], error) {
+	var response Response[T]
+	err := json.Unmarshal(bytes, &response)
+
+	if err == nil {
+		return &response, nil
+	} else {
+		return nil, err
+	}
 }
