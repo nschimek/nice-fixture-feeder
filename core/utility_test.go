@@ -11,25 +11,17 @@ func TestIdMapToArray(t *testing.T) {
 		"test1": exists,
 		"test2": exists,
 	}
-	e := IdMapToArray(m)
-	assert.Equal(t, 2, len(e))
-
-	_, ok1 := m[e[0]]
-	assert.True(t, ok1)
-
-	_, ok2 := m[e[1]]
-	assert.True(t, ok2)
+	e := []string{"test1", "test2"}
+	a := IdMapToArray(m)
+	
+	assert.ElementsMatch(t, e, a)
 }
 
 func TestIdArrayToMap(t *testing.T) {
-	a := []string{"test1", "test2"}
-	e := IdArrayToMap(a)
+	e := []string{"test1", "test2"}
+	a := IdArrayToMap(e)
 
 	assert.Equal(t, 2, len(e))
-
-	_, ok1 := e[a[0]]
-	assert.True(t, ok1)
-
-	_, ok2 := e[a[1]]
-	assert.True(t, ok2)
+	assert.Contains(t, a, e[0])
+	assert.Contains(t, a, e[1])
 }
