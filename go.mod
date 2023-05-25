@@ -14,6 +14,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/gorm v1.25.1
+  github.com/aws/smithy-go v1.13.5
 )
 
 require (
@@ -30,7 +31,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.19.0 // indirect
-	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect

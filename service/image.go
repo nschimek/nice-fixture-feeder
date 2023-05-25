@@ -11,17 +11,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ImageService struct {
-	s3 *core.AwsS3
+type ImageService interface {
+	TransferURL(url, bucket, keyFormat string) bool
 }
 
-func NewImageService(s3 *core.AwsS3) *ImageService {
-	return &ImageService{
+type imageService struct {
+	s3 core.S3Client
+}
+
+func NewImageService(s3 core.S3Client) ImageService {
+	return &imageService{
 		s3: s3,
 	}
 }
 
-func (is *ImageService) TransferURL(url, bucket, keyFormat string) bool {
+func (is *imageService) TransferURL(url, bucket, keyFormat string) bool {
 	finalKeyName := fmt.Sprintf(keyFormat, path.Base(url))
 	core.Log.WithFields(logrus.Fields{
 		"url": url,
@@ -52,7 +56,7 @@ func (is *ImageService) TransferURL(url, bucket, keyFormat string) bool {
 	}
 }
 
-func (is *ImageService) download(url string) ([]byte, error) {
+func (is *imageService) download(url string) ([]byte, error) {
 	res, err := http.Get(url)
 
 	if err != nil {
@@ -60,7 +64,8 @@ func (is *ImageService) download(url string) ([]byte, error) {
 	} else if (res.StatusCode != 200) {
 		return nil, errors.New("received non-200 response code")
 	}
-
+	
+	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 
 	return body, err
