@@ -59,7 +59,7 @@ func (r *LeagueRequest) Request(season, id int) {
 }
 
 func (r *LeagueRequest) Persist() {
-	rs := r.repo.UpsertLeagues(r.RequestedData)
+	rs := r.repo.Upsert(r.RequestedData)
 	rs.LogErrors()
 	rs.LogSuccesses()
 }

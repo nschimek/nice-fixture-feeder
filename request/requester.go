@@ -29,7 +29,10 @@ func NewRequester(config *core.Config) *Requester {
 
 func (r *Requester) Get(endpoint string, params url.Values) ([]byte, error) {
 	req, err := http.NewRequest("GET", baseUrl + "/" + endpoint, nil)
-	core.IfErrorFatal(err)
+
+	if err != nil {
+		return nil, err
+	}
 
 	req.Header.Add(headerKey, r.config.Api.Key)
 	req.Header.Add(headerHost, r.config.Api.Host)

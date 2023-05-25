@@ -7,7 +7,6 @@ type League struct {
 	Country LeagueCountry `json:"country" gorm:"embedded;embeddedPrefix:country_"`
 	Seasons []LeagueSeason`json:"seasons"`
 	Audit `json:"-"`
-	ModelError `json:"-"`
 }
 
 type LeagueLeague struct {
@@ -21,10 +20,6 @@ type LeagueCountry struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 	Flag string `json:"flag" gorm:"-"`
-}
-
-func (l *League) LogErrors () {
-	l.logErrors(fmt.Sprint("league", l.League.Id))
 }
 
 type LeagueSeason struct {
