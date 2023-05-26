@@ -21,6 +21,7 @@ func (c *CivilTime) UnmarshalJSON(b []byte) error {
 	if err != nil {
 			return err
 	}
+	
 	*c = CivilTime(t) //set result using the pointer
 	return nil
 }

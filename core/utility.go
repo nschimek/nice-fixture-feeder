@@ -1,6 +1,12 @@
 package core
 
-var exists = struct{}{}
+import "time"
+
+var (
+	EST, _ = time.LoadLocation("merica/New_York")
+	CST, _ = time.LoadLocation("America/Chicago")
+	exists = struct{}{}
+)
 
 func IdMapToArray(idMap map[string]struct{}) (ids []string) {
 	for id := range idMap {
