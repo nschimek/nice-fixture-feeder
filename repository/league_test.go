@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type LeagueRepositoryTestSuite struct {
+type leagueRepositoryTestSuite struct {
 	suite.Suite
 	seasons []model.LeagueSeason
 	league model.LeagueLeague
@@ -18,40 +18,40 @@ type LeagueRepositoryTestSuite struct {
 }
 
 func TestLeagueRepositoryTestSuite(t *testing.T) {
-	suite.Run(t, new(LeagueRepositoryTestSuite))
+	suite.Run(t, new(leagueRepositoryTestSuite))
 }
 
-func (suite *LeagueRepositoryTestSuite) SetupTest() {
-	suite.seasons = []model.LeagueSeason{{Season: 2022}}
-	suite.league = model.LeagueLeague{Id: 1}
-	suite.leagues = []model.League{{League: suite.league, Seasons: suite.seasons}}
-	suite.mockDatabase = &core.MockDatabase{}
+func (s *leagueRepositoryTestSuite) SetupTest() {
+	s.seasons = []model.LeagueSeason{{Season: 2022}}
+	s.league = model.LeagueLeague{Id: 1}
+	s.leagues = []model.League{{League: s.league, Seasons: s.seasons}}
+	s.mockDatabase = &core.MockDatabase{}
 }
 
-func (suite *LeagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
+func (s *leagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
 	r := core.DatabaseResult{RowsAffected: 1, Error: nil}
 
-	suite.mockDatabase.On("Upsert", &suite.leagues[0]).Return(r)
+	s.mockDatabase.EXPECT().Upsert(&s.leagues[0]).Return(r)
 
-	repo := &LeagueRepository{DB: suite.mockDatabase}
-	actual := repo.Upsert(suite.leagues)
+	repo := &LeagueRepository{DB: s.mockDatabase}
+	actual := repo.Upsert(s.leagues)
 
-	suite.Equal(0, actual.Error["league"])
-	suite.Equal(0, actual.Error["season"])
-	suite.Equal(1, actual.Success["league"])
-	suite.Equal(1, actual.Success["season"])
+	s.Equal(0, actual.Error["league"])
+	s.Equal(0, actual.Error["season"])
+	s.Equal(1, actual.Success["league"])
+	s.Equal(1, actual.Success["season"])
 }
 
-func (suite *LeagueRepositoryTestSuite) TestUpsertLeagueError() {
+func (s *leagueRepositoryTestSuite) TestUpsertLeagueError() {
 	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
 
-	suite.mockDatabase.On("Upsert", &suite.leagues[0]).Return(r)
+	s.mockDatabase.EXPECT().Upsert(&s.leagues[0]).Return(r)
 
-	repo := &LeagueRepository{DB: suite.mockDatabase}
-	actual := repo.Upsert(suite.leagues)
+	repo := &LeagueRepository{DB: s.mockDatabase}
+	actual := repo.Upsert(s.leagues)
 
-	suite.Equal(1, actual.Error["league"])
-	suite.Equal(1, actual.Error["season"])
-	suite.Equal(0, actual.Success["league"])
-	suite.Equal(0, actual.Success["season"])
+	s.Equal(1, actual.Error["league"])
+	s.Equal(1, actual.Error["season"])
+	s.Equal(0, actual.Success["league"])
+	s.Equal(0, actual.Success["season"])
 }

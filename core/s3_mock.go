@@ -9,6 +9,14 @@ type MockS3Client struct {
 	mock.Mock
 }
 
+type MockS3Client_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockS3Client) EXPECT() *MockS3Client_Expecter {
+	return &MockS3Client_Expecter{mock: &_m.Mock}
+}
+
 // Exists provides a mock function with given fields: bucket, key
 func (_m *MockS3Client) Exists(bucket string, key string) (bool, error) {
 	ret := _m.Called(bucket, key)
@@ -33,6 +41,35 @@ func (_m *MockS3Client) Exists(bucket string, key string) (bool, error) {
 	return r0, r1
 }
 
+// MockS3Client_Exists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exists'
+type MockS3Client_Exists_Call struct {
+	*mock.Call
+}
+
+// Exists is a helper method to define mock.On call
+//   - bucket string
+//   - key string
+func (_e *MockS3Client_Expecter) Exists(bucket interface{}, key interface{}) *MockS3Client_Exists_Call {
+	return &MockS3Client_Exists_Call{Call: _e.mock.On("Exists", bucket, key)}
+}
+
+func (_c *MockS3Client_Exists_Call) Run(run func(bucket string, key string)) *MockS3Client_Exists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockS3Client_Exists_Call) Return(_a0 bool, _a1 error) *MockS3Client_Exists_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockS3Client_Exists_Call) RunAndReturn(run func(string, string) (bool, error)) *MockS3Client_Exists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Upload provides a mock function with given fields: data, bucket, key
 func (_m *MockS3Client) Upload(data []byte, bucket string, key string) error {
 	ret := _m.Called(data, bucket, key)
@@ -45,6 +82,36 @@ func (_m *MockS3Client) Upload(data []byte, bucket string, key string) error {
 	}
 
 	return r0
+}
+
+// MockS3Client_Upload_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upload'
+type MockS3Client_Upload_Call struct {
+	*mock.Call
+}
+
+// Upload is a helper method to define mock.On call
+//   - data []byte
+//   - bucket string
+//   - key string
+func (_e *MockS3Client_Expecter) Upload(data interface{}, bucket interface{}, key interface{}) *MockS3Client_Upload_Call {
+	return &MockS3Client_Upload_Call{Call: _e.mock.On("Upload", data, bucket, key)}
+}
+
+func (_c *MockS3Client_Upload_Call) Run(run func(data []byte, bucket string, key string)) *MockS3Client_Upload_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]byte), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockS3Client_Upload_Call) Return(_a0 error) *MockS3Client_Upload_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockS3Client_Upload_Call) RunAndReturn(run func([]byte, string, string) error) *MockS3Client_Upload_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockS3Client interface {

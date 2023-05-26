@@ -9,6 +9,14 @@ type MockDatabase struct {
 	mock.Mock
 }
 
+type MockDatabase_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockDatabase) EXPECT() *MockDatabase_Expecter {
+	return &MockDatabase_Expecter{mock: &_m.Mock}
+}
+
 // Upsert provides a mock function with given fields: value
 func (_m *MockDatabase) Upsert(value interface{}) DatabaseResult {
 	ret := _m.Called(value)
@@ -21,6 +29,34 @@ func (_m *MockDatabase) Upsert(value interface{}) DatabaseResult {
 	}
 
 	return r0
+}
+
+// MockDatabase_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type MockDatabase_Upsert_Call struct {
+	*mock.Call
+}
+
+// Upsert is a helper method to define mock.On call
+//   - value interface{}
+func (_e *MockDatabase_Expecter) Upsert(value interface{}) *MockDatabase_Upsert_Call {
+	return &MockDatabase_Upsert_Call{Call: _e.mock.On("Upsert", value)}
+}
+
+func (_c *MockDatabase_Upsert_Call) Run(run func(value interface{})) *MockDatabase_Upsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockDatabase_Upsert_Call) Return(_a0 DatabaseResult) *MockDatabase_Upsert_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDatabase_Upsert_Call) RunAndReturn(run func(interface{}) DatabaseResult) *MockDatabase_Upsert_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpsertWithOmit provides a mock function with given fields: value, omitColumns
@@ -42,6 +78,42 @@ func (_m *MockDatabase) UpsertWithOmit(value interface{}, omitColumns ...string)
 	}
 
 	return r0
+}
+
+// MockDatabase_UpsertWithOmit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertWithOmit'
+type MockDatabase_UpsertWithOmit_Call struct {
+	*mock.Call
+}
+
+// UpsertWithOmit is a helper method to define mock.On call
+//   - value interface{}
+//   - omitColumns ...string
+func (_e *MockDatabase_Expecter) UpsertWithOmit(value interface{}, omitColumns ...interface{}) *MockDatabase_UpsertWithOmit_Call {
+	return &MockDatabase_UpsertWithOmit_Call{Call: _e.mock.On("UpsertWithOmit",
+		append([]interface{}{value}, omitColumns...)...)}
+}
+
+func (_c *MockDatabase_UpsertWithOmit_Call) Run(run func(value interface{}, omitColumns ...string)) *MockDatabase_UpsertWithOmit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]string, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(string)
+			}
+		}
+		run(args[0].(interface{}), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockDatabase_UpsertWithOmit_Call) Return(_a0 DatabaseResult) *MockDatabase_UpsertWithOmit_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDatabase_UpsertWithOmit_Call) RunAndReturn(run func(interface{}, ...string) DatabaseResult) *MockDatabase_UpsertWithOmit_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockDatabase interface {

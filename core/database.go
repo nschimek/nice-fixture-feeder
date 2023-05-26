@@ -17,6 +17,7 @@ var DB *database
 
 var updateAll = clause.OnConflict{UpdateAll: true}
 
+//go:generate mockery --name Database
 type Database interface {
 	Upsert(value interface{}) DatabaseResult
 	UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult

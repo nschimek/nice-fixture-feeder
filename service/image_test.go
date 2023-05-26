@@ -19,75 +19,87 @@ const (
 	testFinalKeyName = "/test/test.txt"
 )
 
-type ImageServiceTestSuite struct {
+type imageServiceTestSuite struct {
 	suite.Suite
 	mockS3 *core.MockS3Client
-	is *imageService
+	imageService *imageService
 }
 
 func TestLeagueRepositoryTestSuite(t *testing.T) {
-	suite.Run(t, new(ImageServiceTestSuite))
+	suite.Run(t, new(imageServiceTestSuite))
 }
 
-func (suite *ImageServiceTestSuite) SetupTest() {
-	suite.mockS3 = &core.MockS3Client{}
-	suite.is = &imageService{s3: suite.mockS3}
+func (s *imageServiceTestSuite) SetupTest() {
+	s.mockS3 = &core.MockS3Client{}
+	s.imageService = &imageService{s3: s.mockS3}
 }
 
-func (suite *ImageServiceTestSuite) TestSuccessful() {
+func (s *imageServiceTestSuite) TestSuccessful() {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, testData)
 	}))
 	defer svr.Close()
 
-	suite.mockS3.On("Exists", testBucket, testFinalKeyName).Return(false, nil)
-	suite.mockS3.On("Upload", []byte(testData), testBucket, testFinalKeyName).Return(nil)
+	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(false, nil)
+	s.mockS3.EXPECT().Upload([]byte(testData), testBucket, testFinalKeyName).Return(nil)
 
-	r := suite.is.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
+	r := s.imageService.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
 
-	suite.True(r)
+	s.True(r)
 }
 
-func (suite *ImageServiceTestSuite) TestExistsError() {
-	suite.mockS3.On("Exists", testBucket, testFinalKeyName).Return(false, errors.New("test"))
+func (s *imageServiceTestSuite) TestExistsError() {
+	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(false, errors.New("test"))
 
 	// url does not matter for this test, as we never get there
-	r := suite.is.TransferURL(testFileName, testBucket, testKeyFormat)
+	r := s.imageService.TransferURL(testFileName, testBucket, testKeyFormat)
 
-	suite.False(r)
+	s.False(r)
 }
 
-func (suite *ImageServiceTestSuite) TestDownloadError() {
+func (s *imageServiceTestSuite) TestDownloadError() {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Test Error", http.StatusBadRequest)
 	}))
 	defer svr.Close()
 
-	suite.mockS3.On("Exists", testBucket, testFinalKeyName).Return(false, nil)
+	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(false, nil)
 
-	r := suite.is.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
+	r := s.imageService.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
 
-	suite.False(r)
+	s.False(r)
 }
 
-func (suite *ImageServiceTestSuite) TestUploadError() {
+func (s *imageServiceTestSuite) TestDownloadNon200() {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "test", http.StatusNoContent)
+	}))
+	defer svr.Close()
+
+	r, err := s.imageService.download(svr.URL + "/" + testFileName)
+
+	s.Nil(r, "received non-200 response code")
+	s.Error(err)
+}
+
+func (s *imageServiceTestSuite) TestUploadError() {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, testData)
 	}))
 	defer svr.Close()
 
-	suite.mockS3.On("Exists", testBucket, testFinalKeyName).Return(false, nil)
-	suite.mockS3.On("Upload", []byte(testData), testBucket, testFinalKeyName).Return(errors.New("test"))
+	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(false, nil)
+	s.mockS3.EXPECT().Upload([]byte(testData), testBucket, testFinalKeyName).Return(errors.New("test"))
 
-	r := suite.is.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
-	suite.False(r)
+	r := s.imageService.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
+	s.False(r)
 }
 
-func (suite *ImageServiceTestSuite) TestImageExists() {
-	suite.mockS3.On("Exists", testBucket, testFinalKeyName).Return(true, nil)
+func (s *imageServiceTestSuite) TestImageExists() {
+	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(true, nil)
 
 	// url does not matter for this test, as we never get there
-	r := suite.is.TransferURL(testFileName, testBucket, testKeyFormat)
+	r := s.imageService.TransferURL(testFileName, testBucket, testKeyFormat)
 
-	suite.False(r)
+	s.False(r)
 }

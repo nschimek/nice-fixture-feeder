@@ -9,6 +9,14 @@ type MockRepository[T interface{}] struct {
 	mock.Mock
 }
 
+type MockRepository_Expecter[T interface{}] struct {
+	mock *mock.Mock
+}
+
+func (_m *MockRepository[T]) EXPECT() *MockRepository_Expecter[T] {
+	return &MockRepository_Expecter[T]{mock: &_m.Mock}
+}
+
 // Upsert provides a mock function with given fields: _a0
 func (_m *MockRepository[T]) Upsert(_a0 []T) *ResultStats {
 	ret := _m.Called(_a0)
@@ -23,6 +31,34 @@ func (_m *MockRepository[T]) Upsert(_a0 []T) *ResultStats {
 	}
 
 	return r0
+}
+
+// MockRepository_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type MockRepository_Upsert_Call[T interface{}] struct {
+	*mock.Call
+}
+
+// Upsert is a helper method to define mock.On call
+//   - _a0 []T
+func (_e *MockRepository_Expecter[T]) Upsert(_a0 interface{}) *MockRepository_Upsert_Call[T] {
+	return &MockRepository_Upsert_Call[T]{Call: _e.mock.On("Upsert", _a0)}
+}
+
+func (_c *MockRepository_Upsert_Call[T]) Run(run func(_a0 []T)) *MockRepository_Upsert_Call[T] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]T))
+	})
+	return _c
+}
+
+func (_c *MockRepository_Upsert_Call[T]) Return(_a0 *ResultStats) *MockRepository_Upsert_Call[T] {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockRepository_Upsert_Call[T]) RunAndReturn(run func([]T) *ResultStats) *MockRepository_Upsert_Call[T] {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockRepository interface {

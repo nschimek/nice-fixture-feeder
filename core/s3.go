@@ -23,7 +23,7 @@ func SetupS3(config *Config) {
 	}
 }
 
-// S3Client interface represents a DAL with the S3 Client library
+//go:generate mockery --name S3Client
 type S3Client interface {
 	Exists(bucket, key string) (bool, error)
 	Upload(data []byte, bucket, key string) error
