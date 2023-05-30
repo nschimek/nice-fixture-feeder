@@ -32,13 +32,12 @@ func (c CivilTime) MarshalJSON() ([]byte, error) {
 
 // Scanner / Value interface methods to integrate with GORM
 func (c *CivilTime) Scan(value interface{}) error {
-	b, ok := value.([]byte)
+	t, ok := value.(time.Time)
 	if !ok {
-		return errors.New(fmt.Sprint("Failed to convert CivilTime value:", value))
+		return errors.New(fmt.Sprint("Failed to convert DateTime value:", value))
 	}
-	t, err := time.Parse("2006-01-02", string(b))
 	*c = CivilTime(t)
-	return err
+	return nil
 }
 
 func (c CivilTime) Value() (driver.Value, error) {
