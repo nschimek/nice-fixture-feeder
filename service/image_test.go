@@ -57,17 +57,13 @@ func (s *imageServiceTestSuite) TestExistsError() {
 	s.False(r)
 }
 
-func (s *imageServiceTestSuite) TestDownloadError() {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "Test Error", http.StatusBadRequest)
-	}))
-	defer svr.Close()
-
+func (s *imageServiceTestSuite) TestDownloadResponseError() {
 	s.mockS3.EXPECT().Exists(testBucket, testFinalKeyName).Return(false, nil)
 
-	r := s.imageService.TransferURL(svr.URL + "/" + testFileName, testBucket, testKeyFormat)
+	r, err := s.imageService.download("invalid URL")
 
-	s.False(r)
+	s.Nil(r)
+	s.ErrorContains(err, "unsupported protocol scheme")
 }
 
 func (s *imageServiceTestSuite) TestDownloadNon200() {
@@ -78,8 +74,20 @@ func (s *imageServiceTestSuite) TestDownloadNon200() {
 
 	r, err := s.imageService.download(svr.URL + "/" + testFileName)
 
-	s.Nil(r, "received non-200 response code")
-	s.Error(err)
+	s.Nil(r)
+	s.ErrorContains(err, "received non-200 response code")
+}
+
+func (s *imageServiceTestSuite) TestReadError() {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", "1")
+	}))
+	defer svr.Close()
+
+	r, err := s.imageService.download(svr.URL + "/" + testFileName)
+
+	s.Equal(r, []byte{})
+	s.ErrorContains(err, "unexpected EOF")
 }
 
 func (s *imageServiceTestSuite) TestUploadError() {
