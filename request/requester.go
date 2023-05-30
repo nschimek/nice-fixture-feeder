@@ -17,9 +17,8 @@ type Requester[T any] interface {
 }
 
 type requester[T any] struct {
-	baseUrl string
+	BaseUrl string
 	config *core.Config
-	client *http.Client
 }
 
 const (
@@ -29,18 +28,13 @@ const (
 
 func NewRequester[T any](config *core.Config) *requester[T] {
 	return &requester[T]{
-		baseUrl: fmt.Sprintf(config.Api.UrlFormat, config.Api.Host),
+		BaseUrl: fmt.Sprintf(config.Api.UrlFormat, config.Api.Host),
 		config: config,
-		client: http.DefaultClient,
 	}
 }
 
 func (r *requester[T]) Get(endpoint string, params url.Values) (*Response[T], error) {
-	req, err := http.NewRequest("GET", r.baseUrl + "/" + endpoint, nil)
-
-	if err != nil {
-		return nil, err
-	}
+	req, _ := http.NewRequest("GET", r.BaseUrl + "/" + endpoint, nil)
 
 	req.Header.Add(headerKey, r.config.Api.Key)
 	req.Header.Add(headerHost, r.config.Api.Host)
@@ -61,7 +55,8 @@ func (r *requester[T]) Get(endpoint string, params url.Values) (*Response[T], er
 func (r *requester[T]) doRequest(req *http.Request) ([]byte, error) {
 	core.Log.Infof("Requesting %s...", req.URL.String())
 
-	res, err := r.client.Do(req)
+	c := http.DefaultClient
+	res, err := c.Do(req)
 	
 	if err != nil {
 		return nil, err

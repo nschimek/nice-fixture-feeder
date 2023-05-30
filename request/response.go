@@ -4,7 +4,6 @@ import "encoding/json"
 
 type Response[T any] struct {
 	Get string `json:""`
-	Parameters MapOrEmptyArray `json:",omitempty"`
 	Errors MapOrEmptyArray `json:",omitempty"`
 	Paging struct {
 		Current int `json:""`
