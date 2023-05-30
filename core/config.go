@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type configApi struct {
-	Host, Key string
+	Host, UrlFormat, Key string
 }
 type configDatabase struct {
 	User, Password, Location, Name string
@@ -67,6 +67,7 @@ func SetupConfigFile(configFile string) {
 
 // viper needs a little help with these nested variables...
 func bindViperEnvVars() {
+	viper.BindEnv("api.base-url")
 	viper.BindEnv("api.host")
 	viper.BindEnv("api.key")
 	viper.BindEnv("database.user")

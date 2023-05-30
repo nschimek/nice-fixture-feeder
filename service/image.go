@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --name ImageService
 type ImageService interface {
 	TransferURL(url, bucket, keyFormat string) bool
 }
@@ -61,7 +62,7 @@ func (is *imageService) download(url string) ([]byte, error) {
 
 	if err != nil {
 		return nil, err
-	} else if (res.StatusCode != 200) {
+	} else if (res.StatusCode != http.StatusOK) {
 		return nil, errors.New("received non-200 response code")
 	}
 	

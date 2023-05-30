@@ -1,11 +1,12 @@
 package core
 
 // Can be injected into tests to provide mocked config values
-var ConfigMock = &Config{
+var MockConfig = &Config{
 	Season: 2022,
 	Debug: true,
 	Api: configApi{
 		Host: "api.sample-host.com",
+		UrlFormat: "http://%s/v1",
 		Key: "not-a-real-key",
 	},
 	Database: configDatabase{

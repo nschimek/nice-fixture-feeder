@@ -13,6 +13,14 @@ type MockRequester[T interface{}] struct {
 	mock.Mock
 }
 
+type MockRequester_Expecter[T interface{}] struct {
+	mock *mock.Mock
+}
+
+func (_m *MockRequester[T]) EXPECT() *MockRequester_Expecter[T] {
+	return &MockRequester_Expecter[T]{mock: &_m.Mock}
+}
+
 // Get provides a mock function with given fields: endpoint, params
 func (_m *MockRequester[T]) Get(endpoint string, params url.Values) (*Response[T], error) {
 	ret := _m.Called(endpoint, params)
@@ -37,6 +45,35 @@ func (_m *MockRequester[T]) Get(endpoint string, params url.Values) (*Response[T
 	}
 
 	return r0, r1
+}
+
+// MockRequester_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type MockRequester_Get_Call[T interface{}] struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - endpoint string
+//   - params url.Values
+func (_e *MockRequester_Expecter[T]) Get(endpoint interface{}, params interface{}) *MockRequester_Get_Call[T] {
+	return &MockRequester_Get_Call[T]{Call: _e.mock.On("Get", endpoint, params)}
+}
+
+func (_c *MockRequester_Get_Call[T]) Run(run func(endpoint string, params url.Values)) *MockRequester_Get_Call[T] {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(url.Values))
+	})
+	return _c
+}
+
+func (_c *MockRequester_Get_Call[T]) Return(_a0 *Response[T], _a1 error) *MockRequester_Get_Call[T] {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRequester_Get_Call[T]) RunAndReturn(run func(string, url.Values) (*Response[T], error)) *MockRequester_Get_Call[T] {
+	_c.Call.Return(run)
+	return _c
 }
 
 type mockConstructorTestingTNewMockRequester interface {

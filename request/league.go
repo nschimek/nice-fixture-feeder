@@ -16,7 +16,15 @@ const (
 	countryKeyFormat = "images/flags/%s"
 )
 
-type LeagueRequest struct {
+//go:generate mockery --name LeagueRequest
+type LeagueRequest interface {
+	Request(idMap map[string]struct{})
+	Persist()
+	PostPersist()
+	GetData() []model.League
+}
+
+type leagueRequest struct {
 	config *core.Config
 	requester Requester[model.League]
 	repo repository.Repository[model.League]
@@ -24,8 +32,8 @@ type LeagueRequest struct {
 	RequestedData []model.League
 }
 
-func NewLeagueRequest(config *core.Config, repo repository.Repository[model.League], is service.ImageService) *LeagueRequest {
-	return &LeagueRequest{
+func NewLeagueRequest(config *core.Config, repo repository.Repository[model.League], is service.ImageService) LeagueRequest {
+	return &leagueRequest{
 		config: config,
 		requester: NewRequester[model.League](config),
 		imageService: is,
@@ -33,29 +41,43 @@ func NewLeagueRequest(config *core.Config, repo repository.Repository[model.Leag
 	}
 }
 
-func (r *LeagueRequest) Request(season, id int) {
-	p := url.Values{}
-	p.Add("id", strconv.Itoa(id))
-	p.Add("season", strconv.Itoa(season))
-
-	resp, err := r.requester.Get(leaguesEndpoint, p)
-	
-	if err != nil {
-		core.Log.Errorf("Could not get league %d: %v", id, err)
-	} else {
-		r.RequestedData = append(r.RequestedData, resp.Response...)
+func (r *leagueRequest) Request(idMap map[string]struct{}) {
+	for _, id := range core.IdMapToArray(idMap) {
+		if leagues, err := r.request(id); err == nil {
+			r.RequestedData = append(r.RequestedData, leagues...)
+		} else {
+			core.Log.Errorf("Could not get league %s: %v", id, err)
+		}
 	}
 }
 
-func (r *LeagueRequest) Persist() {
+func (r *leagueRequest) request(id string) ([]model.League, error) {
+	p := url.Values{}
+	p.Add("id", id)
+	p.Add("season", strconv.Itoa(r.config.Season))
+
+	resp, err := r.requester.Get(leaguesEndpoint, p)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Response, nil
+}
+
+func (r *leagueRequest) Persist() {
 	rs := r.repo.Upsert(r.RequestedData)
 	rs.LogErrors()
 	rs.LogSuccesses()
 }
 
-func (r *LeagueRequest) PostPersist() {
+func (r *leagueRequest) PostPersist() {
 	for _, league := range r.RequestedData {
 		r.imageService.TransferURL(league.League.Logo, r.config.AWS.BucketName, leagueKeyFormat)
 		r.imageService.TransferURL(league.Country.Flag, r.config.AWS.BucketName, countryKeyFormat)
 	}
+}
+
+func (r *leagueRequest) GetData() []model.League {
+	return r.RequestedData
 }
