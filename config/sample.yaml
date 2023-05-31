@@ -1,0 +1,17 @@
+season: 2022
+debug: true
+api:
+  host: fake-sample.api.com
+  urlFormat: https://%s/v1
+  key: fake-api-key
+database:
+  user: fake-user
+  password: fake-password
+  location: localhost
+  port: 3306
+  name: database
+aws:
+  region: us-east-1
+  access-key-id: fake-access-key-id
+  secret-access-key: fake-secret-access-key
+  bucket-name: fake-bucket-name

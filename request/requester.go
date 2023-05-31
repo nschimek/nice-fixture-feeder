@@ -28,7 +28,7 @@ const (
 
 func NewRequester[T any](config *core.Config) *requester[T] {
 	return &requester[T]{
-		BaseUrl: fmt.Sprintf(config.Api.UrlFormat, config.Api.Host),
+		BaseUrl: fmt.Sprintf(config.API.UrlFormat, config.API.Host),
 		config: config,
 	}
 }
@@ -36,8 +36,8 @@ func NewRequester[T any](config *core.Config) *requester[T] {
 func (r *requester[T]) Get(endpoint string, params url.Values) (*Response[T], error) {
 	req, _ := http.NewRequest("GET", r.BaseUrl + "/" + endpoint, nil)
 
-	req.Header.Add(headerKey, r.config.Api.Key)
-	req.Header.Add(headerHost, r.config.Api.Host)
+	req.Header.Add(headerKey, r.config.API.Key)
+	req.Header.Add(headerHost, r.config.API.Host)
 	
 	if params != nil {
 		req.URL.RawQuery = params.Encode()

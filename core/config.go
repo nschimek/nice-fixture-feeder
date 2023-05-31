@@ -12,12 +12,12 @@ var Cfg *Config
 type Config struct {
 	Season        int
 	Debug         bool
-	Api configApi
+	API configAPI
 	Database configDatabase
 	AWS configAWS
 }
 
-type configApi struct {
+type configAPI struct {
 	Host, UrlFormat, Key string
 }
 type configDatabase struct {

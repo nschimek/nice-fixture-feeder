@@ -4,7 +4,7 @@ package core
 var MockConfig = &Config{
 	Season: 2022,
 	Debug: true,
-	Api: configApi{
+	API: configAPI{
 		Host: "api.sample-host.com",
 		UrlFormat: "http://%s/v1",
 		Key: "not-a-real-key",
