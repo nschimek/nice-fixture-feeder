@@ -18,7 +18,8 @@ type Config struct {
 }
 
 type configAPI struct {
-	Host, UrlFormat, Key string
+	Host, Key string
+	UrlFormat	string `mapstructure:"url-format"`
 }
 type configDatabase struct {
 	User, Password, Location, Name string
@@ -69,6 +70,7 @@ func SetupConfigFile(configFile string) {
 func bindViperEnvVars() {
 	viper.BindEnv("api.base-url")
 	viper.BindEnv("api.host")
+	viper.BindEnv("api.url-format")
 	viper.BindEnv("api.key")
 	viper.BindEnv("database.user")
 	viper.BindEnv("database.password")
