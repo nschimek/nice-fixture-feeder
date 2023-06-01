@@ -1,9 +1,9 @@
 package model
 
 type Team struct {
-	Team TeamTeam `json:"team" gorm:"embedded"`
+	Team TeamTeam `gorm:"embedded"`
 	TeamLeagueSeason TeamLeagueSeason `json:"-"`
-	TeamVenue TeamVenue `json:"venue" gorm:"embedded;embeddedPrefix:venue_"`
+	Venue TeamVenue `gorm:"embedded;embeddedPrefix:venue_"`
 }
 
 func (t *Team) SetTLS(leagueId, season int) {
