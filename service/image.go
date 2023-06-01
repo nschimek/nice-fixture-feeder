@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,7 @@ func NewImageService(s3 core.S3Client) ImageService {
 }
 
 func (is *imageService) TransferURL(url, bucket, keyFormat string) bool {
+	time.Sleep(500 * time.Millisecond) // half second rate limit 
 	finalKeyName := fmt.Sprintf(keyFormat, path.Base(url))
 	core.Log.WithFields(logrus.Fields{
 		"url": url,

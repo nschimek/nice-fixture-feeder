@@ -1,7 +1,7 @@
 package model
 
 type Team struct {
-	Team TeamTeam `json:"league" gorm:"embedded"`
+	Team TeamTeam `json:"team" gorm:"embedded"`
 	TeamLeagueSeason TeamLeagueSeason `json:"-"`
 	TeamVenue TeamVenue `json:"venue" gorm:"embedded;embeddedPrefix:venue_"`
 }
@@ -25,6 +25,7 @@ type TeamLeagueSeason struct {
 	TeamId int `gorm:"primaryKey"`
 	LeagueId int `gorm:"primaryKey"`
 	Season int `gorm:"primaryKey"`
+	MaxFixtureId int
 }
 
 type TeamVenue struct {

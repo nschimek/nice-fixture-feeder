@@ -17,11 +17,11 @@ func (lr *TeamRepository) Upsert(teams []model.Team) *ResultStats {
 
 	if r.Error == nil {
 		rs.Success["team"] = len(teams)
-		rs.Success["team_league_seasons"] = len(teams)
+		rs.Success["team_league_season"] = len(teams)
 		core.Log.WithField("teams", len(teams)).Infof("Successfully create/updated teams along with team league seasons")
 	} else {
 		rs.Error["team"] = len(teams)
-		rs.Error["team_league_seasons"] = len(teams)
+		rs.Error["team_league_season"] = len(teams)
 	}
 
 	return rs

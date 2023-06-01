@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	teamsEndpoint = "leagues"
+	teamsEndpoint = "teams"
 	teamKeyFormat = "images/logos/teams/%s"
 )
 
@@ -41,7 +41,7 @@ func NewTeamRequest(config *core.Config, repo repository.Repository[model.Team],
 }
 
 func (r *teamRequest) Request(idMap map[string]struct{}) {
-	for _, leagueId := range core.IdMapToArray(idMap) {
+	for leagueId := range idMap {
 		if teams, err := r.request(leagueId); err == nil {
 			r.RequestedData = append(r.RequestedData, teams...)
 		} else {
@@ -52,7 +52,7 @@ func (r *teamRequest) Request(idMap map[string]struct{}) {
 
 func (r *teamRequest) request(leagueId string) ([]model.Team, error) {
 	p := url.Values{}
-	p.Add("leagueId", leagueId)
+	p.Add("league", leagueId)
 	p.Add("season", strconv.Itoa(r.config.Season))
 
 	resp, err := r.requester.Get(teamsEndpoint, p)
@@ -62,7 +62,7 @@ func (r *teamRequest) request(leagueId string) ([]model.Team, error) {
 	}
 
 	lid, _ := strconv.Atoi(leagueId)
-	var teams []model.Team
+	teams := make([]model.Team, len(resp.Response))
 	for i, t := range resp.Response {
 		t.SetTLS(lid, r.config.Season)
 		teams[i] = t

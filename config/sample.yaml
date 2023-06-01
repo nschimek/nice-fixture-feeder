@@ -2,7 +2,7 @@ season: 2022
 debug: true
 api:
   host: fake-sample.api.com
-  urlFormat: https://%s/v1
+  url-format: https://%s/v1
   key: fake-api-key
 database:
   user: fake-user
