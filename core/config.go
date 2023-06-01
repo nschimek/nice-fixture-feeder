@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -41,12 +42,20 @@ func SetupViper() {
 
 // this is intentionally kept separate from SetupViper() as configFile will eventually be passed in from a Cobra command
 func SetupConfigFile(configFile string) {
-	if viper.GetBool("use-config-file") {
+	if cfg, err := getConfig(viper.GetBool("use-config-file"), configFile); err == nil {
+		Cfg = cfg // set the global variable abo
+	} else {
+		Log.Fatalf(err.Error())
+	}
+}
+
+func getConfig(useConfigFile bool, configFile string) (*Config, error) {
+	if useConfigFile {
 		viper.SetConfigFile(configFile)
 		if err := viper.ReadInConfig(); err == nil {
 			Log.Infof("Loaded config file: %s", viper.ConfigFileUsed())
 		} else {
-			Log.Fatalf("Could not load config file: %s!", configFile)
+			return nil, fmt.Errorf("could not load config file: %s", configFile)
 		}
 	} else {
 		Log.Info("Config file NOT being used...requiring NF_ENVIRONMENT_VARIABLES")
@@ -58,11 +67,12 @@ func SetupConfigFile(configFile string) {
 		Log.Debug("Debug logging enabled!")
 	}
 
-	Cfg = &Config{}
-	if err := viper.Unmarshal(Cfg); err != nil {
-		Log.Fatalf("Error decoding Config struct: %v", err)
+	cfg := &Config{}
+	if err := viper.Unmarshal(cfg); err != nil {
+		return nil, fmt.Errorf("error decoding config struct: %v", err)
 	} else {
 		Log.Infof("Config successfully initialized")
+		return cfg, nil
 	}
 }
 

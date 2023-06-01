@@ -58,3 +58,11 @@ func TestWithoutConfigFile(t *testing.T) {
 	assert.Equal(t, "fake-secret-access-key", Cfg.AWS.SecretAccessKey)
 	assert.Equal(t, "fake-bucket-name", Cfg.AWS.BucketName)
 }
+
+func TestInvalidConfigFile(t *testing.T) {
+	SetupViper()
+	cfg, err := getConfig(true, "test.yaml")
+
+	assert.Nil(t, cfg)
+	assert.ErrorContains(t, err, "could not load config file")
+}
