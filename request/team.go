@@ -17,7 +17,7 @@ const (
 
 //go:generate mockery --name LeagueRequest
 type TeamRequest interface {
-	Request(idMap map[string]struct{})
+	Request(ids ...string)
 	Persist()
 	PostPersist()
 	GetData() []model.Team
@@ -40,8 +40,8 @@ func NewTeamRequest(config *core.Config, repo repository.Repository[model.Team],
 	}
 }
 
-func (r *teamRequest) Request(idMap map[string]struct{}) {
-	for leagueId := range idMap {
+func (r *teamRequest) Request(ids ...string) {
+	for leagueId := range core.IdArrayToMap(ids) {
 		if teams, err := r.request(leagueId); err == nil {
 			r.RequestedData = append(r.RequestedData, teams...)
 		} else {

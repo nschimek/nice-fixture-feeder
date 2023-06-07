@@ -1,11 +1,12 @@
 package main
 
 import (
+	"time"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/request"
-	"github.com/nschimek/nice-fixture-feeder/service"
 	"github.com/spf13/viper"
 )
 
@@ -34,15 +35,21 @@ func LambdaHandler() (string, error) {
 }
 
 func test() {
-	imageService := service.NewImageService(core.S3)
+	// imageService := service.NewImageService(core.S3)
 
 	// req := request.NewLeagueRequest(core.Cfg, &repository.LeagueRepository{DB: core.DB}, imageService)
 	// req.Request(core.IdArrayToMap([]string{"39"}))
 	// req.Persist()
 	// req.PostPersist()
 
-	req := request.NewTeamRequest(core.Cfg, &repository.TeamRepository{DB: core.DB}, imageService)
-	req.Request(core.IdArrayToMap([]string{"39"}))
+	// req := request.NewTeamRequest(core.Cfg, &repository.TeamRepository{DB: core.DB}, imageService)
+	// req.Request("39")
+	// req.Persist()
+	// req.PostPersist()
+
+	start, _ := time.Parse(core.YYYY_MM_DD, "2022-08-05")
+	end, _ := time.Parse(core.YYYY_MM_DD, "2022-08-06")
+	req := request.NewFixtureRequest(core.Cfg, &repository.FixtureRepository{DB: core.DB})
+	req.Request(start, end, "39")
 	req.Persist()
-	req.PostPersist()
 }

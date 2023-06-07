@@ -6,21 +6,38 @@ import (
 )
 
 type Fixture struct {
+	Fixture FixtureFixture `gorm:"embedded"`
+	League FixtureLeague `gorm:"embedded"`
+	Teams FixtureTeams `gorm:"embedded;embeddedPrefix:team_"`
+	Goals FixtureGoals `gorm:"embedded;embeddedPrefix:goals_"`
+}
 
+func (f *Fixture) GetTeamStatsId(home bool) TeamStatsId {
+	// sometimes the lack of a ternary operator is annoying...
+	t := f.Teams.Home.Id
+	if !home {
+		t = f.Teams.Away.Id
+	}
+
+	return TeamStatsId{
+		TeamId: t,
+		LeagueId: f.League.Id,
+		Season: f.League.Season,
+		FixtureId: f.Fixture.Id,
+		Date: f.Fixture.Date.AddDate(0, 0, -1),
+	}
 }
 
 type FixtureFixture struct {
 	Id int `gorm:"primaryKey"`
 	Date time.Time
 	Venue FixtureVenue `gorm:"embedded;embeddedPrefix:venue_"`
-	Status FixtureStatus
-	League FixtureLeague `gorm:"embedded;embeddedPrefix:league_"`
-	Teams FixtureTeams `gorm:"embedded;embeddedPrefix:team_"`
-	Goals FixtureGoals `gorm:"embedded;embeddedPrefix:goals_"`
+	Status FixtureStatus `gorm:"embedded;embeddedPrefix:status_"`
 }
 
 type FixtureLeague struct {
-	Id int
+	Id int `gorm:"column:league_id"`
+	Season int
 }
 
 type FixtureVenue struct {
@@ -28,10 +45,7 @@ type FixtureVenue struct {
 }
 
 type FixtureStatus struct {
-	Id string `json:"short" gorm:"primaryKey"`
-	Name string `json:"long"`
-	Type string `json:"-"`
-	Description string `json:"-"`
+	Id string `json:"short"`
 }
 
 type FixtureTeams struct {
@@ -41,7 +55,7 @@ type FixtureTeams struct {
 
 type FixtureTeam struct {
 	Id int
-	Winner WinnerBool
+	Result WinnerBool `json:"winner"`
 }
 
 type FixtureGoals struct {

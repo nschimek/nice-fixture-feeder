@@ -5,7 +5,8 @@ import "time"
 var (
 	EST, _ = time.LoadLocation("merica/New_York")
 	CST, _ = time.LoadLocation("America/Chicago")
-	exists = struct{}{}
+	Exists = struct{}{}
+	YYYY_MM_DD = "2006-01-02"
 )
 
 func IdMapToArray(idMap map[string]struct{}) (ids []string) {
@@ -19,7 +20,7 @@ func IdArrayToMap(ids []string) (idMap map[string]struct{}) {
 	idMap = make(map[string]struct{})
 
 	for _, id := range ids {
-		idMap[id] = exists
+		idMap[id] = Exists
 	}
 
 	return

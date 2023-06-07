@@ -8,8 +8,8 @@ import (
 
 func TestIdMapToArray(t *testing.T) {
 	m := map[string]struct{}{
-		"test1": exists,
-		"test2": exists,
+		"test1": Exists,
+		"test2": Exists,
 	}
 	e := []string{"test1", "test2"}
 	a := IdMapToArray(m)

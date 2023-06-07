@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
 type CivilTime time.Time
@@ -17,7 +19,7 @@ func (c *CivilTime) UnmarshalJSON(b []byte) error {
 			return nil
 	}
 
-	t, err := time.Parse("2006-01-02", value) //parse time
+	t, err := time.Parse(core.YYYY_MM_DD, value) //parse time
 	if err != nil {
 			return err
 	}
@@ -27,7 +29,7 @@ func (c *CivilTime) UnmarshalJSON(b []byte) error {
 }
 
 func (c CivilTime) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + time.Time(c).Format("2006-01-02") + `"`), nil
+	return []byte(`"` + time.Time(c).Format(core.YYYY_MM_DD) + `"`), nil
 }
 
 // Scanner / Value interface methods to integrate with GORM
@@ -41,5 +43,5 @@ func (c *CivilTime) Scan(value interface{}) error {
 }
 
 func (c CivilTime) Value() (driver.Value, error) {
-	return time.Time(c).Format("2006-01-02"), nil
+	return time.Time(c).Format(core.YYYY_MM_DD), nil
 } 
