@@ -13,17 +13,15 @@ func (lr *LeagueRepository) Upsert(leagues []model.League) *ResultStats {
 	rs := NewResultStats()
 	core.Log.WithField("leagues", len(leagues)).Infof("Create/Updating Leagues and League Seasons...")
 
-	for _, league := range leagues {
-		r := lr.DB.Upsert(&league)
+	r := lr.DB.Upsert(&leagues)
 
-		if r.Error == nil {
-			rs.Success["league"]++
-			rs.Success["season"] = rs.Success["season"] + len(league.Seasons)
-			core.Log.WithField("seasons", len(league.Seasons)).Infof("Successfully create/updated league %d along with seasons", league.League.Id)
-		} else {
-			rs.Error["league"]++
-			rs.Error["season"] = rs.Error["season"] + len(league.Seasons)
-		}
+	if r.Error == nil {
+		rs.Success["team"] = len(leagues)
+		rs.Success["team_league_season"] = len(leagues)
+		core.Log.WithField("teams", len(leagues)).Infof("Successfully create/updated teams along with team league seasons")
+	} else {
+		rs.Error["team"] = len(leagues)
+		rs.Error["team_league_season"] = len(leagues)
 	}
 
 	return rs

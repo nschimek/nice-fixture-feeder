@@ -58,7 +58,7 @@ func (s *leagueRequestTestSuite) TestRequestValid() {
 	s.mockRequest.EXPECT().Get(leaguesEndpoint, p1).Return(r1, nil)
 	s.mockRequest.EXPECT().Get(leaguesEndpoint, p2).Return(r2, nil)
 
-	s.leagueRequest.Request(map[string]struct{}{"39": {}, "140": {}})
+	s.leagueRequest.Request("39", "140")
 
 	s.Contains(s.leagueRequest.GetData(), r1.Response[0])
 	s.Contains(s.leagueRequest.GetData(), r2.Response[0])
@@ -68,7 +68,7 @@ func (s *leagueRequestTestSuite) TestRequestError() {
 	p := url.Values{"id": {"39"}, "season": {"2022"}}
 	s.mockRequest.EXPECT().Get(leaguesEndpoint, p).Return(nil, errors.New("test"))
 
-	s.leagueRequest.Request(map[string]struct{}{"39": {}})
+	s.leagueRequest.Request("39")
 
 	s.Len(s.leagueRequest.GetData(), 0)
 }
