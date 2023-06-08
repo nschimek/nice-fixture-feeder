@@ -2,7 +2,9 @@ package model
 
 import (
 	"testing"
+	"time"
 
+	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,4 +50,32 @@ func TestWinnerBoolValidT(t *testing.T) {
 func TestWinnerBoolInvalid(t *testing.T) {
 	a := new(WinnerBool)
 	assert.Error(t, a.UnmarshalJSON([]byte("ASDF")))
+}
+
+func TestGetTeamStatsId(t *testing.T) {
+	f := Fixture{
+		Fixture: FixtureFixture{
+			Id: 100,
+			Date: time.Date(2023, 3, 5, 16, 30, 0, 0, core.UTC),
+		},
+		League: FixtureLeague{Id: 39, Season: 2022},
+		Teams: FixtureTeams{
+			Home: FixtureTeam{Id: 40},
+			Away: FixtureTeam{Id: 33},
+		},
+		Goals: FixtureGoals{Home: 7, Away: 0},
+	}
+	h := f.GetTeamStatsId(true)
+	a := f.GetTeamStatsId(false)
+
+	assert.Equal(t, f.Teams.Home.Id, h.TeamId)
+	assert.Equal(t, f.Teams.Away.Id, a.TeamId)
+	assert.Equal(t, f.Fixture.Id, h.FixtureId)
+	assert.Equal(t, f.Fixture.Id, a.FixtureId)
+	assert.Equal(t, f.League.Id, h.LeagueId)
+	assert.Equal(t, f.League.Id, a.LeagueId)
+	assert.Equal(t, f.League.Season, h.Season)
+	assert.Equal(t, f.League.Season, a.Season)
+	assert.Equal(t, time.Date(2023, 3, 4, 16, 30, 0, 0, core.UTC), h.Date)
+	assert.Equal(t, time.Date(2023, 3, 4, 16, 30, 0, 0, core.UTC), a.Date)
 }
