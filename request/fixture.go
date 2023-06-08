@@ -16,7 +16,7 @@ type FixtureRequest interface {
 	Request(startDate, endDate time.Time, leagueIds... string)
 	Persist()
 	GetData() []model.Fixture
-	GetTeamStatsMap() map[model.TeamStatsId]struct{}
+	GetTeamStatIds() []model.TeamStatsId
 }
 
 type fixtureRequest struct {
@@ -62,8 +62,11 @@ func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId string) 
 
 func (r *fixtureRequest) Persist() {
 	rs := r.repo.Upsert(r.RequestedData)
-	rs.LogErrors()
-	rs.LogSuccesses()
+	if rs.HasErrors() {
+		r.RequestedData = nil
+	} else {
+		rs.LogSuccesses()
+	}
 }
 
 func (r *fixtureRequest) GetData() []model.Fixture {
@@ -71,13 +74,9 @@ func (r *fixtureRequest) GetData() []model.Fixture {
 }
 
 // we need to query the team stats endpoint for both the home and away teams stats as of the day before this game
-func (r *fixtureRequest) GetTeamStatsMap() map[model.TeamStatsId]struct{} {
-	m := make(map[model.TeamStatsId]struct{})
-
+func (r *fixtureRequest) GetTeamStatIds() (tsids []model.TeamStatsId) {
 	for _, fixture := range r.RequestedData {
-		m[fixture.GetTeamStatsId(true)] = core.Exists
-		m[fixture.GetTeamStatsId(false)] = core.Exists
+		tsids = append(tsids, fixture.GetTeamStatsId(true), fixture.GetTeamStatsId(false))
 	}
-
-	return m
+	return
 }

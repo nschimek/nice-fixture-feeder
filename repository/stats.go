@@ -23,6 +23,14 @@ func (rs *ResultStats) LogErrors() {
 	}
 }
 
+func (rs *ResultStats) HasErrors() bool {
+	if len(rs.Error) > 0 {
+		core.Log.WithFields(logStatsMap(rs.Error)).Error("Issues during persistence")
+		return true
+	}
+	return false
+}
+
 func (rs *ResultStats) LogSuccesses() {
 	if len(rs.Success) > 0 {
 		core.Log.WithFields(logStatsMap(rs.Success)).Info("Persistence successful!")

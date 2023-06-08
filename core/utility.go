@@ -3,8 +3,9 @@ package core
 import "time"
 
 var (
-	EST, _ = time.LoadLocation("merica/New_York")
+	EST, _ = time.LoadLocation("America/New_York")
 	CST, _ = time.LoadLocation("America/Chicago")
+	UTC, _ = time.LoadLocation("UTC")
 	Exists = struct{}{}
 	YYYY_MM_DD = "2006-01-02"
 )
