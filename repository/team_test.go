@@ -42,7 +42,7 @@ func (s *teamRepositoryTestSuite) TestUpsertteamsSuccess() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.teams).Return(r)
 
-	repo := &TeamRepository{DB: s.mockDatabase}
+	repo := NewTeamRepository(s.mockDatabase)
 	actual := repo.Upsert(s.teams)
 
 	s.Equal(0, actual.Error["team"])
@@ -56,7 +56,7 @@ func (s *teamRepositoryTestSuite) TestUpsertteamError() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.teams).Return(r)
 
-	repo := &TeamRepository{DB: s.mockDatabase}
+	repo := NewTeamRepository(s.mockDatabase)
 	actual := repo.Upsert(s.teams)
 
 	s.Equal(2, actual.Error["team"])

@@ -6,21 +6,21 @@ import (
 )
 
 type FixtureRepository struct {
-	DB core.Database
+	repository[model.Fixture]
 }
 
-func (fr *FixtureRepository) Upsert(fixtures []model.Fixture) *ResultStats {
-	rs := NewResultStats()
-	core.Log.WithField("fixtures", len(fixtures)).Infof("Create/Updating Fixtures...")
-
-	r := fr.DB.Upsert(fixtures)
-
-	if r.Error == nil {
-		rs.Success["fixture"] = len(fixtures)
-		core.Log.WithField("fixtures", len(fixtures)).Infof("Successfully create/updated fixtures")
-	} else {
-		rs.Error["fixture"] = len(fixtures)
+func NewFixtureRepository(db core.Database) *FixtureRepository {
+	return &FixtureRepository{
+		repository: repository[model.Fixture]{
+			DB: db,
+			label: "fixtures",
+			statsFunc: func(e []model.Fixture, r core.DatabaseResult, rs *ResultStats) {
+				if r.Error == nil {
+					rs.Success["fixture"] = len(e)
+				} else {
+					rs.Error["fixture"] = len(e)
+				}
+			},
+		},
 	}
-
-	return rs
 }

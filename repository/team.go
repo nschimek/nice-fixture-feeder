@@ -6,23 +6,23 @@ import (
 )
 
 type TeamRepository struct {
-	DB core.Database
+	repository[model.Team]
 }
 
-func (lr *TeamRepository) Upsert(teams []model.Team) *ResultStats {
-	rs := NewResultStats()
-	core.Log.WithField("teams", len(teams)).Infof("Create/Updating Leagues and Team League Seasons...")
-
-	r := lr.DB.Upsert(&teams)
-
-	if r.Error == nil {
-		rs.Success["team"] = len(teams)
-		rs.Success["team_league_season"] = len(teams)
-		core.Log.WithField("teams", len(teams)).Infof("Successfully create/updated teams along with team league seasons")
-	} else {
-		rs.Error["team"] = len(teams)
-		rs.Error["team_league_season"] = len(teams)
+func NewTeamRepository(db core.Database) *TeamRepository {
+	return &TeamRepository{
+		repository: repository[model.Team]{
+			DB: db,
+			label: "teams",
+			statsFunc: func(e []model.Team, r core.DatabaseResult, rs *ResultStats) {
+				if r.Error == nil {
+					rs.Success["team"] = len(e)
+					rs.Success["team_league_season"] = len(e)
+				} else {
+					rs.Error["team"] = len(e)
+					rs.Error["team_league_season"] = len(e)
+				}
+			},
+		},
 	}
-
-	return rs
 }

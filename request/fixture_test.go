@@ -34,26 +34,10 @@ func (s *fixtureRequestTestSuite) SetupTest() {
 	}
 	s.fixtures = []model.Fixture{
 		{
-			Fixture: model.FixtureFixture{
-				Id: 100,
-				Date: time.Date(2023, 3, 5, 16, 30, 0, 0, core.UTC),
-			},
-			League: model.FixtureLeague{
-				Id: 39,
-				Season: 2022,
-			},
-			Teams: model.FixtureTeams{
-				Home: model.FixtureTeam{
-					Id: 40,
-				},
-				Away: model.FixtureTeam{
-					Id: 33,
-				},
-			},
-			Goals: model.FixtureGoals{
-				Home: 7,
-				Away: 0,
-			},
+			Fixture: model.FixtureFixture{Id: 100, Date: time.Date(2023, 3, 5, 16, 30, 0, 0, core.UTC)},
+			League: model.FixtureLeague{Id: 39, Season: 2022},
+			Teams: model.FixtureTeams{Home: model.FixtureTeam{Id: 40}, Away: model.FixtureTeam{Id: 33}},
+			Goals: model.FixtureGoals{Home: 7, Away: 0},
 		},
 	}
 }

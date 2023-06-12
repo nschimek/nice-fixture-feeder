@@ -36,7 +36,7 @@ func LambdaHandler() (string, error) {
 func test() {
 	imageService := service.NewImageService(core.S3)
 
-	req := request.NewLeagueRequest(core.Cfg, &repository.LeagueRepository{DB: core.DB}, imageService)
+	req := request.NewLeagueRequest(core.Cfg, repository.NewLeagueRepository(core.DB), imageService)
 	req.Request("39", "140")
 	req.Persist()
 	req.PostPersist()

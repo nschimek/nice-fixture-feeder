@@ -31,9 +31,9 @@ func (s *leagueRepositoryTestSuite) SetupTest() {
 func (s *leagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
 	r := core.DatabaseResult{RowsAffected: 1, Error: nil}
 
-	s.mockDatabase.EXPECT().Upsert(&s.leagues[0]).Return(r)
+	s.mockDatabase.EXPECT().Upsert(&s.leagues).Return(r)
 
-	repo := &LeagueRepository{DB: s.mockDatabase}
+	repo := NewLeagueRepository(s.mockDatabase)
 	actual := repo.Upsert(s.leagues)
 
 	s.Equal(0, actual.Error["league"])
@@ -45,9 +45,9 @@ func (s *leagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
 func (s *leagueRepositoryTestSuite) TestUpsertLeagueError() {
 	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
 
-	s.mockDatabase.EXPECT().Upsert(&s.leagues[0]).Return(r)
+	s.mockDatabase.EXPECT().Upsert(&s.leagues).Return(r)
 
-	repo := &LeagueRepository{DB: s.mockDatabase}
+	repo := NewLeagueRepository(s.mockDatabase)
 	actual := repo.Upsert(s.leagues)
 
 	s.Equal(1, actual.Error["league"])
