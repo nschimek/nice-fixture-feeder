@@ -32,7 +32,7 @@ type FixtureFixture struct {
 	Id int `gorm:"primaryKey"`
 	Date time.Time
 	Venue FixtureVenue `gorm:"embedded;embeddedPrefix:venue_"`
-	Status FixtureStatus `gorm:"embedded;embeddedPrefix:status_"`
+	Status FixtureStatusId `gorm:"embedded;embeddedPrefix:status_"`
 }
 
 type FixtureLeague struct {
@@ -44,7 +44,7 @@ type FixtureVenue struct {
 	Name, City string
 }
 
-type FixtureStatus struct {
+type FixtureStatusId struct {
 	Id string `json:"short"`
 }
 

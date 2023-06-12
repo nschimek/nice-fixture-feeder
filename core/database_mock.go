@@ -17,6 +17,40 @@ func (_m *MockDatabase) EXPECT() *MockDatabase_Expecter {
 	return &MockDatabase_Expecter{mock: &_m.Mock}
 }
 
+// GetById provides a mock function with given fields: id, entity
+func (_m *MockDatabase) GetById(id interface{}, entity interface{}) {
+	_m.Called(id, entity)
+}
+
+// MockDatabase_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
+type MockDatabase_GetById_Call struct {
+	*mock.Call
+}
+
+// GetById is a helper method to define mock.On call
+//   - id interface{}
+//   - entity interface{}
+func (_e *MockDatabase_Expecter) GetById(id interface{}, entity interface{}) *MockDatabase_GetById_Call {
+	return &MockDatabase_GetById_Call{Call: _e.mock.On("GetById", id, entity)}
+}
+
+func (_c *MockDatabase_GetById_Call) Run(run func(id interface{}, entity interface{})) *MockDatabase_GetById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}), args[1].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockDatabase_GetById_Call) Return() *MockDatabase_GetById_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockDatabase_GetById_Call) RunAndReturn(run func(interface{}, interface{})) *MockDatabase_GetById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Upsert provides a mock function with given fields: value
 func (_m *MockDatabase) Upsert(value interface{}) DatabaseResult {
 	ret := _m.Called(value)
