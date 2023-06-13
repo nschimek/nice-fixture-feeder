@@ -6,12 +6,12 @@ import (
 )
 
 type TeamRepository struct {
-	repository[model.Team]
+	upsertRepository[model.Team]
 }
 
 func NewTeamRepository(db core.Database) *TeamRepository {
 	return &TeamRepository{
-		repository: repository[model.Team]{
+		upsertRepository: upsertRepository[model.Team]{
 			DB: db,
 			label: "teams",
 			statsFunc: func(e []model.Team, r core.DatabaseResult, rs *ResultStats) {

@@ -23,18 +23,22 @@ type FixtureRequest interface {
 type fixtureRequest struct {
 	config *core.Config
 	requester Requester[model.Fixture]
-	repo repository.Repository[model.Fixture]
+	repo repository.UpsertRepository[model.Fixture]
 	requestedData []model.Fixture
 	fixtureMap map[int]model.Fixture
 	fixtureIds []int
 }
 
-func NewFixtureRequest(config *core.Config, repo repository.Repository[model.Fixture]) FixtureRequest {
+func NewFixtureRequest(config *core.Config, repo repository.FixtureRepository) FixtureRequest {
 	return &fixtureRequest{
 		config: config,
 		requester: NewRequester[model.Fixture](config),
 		repo: repo,
 	}
+}
+
+func (r *fixtureRequest) RequestAll(leagueIds... string) {
+	r.Request(time.Time{}, time.Time{}, leagueIds...)
 }
 
 func (r *fixtureRequest) Request(startDate, endDate time.Time, leagueIds... string) {
@@ -50,9 +54,12 @@ func (r *fixtureRequest) Request(startDate, endDate time.Time, leagueIds... stri
 func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId string) ([]model.Fixture, error) {
 	p := url.Values{}
 	p.Add("league", leagueId)
-	p.Add("from", startDate.Format(core.YYYY_MM_DD))
-	p.Add("to", endDate.Format(core.YYYY_MM_DD))
 	p.Add("season", strconv.Itoa(r.config.Season))
+
+	if !startDate.IsZero() && !endDate.IsZero() {
+		p.Add("from", startDate.Format(core.YYYY_MM_DD))
+		p.Add("to", endDate.Format(core.YYYY_MM_DD))
+	} 
 
 	resp, err := r.requester.Get(fixturesEndpoint, p)
 

@@ -26,12 +26,12 @@ type TeamRequest interface {
 type teamRequest struct {
 	config *core.Config
 	requester Requester[model.Team]
-	repo repository.Repository[model.Team]
+	repo repository.UpsertRepository[model.Team]
 	imageService service.ImageService
 	RequestedData []model.Team
 }
 
-func NewTeamRequest(config *core.Config, repo repository.Repository[model.Team], is service.ImageService) TeamRequest {
+func NewTeamRequest(config *core.Config, repo repository.TeamRepository, is service.ImageService) TeamRequest {
 	return &teamRequest{
 		config: config,
 		requester: NewRequester[model.Team](config),

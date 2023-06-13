@@ -6,12 +6,12 @@ import (
 )
 
 type FixtureRepository struct {
-	repository[model.Fixture]
+	UpsertRepository[model.Fixture]
 }
 
 func NewFixtureRepository(db core.Database) *FixtureRepository {
 	return &FixtureRepository{
-		repository: repository[model.Fixture]{
+		UpsertRepository: upsertRepository[model.Fixture]{
 			DB: db,
 			label: "fixtures",
 			statsFunc: func(e []model.Fixture, r core.DatabaseResult, rs *ResultStats) {

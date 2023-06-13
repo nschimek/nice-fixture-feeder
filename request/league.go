@@ -27,12 +27,12 @@ type LeagueRequest interface {
 type leagueRequest struct {
 	config *core.Config
 	requester Requester[model.League]
-	repo repository.Repository[model.League]
+	repo repository.UpsertRepository[model.League]
 	imageService service.ImageService
 	RequestedData []model.League
 }
 
-func NewLeagueRequest(config *core.Config, repo repository.Repository[model.League], is service.ImageService) LeagueRequest {
+func NewLeagueRequest(config *core.Config, repo repository.LeagueRepository, is service.ImageService) LeagueRequest {
 	return &leagueRequest{
 		config: config,
 		requester: NewRequester[model.League](config),

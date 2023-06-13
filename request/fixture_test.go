@@ -55,6 +55,21 @@ func (s *fixtureRequestTestSuite) TestRequestValid() {
 	s.Contains(s.fixtureRequest.GetData(), r.Response[0])
 }
 
+func (s *fixtureRequestTestSuite) TestRequestValidNoDate() {
+		// expected parameters
+		p := url.Values{"league": {"39"}, "season": {"2022"}}
+		// response
+		r := &Response[model.Fixture]{Response: s.fixtures}
+	
+		s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(r, nil)
+	
+		s.fixtureRequest.RequestAll("39")
+		s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Time{}, "39")
+		s.fixtureRequest.Request(time.Time{}, time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), "39")
+	
+		s.mockRequest.AssertCalled(s.T(), "Get", fixturesEndpoint, p)
+}
+
 func (s *fixtureRequestTestSuite) TestRequestError() {
 	p := url.Values{"league": {"39"}, "season": {"2022"}, "from": {"2023-03-05"}, "to": {"2023-03-06"}}
 	s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(nil, errors.New("test"))
