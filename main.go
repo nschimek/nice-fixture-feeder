@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/repository"
-	"github.com/nschimek/nice-fixture-feeder/request"
-	"github.com/nschimek/nice-fixture-feeder/service"
 	"github.com/spf13/viper"
 )
 
@@ -34,12 +34,12 @@ func LambdaHandler() (string, error) {
 }
 
 func test() {
-	imageService := service.NewImageService(core.S3)
+	// imageService := service.NewImageService(core.S3)
 
-	req := request.NewLeagueRequest(core.Cfg, repository.NewLeagueRepository(core.DB), imageService)
-	req.Request("39", "140")
-	req.Persist()
-	req.PostPersist()
+	// req := request.NewLeagueRequest(core.Cfg, repository.NewLeagueRepository(core.DB), imageService)
+	// req.Request("39", "140")
+	// req.Persist()
+	// req.PostPersist()
 
 	// req := request.NewTeamRequest(core.Cfg, &repository.TeamRepository{DB: core.DB}, imageService)
 	// req.Request("39")
@@ -51,4 +51,8 @@ func test() {
 	// req := request.NewFixtureRequest(core.Cfg, &repository.FixtureRepository{DB: core.DB})
 	// req.Request(start, end, "39")
 	// req.Persist()
+
+	repo := repository.NewFixtureStatusRepository(core.DB)
+	s := repo.GetAll()
+	fmt.Printf("%+v\n", s)
 }

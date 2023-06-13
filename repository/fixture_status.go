@@ -5,12 +5,21 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-type FixtureStatusRepository struct {
-	DB core.Database
+//go:generate mockery --name FixtureStatusRepository --filename fixture_status_mock.go
+type FixtureStatusRepository interface {
+	GetAll() []model.FixtureStatus
 }
 
-func (r *FixtureStatusRepository) GetById(id string) *model.FixtureStatus {
-	var status model.FixtureStatus
-	r.DB.GetById(id, &status)
-	return &status
+type fixtureStatusRepository struct {
+	db core.Database
+}
+
+func NewFixtureStatusRepository(db core.Database) FixtureStatusRepository {
+	return &fixtureStatusRepository{db: db}
+}
+
+func (r *fixtureStatusRepository) GetAll() []model.FixtureStatus {
+	var statues []model.FixtureStatus
+	r.db.GetAll(&statues)
+	return statues
 }

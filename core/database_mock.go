@@ -17,6 +17,39 @@ func (_m *MockDatabase) EXPECT() *MockDatabase_Expecter {
 	return &MockDatabase_Expecter{mock: &_m.Mock}
 }
 
+// GetAll provides a mock function with given fields: entities
+func (_m *MockDatabase) GetAll(entities interface{}) {
+	_m.Called(entities)
+}
+
+// MockDatabase_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
+type MockDatabase_GetAll_Call struct {
+	*mock.Call
+}
+
+// GetAll is a helper method to define mock.On call
+//   - entities interface{}
+func (_e *MockDatabase_Expecter) GetAll(entities interface{}) *MockDatabase_GetAll_Call {
+	return &MockDatabase_GetAll_Call{Call: _e.mock.On("GetAll", entities)}
+}
+
+func (_c *MockDatabase_GetAll_Call) Run(run func(entities interface{})) *MockDatabase_GetAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockDatabase_GetAll_Call) Return() *MockDatabase_GetAll_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockDatabase_GetAll_Call) RunAndReturn(run func(interface{})) *MockDatabase_GetAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetById provides a mock function with given fields: id, entity
 func (_m *MockDatabase) GetById(id interface{}, entity interface{}) {
 	_m.Called(id, entity)

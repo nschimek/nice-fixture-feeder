@@ -21,7 +21,8 @@ var updateAll = clause.OnConflict{UpdateAll: true}
 type Database interface {
 	Upsert(value interface{}) DatabaseResult
 	UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult
-	GetById(id interface{}, entity interface{}) 
+	GetById(id interface{}, entity interface{})
+	GetAll(entities interface{})
 }
 
 type DatabaseResult struct {
@@ -63,6 +64,10 @@ func (db *database) GetById(id interface{}, entity interface{}) {
 	default:
 		Log.Fatal("invalid ID type")
 	}
+}
+
+func (db *database) GetAll(entities interface{}) {
+	db.gorm.Find(entities)
 }
 
 func (db *database) connect() {
