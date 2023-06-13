@@ -7,6 +7,7 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/repository"
 )
 
+//go:generate mockery --name FixtureStatusService  --filename fixture_status_mock.go
 type FixtureStatusService interface {
 	GetType(id string) string
 	IsFinished(id string) bool

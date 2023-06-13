@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name ImageService
+//go:generate mockery --name ImageService --filename image_mock.go
 type ImageService interface {
 	TransferURL(url, bucket, keyFormat string) bool
 }
