@@ -70,7 +70,7 @@ func (s *fixtureRequestTestSuite) TestPersistSuccess() {
 		Error: map[string]int{"fixture": 0},
 	}
 	// prep by pre-populating with leagues, and mocking the Upsert result stats
-	s.fixtureRequest.RequestedData = s.fixtures
+	s.fixtureRequest.requestedData = s.fixtures
 	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(rs)
 
 	s.fixtureRequest.Persist()
@@ -84,17 +84,20 @@ func (s *fixtureRequestTestSuite) TestPersistError() {
 		Error: map[string]int{"fixture": 1},
 	}
 	// prep by pre-populating with leagues, and mocking the Upsert result stats
-	s.fixtureRequest.RequestedData = s.fixtures
+	s.fixtureRequest.requestedData = s.fixtures
 	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(rs)
 
 	s.fixtureRequest.Persist()
 
 	s.mockRepository.AssertCalled(s.T(), "Upsert", s.fixtures)
-	s.Nil(s.fixtureRequest.RequestedData)
+	s.Nil(s.fixtureRequest.requestedData)
 }
 
-func (s *fixtureRequestTestSuite) TestGetTeamStatIds() {
-	// we are just going to test the length here.  the model tests will handle content.
-	s.fixtureRequest.RequestedData = s.fixtures
-	s.Len(s.fixtureRequest.GetTeamStatIds(), 2)
+func (s *fixtureRequestTestSuite) TestPostPersist() {
+	s.fixtureRequest.requestedData = s.fixtures
+	s.fixtureRequest.postPersist()
+
+	s.Contains(s.fixtureRequest.GetIds(), 100)
+	s.Equal(s.fixtureRequest.GetById(100), &s.fixtures[0])
+	s.Nil(s.fixtureRequest.GetById(101))
 }
