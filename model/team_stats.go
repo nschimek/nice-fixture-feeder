@@ -13,25 +13,23 @@ type TeamStats struct {
 	TeamStatsFixtures TeamStatsFixtures `gorm:"embedded;embeddedPrefix:fixtures_"`
 	TeamStatsGoals TeamStatsGoals `gorm:"embedded;embeddedPrefix:goals_"`
 	GoalDifferential int
+	CleanSheets TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:cs_"`
+	FailedToScore TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:fts_"`
 }
 
 type TeamStatsFixtures struct {
-	FixturesPlayed TeamStatsFixturesTotals `gorm:"embedded;embeddedPrefix:played_"`
-	FixturesWins TeamStatsFixturesTotals `gorm:"embedded;embeddedPrefix:wins_"`
-	FixturesDraws TeamStatsFixturesTotals `gorm:"embedded;embeddedPrefix:draws_"`
-	FixturesLosses TeamStatsFixturesTotals `gorm:"embedded;embeddedPrefix:losses_"`
-}
-
-type TeamStatsFixturesTotals struct {
-	Home, Away, Total int
+	FixturesPlayed TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:played_"`
+	FixturesWins TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:wins_"`
+	FixturesDraws TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:draws_"`
+	FixturesLosses TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:losses_"`
 }
 
 type TeamStatsGoals struct {
-	GoalsHome TeamStatsGoalsTotals `gorm:"embedded;embeddedPrefix:home_"`
-	GoalsAway TeamStatsGoalsTotals `gorm:"embedded;embeddedPrefix:away_"`
+	GoalsFor TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:for_"`
+	GoalsAgainst TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:against_"`
 }
 
-type TeamStatsGoalsTotals struct {
+type TeamStatsHomeAwayTotal struct {
 	Home, Away, Total int
 }
 
