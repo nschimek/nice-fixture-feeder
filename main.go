@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/spf13/viper"
 )
@@ -52,9 +53,11 @@ func test() {
 	// req.Request(start, end, "39")
 	// req.Persist()
 
-	repo := repository.NewFixtureStatusRepository(core.DB)
-	s := repo.GetAll()
-	fmt.Printf("%+v\n", s)
+	// repo := repository.NewFixtureStatusRepository(core.DB)
+	// s := repo.GetAll()
+	// fmt.Printf("%+v\n", s)
 
-	
+	repo := repository.NewTeamLeagueSeasonRepository(core.DB)
+	s := repo.GetById(model.TeamLeagueSeason{TeamId: 33, LeagueId: 39, Season: 2022})
+	fmt.Printf("%+v\n", s)
 }

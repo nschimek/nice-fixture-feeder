@@ -20,9 +20,9 @@ var updateAll = clause.OnConflict{UpdateAll: true}
 //go:generate mockery --name Database
 type Database interface {
 	Upsert(value interface{}) DatabaseResult
-	UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult
-	GetById(id interface{}, entity interface{})
-	GetAll(entities interface{})
+	Save(value interface{}) DatabaseResult
+	GetById(id interface{}, dest interface{}) DatabaseResult
+	GetAll(entities interface{}) DatabaseResult
 }
 
 type DatabaseResult struct {
@@ -51,27 +51,21 @@ func (db *database) Upsert(value interface{}) DatabaseResult {
 	return gormReturn(db.gorm.Clauses(updateAll).Create(value))
 }
 
-func (db *database) UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult {
-	return gormReturn(db.gorm.Clauses(updateAll).Omit(omitColumns...).Create(value))
+func (db *database) Save(value interface{}) DatabaseResult {
+	return gormReturn(db.gorm.Save(value))
 }
 
-func (db *database) GetById(id interface{}, entity interface{}) {
+func (db *database) GetById(id interface{}, dest interface{}) DatabaseResult {
 	switch id := id.(type) {
-	case int:
-		db.gorm.First(entity, id)
-	case string:
-		db.gorm.First(entity, "id = ?", id)
+	case int, string:
+		return gormReturn(db.gorm.Where("id = ?", id).Limit(1).Find(dest))
 	default:
-		Log.Fatal("invalid ID type")
+		return gormReturn(db.gorm.Where(id).Limit(1).Find(dest))
 	}
 }
 
-func (db *database) GetByCompositeKey(entity interface{}) {
-	db.gorm.First(entity)
-}
-
-func (db *database) GetAll(entities interface{}) {
-	db.gorm.Find(entities)
+func (db *database) GetAll(dest interface{}) DatabaseResult {
+	return gormReturn(db.gorm.Find(dest))
 }
 
 func (db *database) connect() {

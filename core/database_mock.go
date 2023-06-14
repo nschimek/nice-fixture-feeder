@@ -18,8 +18,17 @@ func (_m *MockDatabase) EXPECT() *MockDatabase_Expecter {
 }
 
 // GetAll provides a mock function with given fields: entities
-func (_m *MockDatabase) GetAll(entities interface{}) {
-	_m.Called(entities)
+func (_m *MockDatabase) GetAll(entities interface{}) DatabaseResult {
+	ret := _m.Called(entities)
+
+	var r0 DatabaseResult
+	if rf, ok := ret.Get(0).(func(interface{}) DatabaseResult); ok {
+		r0 = rf(entities)
+	} else {
+		r0 = ret.Get(0).(DatabaseResult)
+	}
+
+	return r0
 }
 
 // MockDatabase_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
@@ -40,19 +49,28 @@ func (_c *MockDatabase_GetAll_Call) Run(run func(entities interface{})) *MockDat
 	return _c
 }
 
-func (_c *MockDatabase_GetAll_Call) Return() *MockDatabase_GetAll_Call {
-	_c.Call.Return()
+func (_c *MockDatabase_GetAll_Call) Return(_a0 DatabaseResult) *MockDatabase_GetAll_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockDatabase_GetAll_Call) RunAndReturn(run func(interface{})) *MockDatabase_GetAll_Call {
+func (_c *MockDatabase_GetAll_Call) RunAndReturn(run func(interface{}) DatabaseResult) *MockDatabase_GetAll_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetById provides a mock function with given fields: id, entity
-func (_m *MockDatabase) GetById(id interface{}, entity interface{}) {
-	_m.Called(id, entity)
+// GetById provides a mock function with given fields: id, dest
+func (_m *MockDatabase) GetById(id interface{}, dest interface{}) DatabaseResult {
+	ret := _m.Called(id, dest)
+
+	var r0 DatabaseResult
+	if rf, ok := ret.Get(0).(func(interface{}, interface{}) DatabaseResult); ok {
+		r0 = rf(id, dest)
+	} else {
+		r0 = ret.Get(0).(DatabaseResult)
+	}
+
+	return r0
 }
 
 // MockDatabase_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
@@ -62,24 +80,66 @@ type MockDatabase_GetById_Call struct {
 
 // GetById is a helper method to define mock.On call
 //   - id interface{}
-//   - entity interface{}
-func (_e *MockDatabase_Expecter) GetById(id interface{}, entity interface{}) *MockDatabase_GetById_Call {
-	return &MockDatabase_GetById_Call{Call: _e.mock.On("GetById", id, entity)}
+//   - dest interface{}
+func (_e *MockDatabase_Expecter) GetById(id interface{}, dest interface{}) *MockDatabase_GetById_Call {
+	return &MockDatabase_GetById_Call{Call: _e.mock.On("GetById", id, dest)}
 }
 
-func (_c *MockDatabase_GetById_Call) Run(run func(id interface{}, entity interface{})) *MockDatabase_GetById_Call {
+func (_c *MockDatabase_GetById_Call) Run(run func(id interface{}, dest interface{})) *MockDatabase_GetById_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(interface{}), args[1].(interface{}))
 	})
 	return _c
 }
 
-func (_c *MockDatabase_GetById_Call) Return() *MockDatabase_GetById_Call {
-	_c.Call.Return()
+func (_c *MockDatabase_GetById_Call) Return(_a0 DatabaseResult) *MockDatabase_GetById_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockDatabase_GetById_Call) RunAndReturn(run func(interface{}, interface{})) *MockDatabase_GetById_Call {
+func (_c *MockDatabase_GetById_Call) RunAndReturn(run func(interface{}, interface{}) DatabaseResult) *MockDatabase_GetById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Save provides a mock function with given fields: value
+func (_m *MockDatabase) Save(value interface{}) DatabaseResult {
+	ret := _m.Called(value)
+
+	var r0 DatabaseResult
+	if rf, ok := ret.Get(0).(func(interface{}) DatabaseResult); ok {
+		r0 = rf(value)
+	} else {
+		r0 = ret.Get(0).(DatabaseResult)
+	}
+
+	return r0
+}
+
+// MockDatabase_Save_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Save'
+type MockDatabase_Save_Call struct {
+	*mock.Call
+}
+
+// Save is a helper method to define mock.On call
+//   - value interface{}
+func (_e *MockDatabase_Expecter) Save(value interface{}) *MockDatabase_Save_Call {
+	return &MockDatabase_Save_Call{Call: _e.mock.On("Save", value)}
+}
+
+func (_c *MockDatabase_Save_Call) Run(run func(value interface{})) *MockDatabase_Save_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(interface{}))
+	})
+	return _c
+}
+
+func (_c *MockDatabase_Save_Call) Return(_a0 DatabaseResult) *MockDatabase_Save_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDatabase_Save_Call) RunAndReturn(run func(interface{}) DatabaseResult) *MockDatabase_Save_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -122,63 +182,6 @@ func (_c *MockDatabase_Upsert_Call) Return(_a0 DatabaseResult) *MockDatabase_Ups
 }
 
 func (_c *MockDatabase_Upsert_Call) RunAndReturn(run func(interface{}) DatabaseResult) *MockDatabase_Upsert_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpsertWithOmit provides a mock function with given fields: value, omitColumns
-func (_m *MockDatabase) UpsertWithOmit(value interface{}, omitColumns ...string) DatabaseResult {
-	_va := make([]interface{}, len(omitColumns))
-	for _i := range omitColumns {
-		_va[_i] = omitColumns[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, value)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 DatabaseResult
-	if rf, ok := ret.Get(0).(func(interface{}, ...string) DatabaseResult); ok {
-		r0 = rf(value, omitColumns...)
-	} else {
-		r0 = ret.Get(0).(DatabaseResult)
-	}
-
-	return r0
-}
-
-// MockDatabase_UpsertWithOmit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertWithOmit'
-type MockDatabase_UpsertWithOmit_Call struct {
-	*mock.Call
-}
-
-// UpsertWithOmit is a helper method to define mock.On call
-//   - value interface{}
-//   - omitColumns ...string
-func (_e *MockDatabase_Expecter) UpsertWithOmit(value interface{}, omitColumns ...interface{}) *MockDatabase_UpsertWithOmit_Call {
-	return &MockDatabase_UpsertWithOmit_Call{Call: _e.mock.On("UpsertWithOmit",
-		append([]interface{}{value}, omitColumns...)...)}
-}
-
-func (_c *MockDatabase_UpsertWithOmit_Call) Run(run func(value interface{}, omitColumns ...string)) *MockDatabase_UpsertWithOmit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]string, len(args)-1)
-		for i, a := range args[1:] {
-			if a != nil {
-				variadicArgs[i] = a.(string)
-			}
-		}
-		run(args[0].(interface{}), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *MockDatabase_UpsertWithOmit_Call) Return(_a0 DatabaseResult) *MockDatabase_UpsertWithOmit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockDatabase_UpsertWithOmit_Call) RunAndReturn(run func(interface{}, ...string) DatabaseResult) *MockDatabase_UpsertWithOmit_Call {
 	_c.Call.Return(run)
 	return _c
 }
