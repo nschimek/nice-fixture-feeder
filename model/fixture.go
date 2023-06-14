@@ -24,7 +24,6 @@ func (f *Fixture) GetTeamStatsId(home bool) TeamStatsId {
 		LeagueId: f.League.Id,
 		Season: f.League.Season,
 		FixtureId: f.Fixture.Id,
-		Date: f.Fixture.Date.AddDate(0, 0, -1),
 	}
 }
 

@@ -1,13 +1,11 @@
 package model
 
-import "time"
 
 type TeamStatsId struct {
 	TeamId int `gorm:"primaryKey"`
 	LeagueId int `gorm:"primaryKey"`
 	Season int `gorm:"primaryKey"`
 	FixtureId int `gorm:"primaryKey"`
-	Date time.Time
 }
 
 type TeamStats struct {

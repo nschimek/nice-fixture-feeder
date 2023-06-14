@@ -55,4 +55,6 @@ func test() {
 	repo := repository.NewFixtureStatusRepository(core.DB)
 	s := repo.GetAll()
 	fmt.Printf("%+v\n", s)
+
+	
 }

@@ -15,7 +15,7 @@ import (
 type fixtureRequestTestSuite struct {
 	suite.Suite
 	mockRequest *MockRequester[model.Fixture]
-	mockRepository *repository.MockRepository[model.Fixture]
+	mockRepository *repository.MockUpsertRepository[model.Fixture]
 	fixtureRequest *fixtureRequest
 	fixtures []model.Fixture
 }
@@ -26,7 +26,7 @@ func TestFixtureRequestTestSuite(t *testing.T) {
 
 func (s *fixtureRequestTestSuite) SetupTest() {
 	s.mockRequest = &MockRequester[model.Fixture]{}
-	s.mockRepository = &repository.MockRepository[model.Fixture]{}
+	s.mockRepository = &repository.MockUpsertRepository[model.Fixture]{}
 	s.fixtureRequest = &fixtureRequest{
 		config: core.MockConfig, 
 		requester: s.mockRequest,

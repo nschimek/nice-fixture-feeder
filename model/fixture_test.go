@@ -76,6 +76,4 @@ func TestGetTeamStatsId(t *testing.T) {
 	assert.Equal(t, f.League.Id, a.LeagueId)
 	assert.Equal(t, f.League.Season, h.Season)
 	assert.Equal(t, f.League.Season, a.Season)
-	assert.Equal(t, time.Date(2023, 3, 4, 16, 30, 0, 0, core.UTC), h.Date)
-	assert.Equal(t, time.Date(2023, 3, 4, 16, 30, 0, 0, core.UTC), a.Date)
 }

@@ -15,7 +15,7 @@ import (
 type leagueRequestTestSuite struct {
 	suite.Suite
 	mockRequest *MockRequester[model.League]
-	mockRepository *repository.MockRepository[model.League]
+	mockRepository *repository.MockUpsertRepository[model.League]
 	mockImageService *service.MockImageService
 	leagueRequest *leagueRequest
 	leagues []model.League
@@ -27,7 +27,7 @@ func TestLeagueRequestTestSuite(t *testing.T) {
 
 func (s *leagueRequestTestSuite) SetupTest() {
 	s.mockRequest = &MockRequester[model.League]{}
-	s.mockRepository = &repository.MockRepository[model.League]{}
+	s.mockRepository = &repository.MockUpsertRepository[model.League]{}
 	s.mockImageService = &service.MockImageService{}
 	s.leagueRequest = &leagueRequest{
 		config: core.MockConfig, 

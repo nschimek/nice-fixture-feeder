@@ -66,6 +66,10 @@ func (db *database) GetById(id interface{}, entity interface{}) {
 	}
 }
 
+func (db *database) GetByCompositeKey(entity interface{}) {
+	db.gorm.First(entity)
+}
+
 func (db *database) GetAll(entities interface{}) {
 	db.gorm.Find(entities)
 }
