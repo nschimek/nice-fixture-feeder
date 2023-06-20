@@ -107,6 +107,7 @@ CREATE TABLE `team_stats` (
   `goals_against_away` tinyint unsigned NOT NULL,
   `goals_against_total` tinyint unsigned NOT NULL,
   `goal_differential` tinyint NOT NULL,
+  `form` varchar(100) NOT NULL,
   `cs_home` tinyint unsigned NOT NULL COMMENT 'clean sheets home',
   `cs_away` tinyint unsigned NOT NULL COMMENT 'clean sheets away',
   `cs_total` tinyint unsigned NOT NULL COMMENT 'clean sheets total',

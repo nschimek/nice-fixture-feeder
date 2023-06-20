@@ -13,6 +13,7 @@ type TeamStats struct {
 	TeamStatsFixtures TeamStatsFixtures `gorm:"embedded;embeddedPrefix:fixtures_"`
 	TeamStatsGoals TeamStatsGoals `gorm:"embedded;embeddedPrefix:goals_"`
 	GoalDifferential int
+	Form string
 	CleanSheets TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:cs_"`
 	FailedToScore TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:fts_"`
 }
@@ -33,3 +34,11 @@ type TeamStatsHomeAwayTotal struct {
 	Home, Away, Total int
 }
 
+func (t *TeamStatsHomeAwayTotal) Increment(amount int, home bool) {
+	if home {
+		t.Home = t.Home + amount
+ 	} else {
+		t.Away = t.Away + amount
+	}
+	t.Total = t.Total + amount
+}

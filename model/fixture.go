@@ -5,11 +5,24 @@ import (
 	"time"
 )
 
+const (
+	ResultWin = "W"
+	ResultLoss = "L"
+	ResultDraw = "D"
+)
+
 type Fixture struct {
 	Fixture FixtureFixture `gorm:"embedded"`
 	League FixtureLeague `gorm:"embedded"`
 	Teams FixtureTeams `gorm:"embedded;embeddedPrefix:team_"`
 	Goals FixtureGoals `gorm:"embedded;embeddedPrefix:goals_"`
+}
+
+// not persisted, but used for maintaining stats
+type FixtureResultStats struct {
+	Home bool
+	Result string
+	GoalsFor, GoalsAgainst int
 }
 
 func (f *Fixture) GetTeamStatsId(home bool) TeamStatsId {
@@ -26,6 +39,25 @@ func (f *Fixture) GetTeamStatsId(home bool) TeamStatsId {
 		FixtureId: f.Fixture.Id,
 	}
 }
+
+func (f *Fixture) GetResultStats(teamId int) FixtureResultStats {
+	if (f.Teams.Home.Id == teamId) {
+		return FixtureResultStats{
+			Home: true,
+			Result: string(f.Teams.Home.Result),
+			GoalsFor: f.Goals.Home,
+			GoalsAgainst: f.Goals.Away,
+		}
+	} else {
+		return FixtureResultStats{
+			Home: false,
+			Result: string(f.Teams.Away.Result),
+			GoalsFor: f.Goals.Away,
+			GoalsAgainst: f.Goals.Home,
+		}
+	}
+}
+
 
 type FixtureFixture struct {
 	Id int `gorm:"primaryKey"`
@@ -69,11 +101,11 @@ func (w *WinnerBool) UnmarshalJSON(data []byte) error {
 	var s string
 
 	if v == "null" {
-		s = "D"
+		s = ResultDraw
 	} else if v == "true" {
-		s = "W"
+		s = ResultWin
 	} else if v == "false" {
-		s = "L"
+		s = ResultLoss
 	} else {
 		return errors.New("unexpected value in winner boolean field")
 	}
