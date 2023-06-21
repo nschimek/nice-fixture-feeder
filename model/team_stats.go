@@ -8,8 +8,17 @@ type TeamStatsId struct {
 	FixtureId int `gorm:"primaryKey"`
 }
 
+func (t TeamStatsId) GetTlsId() TeamLeagueSeasonId {
+	return TeamLeagueSeasonId{
+		TeamId: t.TeamId,
+		LeagueId: t.LeagueId,
+		Season: t.Season,
+	}
+}
+
 type TeamStats struct {
 	TeamStatsId TeamStatsId `gorm:"embedded"`
+	NextFixtureId int
 	TeamStatsFixtures TeamStatsFixtures `gorm:"embedded;embeddedPrefix:fixtures_"`
 	TeamStatsGoals TeamStatsGoals `gorm:"embedded;embeddedPrefix:goals_"`
 	GoalDifferential int

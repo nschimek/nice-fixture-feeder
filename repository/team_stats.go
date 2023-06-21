@@ -8,11 +8,13 @@ import (
 type TeamStatsRepository interface {
 	UpsertRepository[model.TeamStats]
 	GetByIdRepository[model.TeamStats, model.TeamStats]
+	SaveRepository[model.TeamStats]
 }
 
 type teamStatsRepository struct {
 	upsertRepository[model.TeamStats]
 	getByIdRepository[model.TeamStats, model.TeamStats]
+	saveRepository[model.TeamStats]
 }
 
 func NewTeamStatsRepository(db core.Database) *teamStatsRepository {
@@ -29,5 +31,6 @@ func NewTeamStatsRepository(db core.Database) *teamStatsRepository {
 			},
 		},
 		getByIdRepository: getByIdRepository[model.TeamStats, model.TeamStats]{db: db},
+		saveRepository: saveRepository[model.TeamStats]{db: db},
 	}
 }

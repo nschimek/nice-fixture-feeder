@@ -58,6 +58,6 @@ func test() {
 	// fmt.Printf("%+v\n", s)
 
 	repo := repository.NewTeamLeagueSeasonRepository(core.DB)
-	s := repo.GetById(model.TeamLeagueSeason{TeamId: 33, LeagueId: 39, Season: 2022})
+	s := repo.GetById(model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 33, LeagueId: 39, Season: 2022}})
 	fmt.Printf("%+v\n", s)
 }

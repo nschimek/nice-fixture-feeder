@@ -60,11 +60,11 @@ func (s *teamRequestTestSuite) TestRequestValid() {
 
 		s.Len(s.teamRequest.GetData(), 6)
 		s.Equal(s.teamRequest.GetData()[0].Team.Name, "Liverpool")
-		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.LeagueId, 39)
-		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.Season, 2022)
+		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.Id.LeagueId, 39)
+		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.Id.Season, 2022)
 		s.Equal(s.teamRequest.GetData()[3].Team.Name, "Barcelona")
-		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.LeagueId, 140)
-		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.Season, 2022)
+		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.Id.LeagueId, 140)
+		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.Id.Season, 2022)
 }
 
 func (s *teamRequestTestSuite) TestRequestError() {

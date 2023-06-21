@@ -8,9 +8,11 @@ type Team struct {
 
 func (t *Team) SetTLS(leagueId, season int) {
 	t.TeamLeagueSeason = TeamLeagueSeason{
-		TeamId: t.Team.Id,
-		LeagueId: leagueId,
-		Season: season,
+		Id: TeamLeagueSeasonId{
+			TeamId: t.Team.Id,
+			LeagueId: leagueId,
+			Season: season,
+		},
 	}
 }
 
@@ -22,10 +24,23 @@ type TeamTeam struct {
 }
 
 type TeamLeagueSeason struct {
+	Id TeamLeagueSeasonId `gorm:"embedded"`
+	MaxFixtureId int
+}
+
+func (t TeamLeagueSeason) GetTeamStatsId() TeamStatsId {
+	return TeamStatsId{
+		TeamId: t.Id.TeamId,
+		LeagueId: t.Id.LeagueId,
+		Season: t.Id.Season,
+		FixtureId: t.MaxFixtureId,
+	}
+}
+
+type TeamLeagueSeasonId struct {
 	TeamId int `gorm:"primaryKey"`
 	LeagueId int `gorm:"primaryKey"`
 	Season int `gorm:"primaryKey"`
-	MaxFixtureId int
 }
 
 type TeamVenue struct {

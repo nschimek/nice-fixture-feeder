@@ -77,17 +77,21 @@ CREATE TABLE `team_league_seasons` (
   `team_id` mediumint unsigned NOT NULL,
   `league_id` smallint unsigned NOT NULL,
   `season` smallint unsigned NOT NULL,
+  `max_fixture_id` int unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`team_id`,`league_id`,`season`),
-  KEY `team_league_seasons2league_seasons_idx` (`league_id`,`season`),
+  KEY `team_league_seasons2league_seasons_idx` (`league_id`,`season`) /*!80000 INVISIBLE */,
+  KEY `team_league_seasons2fixtures_idx` (`team_id`,`league_id`,`season`),
   CONSTRAINT `team_league_seasons.team_id2teams.id` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `team_league_seasons2league_seasons` FOREIGN KEY (`league_id`, `season`) REFERENCES `league_seasons` (`league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 CREATE TABLE `team_stats` (
   `team_id` mediumint unsigned NOT NULL,
   `league_id` smallint unsigned NOT NULL,
   `season` smallint unsigned NOT NULL,
-  `fixture_id` int unsigned NOT NULL COMMENT 'the stats represent the team''s performance BEFORE playing this fixture ID; therefore, this fixture ID is not included in these stats',
+  `fixture_id` int unsigned NOT NULL COMMENT 'this fixture ID will be included in these stats',
+  `next_fixture_id` int unsigned NOT NULL DEFAULT '0' COMMENT 'this fixture ID will use these stats when calculating the various scores (0 indicates there is no next fixture yet)',
   `fixtures_played_home` tinyint unsigned NOT NULL,
   `fixtures_played_away` tinyint unsigned NOT NULL,
   `fixtures_played_total` tinyint unsigned NOT NULL,
@@ -107,7 +111,6 @@ CREATE TABLE `team_stats` (
   `goals_against_away` tinyint unsigned NOT NULL,
   `goals_against_total` tinyint unsigned NOT NULL,
   `goal_differential` tinyint NOT NULL,
-  `form` varchar(100) NOT NULL,
   `cs_home` tinyint unsigned NOT NULL COMMENT 'clean sheets home',
   `cs_away` tinyint unsigned NOT NULL COMMENT 'clean sheets away',
   `cs_total` tinyint unsigned NOT NULL COMMENT 'clean sheets total',
@@ -117,6 +120,8 @@ CREATE TABLE `team_stats` (
   PRIMARY KEY (`team_id`,`league_id`,`season`,`fixture_id`),
   KEY `team_stats2team_league_seasons` (`team_id`,`league_id`,`season`),
   KEY `team_stats.fixture_id2fixtures.id_idx` (`fixture_id`),
+  KEY `team_stats.next_fixture_id2ffixture.id_idx` (`next_fixture_id`),
   CONSTRAINT `team_stats.fixture_id2fixtures.id` FOREIGN KEY (`fixture_id`) REFERENCES `fixtures` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `team_stats.next_fixture_id2ffixture.id` FOREIGN KEY (`next_fixture_id`) REFERENCES `fixtures` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `team_stats2team_league_seasons` FOREIGN KEY (`team_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
