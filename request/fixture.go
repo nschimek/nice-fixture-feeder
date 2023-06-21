@@ -16,7 +16,7 @@ type FixtureRequest interface {
 	Request(startDate, endDate time.Time, leagueIds... string)
 	Persist()
 	GetData() []model.Fixture
-	GetById(id int) *model.Fixture
+	GetMap() map[int]model.Fixture
 	GetIds() []int
 }
 
@@ -98,10 +98,6 @@ func (r *fixtureRequest) GetIds() []int {
 	return r.fixtureIds
 }
 
-func (r *fixtureRequest) GetById(id int) *model.Fixture {
-	if f, ok := r.fixtureMap[id]; ok {
-		return &f
-	} else {
-		return nil
-	}
+func (r *fixtureRequest) GetMap() map[int]model.Fixture {
+	return r.fixtureMap
 }

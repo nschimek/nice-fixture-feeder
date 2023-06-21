@@ -9,16 +9,29 @@ import (
 type TeamLeagueSeasonRepository interface {
 	GetByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]
 	SaveRepository[model.TeamLeagueSeason]
+	UpsertRepository[model.TeamLeagueSeason]
 }
 
 type teamLeagueSeasonRepository struct {
 	getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]
 	saveRepository[model.TeamLeagueSeason]
+	upsertRepository[model.TeamLeagueSeason]
 }
 
 func NewTeamLeagueSeasonRepository(db core.Database) *teamLeagueSeasonRepository {
 	return &teamLeagueSeasonRepository{
 		getByIdRepository: getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]{db: db},
 		saveRepository: saveRepository[model.TeamLeagueSeason]{db: db},
+		upsertRepository: upsertRepository[model.TeamLeagueSeason]{
+			db: db,
+			label: "team_league_season",
+			statsFunc: func(e []model.TeamLeagueSeason, r core.DatabaseResult, rs *ResultStats) {
+				if r.Error == nil {
+					rs.Success["team_stats"] = len(e)
+				} else {
+					rs.Error["team_stats"] = len(e)
+				}
+			},
+		},
 	}
 }

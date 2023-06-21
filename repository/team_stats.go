@@ -5,6 +5,7 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
+//go:generate mockery --name TeamStatsRepository --filename team_stats_mock.go
 type TeamStatsRepository interface {
 	UpsertRepository[model.TeamStats]
 	GetByIdRepository[model.TeamStats, model.TeamStats]
@@ -20,7 +21,7 @@ type teamStatsRepository struct {
 func NewTeamStatsRepository(db core.Database) *teamStatsRepository {
 	return &teamStatsRepository{
 		upsertRepository: upsertRepository[model.TeamStats]{
-			DB: db,
+			db: db,
 			label: "team_stats",
 			statsFunc: func(e []model.TeamStats, r core.DatabaseResult, rs *ResultStats) {
 				if r.Error == nil {

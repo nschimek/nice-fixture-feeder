@@ -11,6 +11,7 @@ import (
 
 type TeamStatsService interface {
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
+	Persist()
 }
 
 type teamStatsService struct {
@@ -46,6 +47,15 @@ func (s *teamStatsService) MaintainStats(fixtureIds []int, fixtureMap map[int]mo
 			core.Log.Errorf("Fixture %d not found in Fixture Map!", id)
 		}
 	}
+}
+
+func (s *teamStatsService) Persist() {
+	core.Log.WithFields(logrus.Fields{
+		"team_stats": len(s.statsMap), "team_league_seasons": len(s.tlsMap),
+	}).Info("Persisting Team Stats...")
+
+	s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
+	s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
 }
 
 func (s *teamStatsService) maintainFixture(fixture model.Fixture, home bool) {
@@ -95,7 +105,7 @@ func (s *teamStatsService) getUpdatedStats(tsid model.TeamStatsId,
 func (s *teamStatsService) getTLS(tsid model.TeamStatsId) (*model.TeamLeagueSeason, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": tsid.TeamId, "leagueId": tsid.LeagueId, "season": tsid.Season,
-	}).Debug("getting team league season (TLS)...")
+	}).Debug("Getting team league season (TLS)...")
 
 	id := tsid.GetTlsId()
 
@@ -144,12 +154,19 @@ func (s *teamStatsService) getPreviousStats(tls model.TeamLeagueSeason) (*model.
 func (s *teamStatsService) calculateCurrentStats(prev model.TeamStats, fixture model.Fixture) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": prev.TeamStatsId.TeamId, "leagueId": prev.TeamStatsId.LeagueId, "season": prev.TeamStatsId.Season,
+		"prevFixtureId": prev.TeamStatsId.FixtureId, "currFixtureId": fixture.Fixture.Id,
 	}).Debug("Calculating current stats...")
 	copy := prev // create a copy of the current
 	curr := &copy // work with the pointer
 
+	if prev.TeamStatsId.FixtureId >= fixture.Fixture.Id {
+		return nil, errors.New("previous fixture ID is GTE incoming fixture ID - out of order corruption?")
+	}
+
 	curr.TeamStatsId.FixtureId = fixture.Fixture.Id // this is just a little important...
 	rs := fixture.GetResultStats(curr.TeamStatsId.TeamId)
+	
+	curr.TeamStatsFixtures.FixturesPlayed.Increment(1, rs.Home)
 	
 	// result
 	if (rs.Result == model.ResultWin) {
@@ -159,20 +176,19 @@ func (s *teamStatsService) calculateCurrentStats(prev model.TeamStats, fixture m
 	} else {
 		curr.TeamStatsFixtures.FixturesDraws.Increment(1, rs.Home)
 	}
-
+	// form
 	curr.Form = curr.Form + rs.Result
-
 	// goals 
 	curr.TeamStatsGoals.GoalsFor.Increment(rs.GoalsFor, rs.Home)
 	curr.TeamStatsGoals.GoalsAgainst.Increment(rs.GoalsAgainst, rs.Home)
-
+	// clean sheets and failed to score
 	if (rs.GoalsAgainst == 0) {
 		curr.CleanSheets.Increment(1, rs.Home)
 	}
 	if (rs.GoalsFor == 0) {
 		curr.FailedToScore.Increment(1, rs.Home)
 	}
-
+	// goal differential
 	curr.GoalDifferential = curr.GoalDifferential + (rs.GoalsFor - rs.GoalsAgainst)
 
 	return curr, nil

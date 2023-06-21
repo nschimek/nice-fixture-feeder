@@ -26,3 +26,10 @@ func IdArrayToMap(ids []string) (idMap map[string]struct{}) {
 
 	return
 }
+
+func MapToArray[K comparable, V any](m map[K]V) (values []V) {
+	for _, v := range m {
+		values = append(values, v)
+	}
+	return
+}

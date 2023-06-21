@@ -10,7 +10,7 @@ type UpsertRepository[T any] interface {
 }
 
 type upsertRepository[T any] struct {
-	DB core.Database
+	db core.Database
 	label string
 	statsFunc func(e []T, r core.DatabaseResult, rs *ResultStats)
 }
@@ -19,7 +19,7 @@ func (r upsertRepository[T]) Upsert(entities []T) *ResultStats {
 	rs := NewResultStats()
 	core.Log.WithField(r.label, len(entities)).Infof("Create/updating %s...", r.label)
 
-	res := r.DB.Upsert(&entities)
+	res := r.db.Upsert(&entities)
 
 	r.statsFunc(entities, res, rs)
 

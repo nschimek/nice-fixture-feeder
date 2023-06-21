@@ -113,6 +113,7 @@ func (s *fixtureRequestTestSuite) TestPostPersist() {
 	s.fixtureRequest.postPersist()
 
 	s.Contains(s.fixtureRequest.GetIds(), 100)
-	s.Equal(s.fixtureRequest.GetById(100), &s.fixtures[0])
-	s.Nil(s.fixtureRequest.GetById(101))
+	s.Contains(s.fixtureRequest.GetMap(), 100)
+	s.NotContains(s.fixtureRequest.GetIds(), 101)
+	s.NotContains(s.fixtureRequest.GetMap(), 101)
 }

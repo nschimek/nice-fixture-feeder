@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/nschimek/nice-fixture-feeder/core"
-	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
+	"github.com/nschimek/nice-fixture-feeder/request"
+	"github.com/nschimek/nice-fixture-feeder/service"
 	"github.com/spf13/viper"
 )
 
@@ -47,17 +48,25 @@ func test() {
 	// req.Persist()
 	// req.PostPersist()
 
-	// start, _ := time.Parse(core.YYYY_MM_DD, "2022-08-05")
-	// end, _ := time.Parse(core.YYYY_MM_DD, "2022-08-06")
-	// req := request.NewFixtureRequest(core.Cfg, &repository.FixtureRepository{DB: core.DB})
-	// req.Request(start, end, "39")
-	// req.Persist()
+	start, _ := time.Parse(core.YYYY_MM_DD, "2022-08-05")
+	end, _ := time.Parse(core.YYYY_MM_DD, "2022-08-06")
+	req := request.NewFixtureRequest(core.Cfg, *repository.NewFixtureRepository(core.DB))
+	req.Request(start, end, "39")
+	req.Persist()
 
 	// repo := repository.NewFixtureStatusRepository(core.DB)
 	// s := repo.GetAll()
 	// fmt.Printf("%+v\n", s)
 
-	repo := repository.NewTeamLeagueSeasonRepository(core.DB)
-	s := repo.GetById(model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 33, LeagueId: 39, Season: 2022}})
-	fmt.Printf("%+v\n", s)
+	// repo := repository.NewTeamLeagueSeasonRepository(core.DB)
+	// s := repo.GetById(model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 33, LeagueId: 39, Season: 2022}})
+	// fmt.Printf("%+v\n", s)
+
+	stsService := service.NewFixtureStatusService(repository.NewFixtureStatusRepository(core.DB))
+	tlsRepo := repository.NewTeamLeagueSeasonRepository(core.DB)
+	tsRepo := repository.NewTeamStatsRepository(core.DB)
+
+	tsService := service.NewTeamStatsService(tsRepo, tlsRepo, stsService)
+	tsService.MaintainStats(req.GetIds(), req.GetMap())
+	tsService.Persist()
 }

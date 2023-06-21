@@ -64,6 +64,104 @@ func (_c *MockTeamLeagueSeasonRepository_GetById_Call) RunAndReturn(run func(mod
 	return _c
 }
 
+// Save provides a mock function with given fields: entity
+func (_m *MockTeamLeagueSeasonRepository) Save(entity *model.TeamLeagueSeason) (*model.TeamLeagueSeason, error) {
+	ret := _m.Called(entity)
+
+	var r0 *model.TeamLeagueSeason
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)); ok {
+		return rf(entity)
+	}
+	if rf, ok := ret.Get(0).(func(*model.TeamLeagueSeason) *model.TeamLeagueSeason); ok {
+		r0 = rf(entity)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamLeagueSeason)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.TeamLeagueSeason) error); ok {
+		r1 = rf(entity)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTeamLeagueSeasonRepository_Save_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Save'
+type MockTeamLeagueSeasonRepository_Save_Call struct {
+	*mock.Call
+}
+
+// Save is a helper method to define mock.On call
+//   - entity *model.TeamLeagueSeason
+func (_e *MockTeamLeagueSeasonRepository_Expecter) Save(entity interface{}) *MockTeamLeagueSeasonRepository_Save_Call {
+	return &MockTeamLeagueSeasonRepository_Save_Call{Call: _e.mock.On("Save", entity)}
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Save_Call) Run(run func(entity *model.TeamLeagueSeason)) *MockTeamLeagueSeasonRepository_Save_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*model.TeamLeagueSeason))
+	})
+	return _c
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Save_Call) Return(_a0 *model.TeamLeagueSeason, _a1 error) *MockTeamLeagueSeasonRepository_Save_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Save_Call) RunAndReturn(run func(*model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)) *MockTeamLeagueSeasonRepository_Save_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Upsert provides a mock function with given fields: entities
+func (_m *MockTeamLeagueSeasonRepository) Upsert(entities []model.TeamLeagueSeason) *ResultStats {
+	ret := _m.Called(entities)
+
+	var r0 *ResultStats
+	if rf, ok := ret.Get(0).(func([]model.TeamLeagueSeason) *ResultStats); ok {
+		r0 = rf(entities)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ResultStats)
+		}
+	}
+
+	return r0
+}
+
+// MockTeamLeagueSeasonRepository_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type MockTeamLeagueSeasonRepository_Upsert_Call struct {
+	*mock.Call
+}
+
+// Upsert is a helper method to define mock.On call
+//   - entities []model.TeamLeagueSeason
+func (_e *MockTeamLeagueSeasonRepository_Expecter) Upsert(entities interface{}) *MockTeamLeagueSeasonRepository_Upsert_Call {
+	return &MockTeamLeagueSeasonRepository_Upsert_Call{Call: _e.mock.On("Upsert", entities)}
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) Run(run func(entities []model.TeamLeagueSeason)) *MockTeamLeagueSeasonRepository_Upsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]model.TeamLeagueSeason))
+	})
+	return _c
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) Return(_a0 *ResultStats) *MockTeamLeagueSeasonRepository_Upsert_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) RunAndReturn(run func([]model.TeamLeagueSeason) *ResultStats) *MockTeamLeagueSeasonRepository_Upsert_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewMockTeamLeagueSeasonRepository interface {
 	mock.TestingT
 	Cleanup(func())

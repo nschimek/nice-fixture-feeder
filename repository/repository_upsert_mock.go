@@ -17,13 +17,13 @@ func (_m *MockUpsertRepository[T]) EXPECT() *MockUpsertRepository_Expecter[T] {
 	return &MockUpsertRepository_Expecter[T]{mock: &_m.Mock}
 }
 
-// Upsert provides a mock function with given fields: _a0
-func (_m *MockUpsertRepository[T]) Upsert(_a0 []T) *ResultStats {
-	ret := _m.Called(_a0)
+// Upsert provides a mock function with given fields: entities
+func (_m *MockUpsertRepository[T]) Upsert(entities []T) *ResultStats {
+	ret := _m.Called(entities)
 
 	var r0 *ResultStats
 	if rf, ok := ret.Get(0).(func([]T) *ResultStats); ok {
-		r0 = rf(_a0)
+		r0 = rf(entities)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ResultStats)
@@ -39,12 +39,12 @@ type MockUpsertRepository_Upsert_Call[T interface{}] struct {
 }
 
 // Upsert is a helper method to define mock.On call
-//   - _a0 []T
-func (_e *MockUpsertRepository_Expecter[T]) Upsert(_a0 interface{}) *MockUpsertRepository_Upsert_Call[T] {
-	return &MockUpsertRepository_Upsert_Call[T]{Call: _e.mock.On("Upsert", _a0)}
+//   - entities []T
+func (_e *MockUpsertRepository_Expecter[T]) Upsert(entities interface{}) *MockUpsertRepository_Upsert_Call[T] {
+	return &MockUpsertRepository_Upsert_Call[T]{Call: _e.mock.On("Upsert", entities)}
 }
 
-func (_c *MockUpsertRepository_Upsert_Call[T]) Run(run func(_a0 []T)) *MockUpsertRepository_Upsert_Call[T] {
+func (_c *MockUpsertRepository_Upsert_Call[T]) Run(run func(entities []T)) *MockUpsertRepository_Upsert_Call[T] {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].([]T))
 	})

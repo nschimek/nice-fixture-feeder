@@ -15,7 +15,7 @@ type fixtureStatusServiceTestSuite struct {
 	statuses []model.FixtureStatus
 }
 
-func TestFixtureStatusRepositoryTestSuite(t *testing.T) {
+func TestFixtureStatusServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(fixtureStatusServiceTestSuite))
 }
 
