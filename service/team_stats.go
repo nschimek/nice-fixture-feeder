@@ -91,6 +91,7 @@ func (s *teamStatsService) getUpdatedStats(tsid model.TeamStatsId,
 	return
 }
 
+// get Team League Season (TLS), which contains the current max fixture ID (which will be the last played fixture)
 func (s *teamStatsService) getTLS(tsid model.TeamStatsId) (*model.TeamLeagueSeason, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": tsid.TeamId, "leagueId": tsid.LeagueId, "season": tsid.Season,
@@ -147,8 +148,8 @@ func (s *teamStatsService) calculateCurrentStats(prev model.TeamStats, fixture m
 	copy := prev // create a copy of the current
 	curr := &copy // work with the pointer
 
+	curr.TeamStatsId.FixtureId = fixture.Fixture.Id // this is just a little important...
 	rs := fixture.GetResultStats(curr.TeamStatsId.TeamId)
-
 	
 	// result
 	if (rs.Result == model.ResultWin) {
