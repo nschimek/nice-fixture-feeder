@@ -10,7 +10,7 @@ import (
 
 type teamStatsServiceTestSuite struct {
 	suite.Suite
-	mockTeamStatsRepo *repository.MockTeamStatsRepository
+	mockTsRepo *repository.MockTeamStatsRepository
 	mockTlsRepo *repository.MockTeamLeagueSeasonRepository
 	mockStatusService *MockFixtureStatusService
 	teamStatsService *teamStatsService
@@ -23,10 +23,10 @@ func TestTeamStatsServiceTestSuite(t *testing.T) {
 }
 
 func (s *teamStatsServiceTestSuite) SetupTest() {
-	s.mockTeamStatsRepo = &repository.MockTeamStatsRepository{}
+	s.mockTsRepo = &repository.MockTeamStatsRepository{}
 	s.mockTlsRepo = &repository.MockTeamLeagueSeasonRepository{}
 	s.mockStatusService = &MockFixtureStatusService{}
-	s.teamStatsService = NewTeamStatsService(s.mockTeamStatsRepo, s.mockTlsRepo, s.mockStatusService)
+	s.teamStatsService = NewTeamStatsService(s.mockTsRepo, s.mockTlsRepo, s.mockStatusService)
 	s.fixtures = []model.Fixture{
 		{
 			Fixture: model.FixtureFixture{Id: 100, Status: model.FixtureStatusId{Id: "FT"}},
@@ -56,7 +56,98 @@ func (s *teamStatsServiceTestSuite) SetupTest() {
 }
 
 func (s *teamStatsServiceTestSuite) TestMaintainStats() {
+	tlsHome := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 31, LeagueId: 39, Season: 2022}}
+	tlsAway := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+
 	s.mockStatusService.EXPECT().IsFinished("FT").Return(true)
+	s.mockStatusService.EXPECT().IsFinished("NS").Return(false)
+	s.mockTlsRepo.EXPECT().GetById(tlsHome).Return(&tlsHome)
+	s.mockTlsRepo.EXPECT().GetById(tlsAway).Return(&tlsAway)
+	s.mockTsRepo.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
+
+	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
+	s.teamStatsService.MaintainStats([]int{s.fixtureIds[0], s.fixtureIds[1], s.fixtureIds[3]}, 
+		map[int]model.Fixture{100: s.fixtures[0], 103: s.fixtures[3]})
+
+	// assert that the invalid ID and the not started fixtures are not present in the results (with the len checks)
+	s.Len(s.teamStatsService.tlsMap, 2)
+	s.Equal(100, s.teamStatsService.tlsMap[tlsHome.Id].MaxFixtureId)
+	s.Equal(100, s.teamStatsService.tlsMap[tlsAway.Id].MaxFixtureId)
+	s.Len(s.teamStatsService.statsMap, 2)
+	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100})
+	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
+}
+
+func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
+	f := &s.fixtures[1]
+	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
+	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+
+	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsid}).Return(&model.TeamStats{TeamStatsId: tsid})
+
+	s.teamStatsService.maintainFixture(f, true)
+
+	s.Len(s.teamStatsService.tlsMap, 1)
+	s.Equal(101, s.teamStatsService.tlsMap[tlsCurr.Id].MaxFixtureId)
+	s.Equal(101, s.teamStatsService.statsMap[model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}].NextFixtureId)
+	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
+	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101})
+}
+
+// this will also test the true condition of the first err check of getUpdatedStats()
+func (s *teamStatsServiceTestSuite) TestMaintainFixtureError() {
+	f := &s.fixtures[1]
+	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	// set the TLS max fixture ID to higher than the incoming fixture to cause an error
+	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 999}
+
+	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev)
+
+	s.teamStatsService.maintainFixture(f, true)
+
+	// maps should not be populated due to error from getTLS().
+	s.Len(s.teamStatsService.tlsMap, 0)
+	s.Len(s.teamStatsService.statsMap, 0)
+}
+
+func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
+	f := &s.fixtures[0]
+	tsidCurr := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+	tlsReq := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
+	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
+
+	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(nil)
+
+	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
+
+	s.Nil(tls)
+	s.Nil(curr)
+	s.Nil(prev)
+	s.ErrorContains(err, "no stats")
+}
+
+func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
+	f := &s.fixtures[0]
+	tsidCurr := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+	tlsReq := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
+	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
+
+	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(&model.TeamStats{
+		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
+	})
+
+	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
+
+	s.Nil(tls)
+	s.Nil(curr)
+	s.Nil(prev)
+	s.ErrorContains(err, "previous fixture ID")
 }
 
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {

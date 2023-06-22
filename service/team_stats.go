@@ -152,6 +152,8 @@ func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model
 		stats = s.tsRepo.GetById(model.TeamStats{TeamStatsId: id})
 	}
 
+	core.Log.Info(stats)
+
 	if stats == nil {
 		return nil, errors.New("no stats for max fixture ID")
 	}
