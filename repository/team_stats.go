@@ -23,13 +23,6 @@ func NewTeamStatsRepository(db core.Database) *teamStatsRepository {
 		upsertRepository: upsertRepository[model.TeamStats]{
 			db: db,
 			label: "team_stats",
-			statsFunc: func(e []model.TeamStats, r core.DatabaseResult, rs *ResultStats) {
-				if r.Error == nil {
-					rs.Success["team_stats"] = len(e)
-				} else {
-					rs.Error["team_stats"] = len(e)
-				}
-			},
 		},
 		getByIdRepository: getByIdRepository[model.TeamStats, model.TeamStats]{db: db},
 		saveRepository: saveRepository[model.TeamStats]{db: db},

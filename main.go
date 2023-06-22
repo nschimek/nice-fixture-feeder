@@ -48,8 +48,8 @@ func test() {
 	// req.Persist()
 	// req.PostPersist()
 
-	start, _ := time.Parse(core.YYYY_MM_DD, "2022-08-05")
-	end, _ := time.Parse(core.YYYY_MM_DD, "2022-08-06")
+	start, _ := time.Parse(core.YYYY_MM_DD, "2022-09-02")
+	end, _ := time.Parse(core.YYYY_MM_DD, "2022-10-31")
 	req := request.NewFixtureRequest(core.Cfg, *repository.NewFixtureRepository(core.DB))
 	req.Request(start, end, "39")
 	req.Persist()

@@ -25,13 +25,6 @@ func NewTeamLeagueSeasonRepository(db core.Database) *teamLeagueSeasonRepository
 		upsertRepository: upsertRepository[model.TeamLeagueSeason]{
 			db: db,
 			label: "team_league_season",
-			statsFunc: func(e []model.TeamLeagueSeason, r core.DatabaseResult, rs *ResultStats) {
-				if r.Error == nil {
-					rs.Success["team_stats"] = len(e)
-				} else {
-					rs.Error["team_stats"] = len(e)
-				}
-			},
 		},
 	}
 }

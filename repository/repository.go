@@ -15,15 +15,27 @@ type upsertRepository[T any] struct {
 	statsFunc func(e []T, r core.DatabaseResult, rs *ResultStats)
 }
 
-func (r upsertRepository[T]) Upsert(entities []T) *ResultStats {
+func (u upsertRepository[T]) Upsert(entities []T) *ResultStats {
 	rs := NewResultStats()
-	core.Log.WithField(r.label, len(entities)).Infof("Create/updating %s...", r.label)
+	core.Log.WithField(u.label, len(entities)).Infof("Create/updating %s...", u.label)
 
-	res := r.db.Upsert(&entities)
+	res := u.db.Upsert(&entities)
 
-	r.statsFunc(entities, res, rs)
+	if (u.statsFunc != nil) {
+		u.statsFunc(entities, res, rs)
+	} else {
+		u.defaultStatsFunc(entities, res, rs)
+	}
 
 	return rs
+}
+
+func (u upsertRepository[T]) defaultStatsFunc(e []T, r core.DatabaseResult, rs *ResultStats) {
+	if r.Error == nil {
+		rs.Success[u.label] = len(e)
+	} else {
+		rs.Error[u.label] = len(e)
+	}
 }
 
 //go:generate mockery --name GetByIdRepository --filename repository_id_mock.go

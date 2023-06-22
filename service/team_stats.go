@@ -54,12 +54,19 @@ func (s *teamStatsService) Persist() {
 		"team_stats": len(s.statsMap), "team_league_seasons": len(s.tlsMap),
 	}).Info("Persisting Team Stats...")
 
-	s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
-	s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
+	tsStats := s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
+	tsStats.LogSuccesses()
+	tsStats.LogErrors()
+
+	if !tsStats.HasErrors() {
+		tlsStats := s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
+		tlsStats.LogSuccesses()
+		tlsStats.LogErrors()
+	}
 }
 
 func (s *teamStatsService) maintainFixture(fixture model.Fixture, home bool) {
-	tsid := fixture.GetTeamStatsId(home) // TSID is set from the INCOMING fixture
+	tsid := fixture.GetTeamStatsId(home) // Team Stats ID (TSID) is set from the INCOMING fixture
 	tls, curr, prev, err := s.getUpdatedStats(tsid, fixture)
 
 	if err == nil {
@@ -107,7 +114,7 @@ func (s *teamStatsService) getTLS(tsid model.TeamStatsId) (*model.TeamLeagueSeas
 		"teamId": tsid.TeamId, "leagueId": tsid.LeagueId, "season": tsid.Season,
 	}).Debug("Getting team league season (TLS)...")
 
-	id := tsid.GetTlsId()
+	id := tsid.GetTlsId() // use the incoming Team Stats ID to get the TLS ID, which is just one less field
 
 	var tls *model.TeamLeagueSeason
 	if mv, ok := s.tlsMap[id]; ok {
@@ -118,6 +125,9 @@ func (s *teamStatsService) getTLS(tsid model.TeamStatsId) (*model.TeamLeagueSeas
 
 	if tls == nil {
 		return nil, errors.New("could not get TLS, was the league setup?")
+	} else if tls.MaxFixtureId >= tsid.FixtureId {
+		core.Log.WithField("tlsMaxFixtureId", tls.MaxFixtureId).Error("Max Fixture ID is invalid")
+		return nil, errors.New("TLS max fixture ID is GTE the incoming fixture ID - out of order")
 	}
 	
 	return tls, nil
@@ -125,16 +135,14 @@ func (s *teamStatsService) getTLS(tsid model.TeamStatsId) (*model.TeamLeagueSeas
 
 func (s *teamStatsService) getPreviousStats(tls model.TeamLeagueSeason) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
-		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season, "fixtureId": tls.MaxFixtureId,
-	}).Debug("Getting previous stats using current TLS...")
+		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season, "prevFixtureId": tls.MaxFixtureId,
+	}).Debug("Getting previous stats using TLS...")
 
 	id := tls.GetTeamStatsId()
 
 	if tls.MaxFixtureId == 0 {
 		core.Log.Debug("max fixture ID was 0, using zeroed stats as previous!")
 		return &model.TeamStats{TeamStatsId: id}, nil
-	} else if tls.MaxFixtureId >= id.FixtureId {
-		return nil, errors.New("max fixture ID is GTE the incoming fixture ID - out of order corruption?")
 	}
 
 	var stats *model.TeamStats
@@ -145,7 +153,7 @@ func (s *teamStatsService) getPreviousStats(tls model.TeamLeagueSeason) (*model.
 	}
 
 	if stats == nil {
-		return nil, errors.New("no stats for max fixture ID, indicates corruption")
+		return nil, errors.New("no stats for max fixture ID")
 	}
 
 	return stats, nil
@@ -160,7 +168,7 @@ func (s *teamStatsService) calculateCurrentStats(prev model.TeamStats, fixture m
 	curr := &copy // work with the pointer
 
 	if prev.TeamStatsId.FixtureId >= fixture.Fixture.Id {
-		return nil, errors.New("previous fixture ID is GTE incoming fixture ID - out of order corruption?")
+		return nil, errors.New("previous fixture ID is GTE incoming fixture ID - out of order")
 	}
 
 	curr.TeamStatsId.FixtureId = fixture.Fixture.Id // this is just a little important...
