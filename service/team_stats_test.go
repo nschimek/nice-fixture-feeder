@@ -46,13 +46,22 @@ func (s *teamStatsServiceTestSuite) SetupTest() {
 			Teams: model.FixtureTeams{Home: model.FixtureTeam{Id: 40, Result: "D"}, Away: model.FixtureTeam{Id: 41, Result: "D"}},
 			Goals: model.FixtureGoals{Home: 0, Away: 0},
 		},
+		{
+			Fixture: model.FixtureFixture{Id: 103, Status: model.FixtureStatusId{Id: "NS"}},
+			League: model.FixtureLeague{Id: 39, Season: 2022},
+			Teams: model.FixtureTeams{Home: model.FixtureTeam{Id: 38}, Away: model.FixtureTeam{Id: 40}},
+		},
 	}
-	s.fixtureIds = []int{100, 101, 102}
+	s.fixtureIds = []int{100, 101, 102, 103}
+}
+
+func (s *teamStatsServiceTestSuite) TestMaintainStats() {
+	s.mockStatusService.EXPECT().IsFinished("FT").Return(true)
 }
 
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
-	prev := model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}}
-	a1, err1 := s.teamStatsService.calculateCurrentStats(prev, s.fixtures[0])
+	prev := &model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}}
+	a1, err1 := s.teamStatsService.calculateCurrentStats(prev, &s.fixtures[0])
 
 	// expected (1st iteration)
 	e1 := &model.TeamStats{
@@ -76,7 +85,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 	s.Equal(e1, a1)
 	s.Nil(err1)
 
-	a2, err2 := s.teamStatsService.calculateCurrentStats(*a1, s.fixtures[1])
+	a2, err2 := s.teamStatsService.calculateCurrentStats(a1, &s.fixtures[1])
 
 	// expected (2nd iteration)
 	e2 := &model.TeamStats{
@@ -100,7 +109,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 	s.Equal(e2, a2)
 	s.Nil(err2)
 
-	a3, err3 := s.teamStatsService.calculateCurrentStats(*a2, s.fixtures[2])
+	a3, err3 := s.teamStatsService.calculateCurrentStats(a2, &s.fixtures[2])
 
 	e3 := &model.TeamStats{
 		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 102},
@@ -125,8 +134,8 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 }
 
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStatsError() {
-	prev := model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}}
-	_, err := s.teamStatsService.calculateCurrentStats(prev, s.fixtures[0])
+	prev := &model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}}
+	_, err := s.teamStatsService.calculateCurrentStats(prev, &s.fixtures[0])
 
 	s.ErrorContains(err, "GTE")
 }

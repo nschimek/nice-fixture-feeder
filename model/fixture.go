@@ -25,14 +25,14 @@ type FixtureResultStats struct {
 	GoalsFor, GoalsAgainst int
 }
 
-func (f Fixture) GetTeamStatsId(home bool) TeamStatsId {
+func (f *Fixture) GetTeamStatsId(home bool) *TeamStatsId {
 	// sometimes the lack of a ternary operator is annoying...
 	t := f.Teams.Home.Id
 	if !home {
 		t = f.Teams.Away.Id
 	}
 
-	return TeamStatsId{
+	return &TeamStatsId{
 		TeamId: t,
 		LeagueId: f.League.Id,
 		Season: f.League.Season,
