@@ -150,6 +150,42 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	s.ErrorContains(err, "previous fixture ID")
 }
 
+func (s *teamStatsServiceTestSuite) TestGetTlsExisting() {
+	tsid := &model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
+	tls := model.TeamLeagueSeason{Id: tlsId, MaxFixtureId: 99}
+	
+	s.teamStatsService.tlsMap[tlsId] = tls
+	a, err := s.teamStatsService.getTLS(tsid)
+
+	s.Equal(&tls, a)
+	s.Nil(err)
+}
+
+func (s *teamStatsServiceTestSuite) TestGetTlsNoStats() {
+	tsid := &model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+
+	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil)
+
+	a, err := s.teamStatsService.getTLS(tsid)
+
+	s.Nil(a)
+	s.ErrorContains(err, "could not get TLS")
+}
+
+func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
+	tls := &model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
+	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+	ts := model.TeamStats{TeamStatsId: tsid, Form: "W"}
+
+	s.teamStatsService.statsMap[tsid] = ts
+	a, err := s.teamStatsService.getPreviousStats(tls)
+
+	s.Equal(&ts, a)
+	s.Nil(err)
+}
+
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 	prev := &model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}}
 	a1, err1 := s.teamStatsService.calculateCurrentStats(prev, &s.fixtures[0])
