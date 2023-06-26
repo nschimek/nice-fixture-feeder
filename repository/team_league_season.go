@@ -19,12 +19,10 @@ type teamLeagueSeasonRepository struct {
 }
 
 func NewTeamLeagueSeasonRepository(db core.Database) *teamLeagueSeasonRepository {
+	r := newRepo(db, "team_league_season")
 	return &teamLeagueSeasonRepository{
-		getByIdRepository: getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]{db: db},
-		saveRepository: saveRepository[model.TeamLeagueSeason]{db: db},
-		upsertRepository: upsertRepository[model.TeamLeagueSeason]{
-			db: db,
-			label: "team_league_season",
-		},
+		getByIdRepository: getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]{repository: r},
+		saveRepository: saveRepository[model.TeamLeagueSeason]{repository: r},
+		upsertRepository: upsertRepository[model.TeamLeagueSeason]{repository: r},
 	}
 }

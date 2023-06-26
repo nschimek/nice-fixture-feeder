@@ -12,17 +12,7 @@ type LeagueRepository struct {
 func NewLeagueRepository(db core.Database) *LeagueRepository {
 	return &LeagueRepository{
 		upsertRepository: upsertRepository[model.League]{
-			db: db,
-			label: "leagues",
-			statsFunc: func(e []model.League, r core.DatabaseResult, rs *ResultStats) {
-				if r.Error == nil {
-					rs.Success["league"] = len(e)
-					rs.Success["season"] = len(e)
-				} else {
-					rs.Error["league"] = len(e)
-					rs.Error["season"] = len(e)
-				}
-			},
+			repository: newRepo(db, "leagues and seasons"),
 		},
 	}
 }

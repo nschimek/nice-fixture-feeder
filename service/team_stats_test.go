@@ -61,8 +61,8 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 
 	s.mockStatusService.EXPECT().IsFinished("FT").Return(true)
 	s.mockStatusService.EXPECT().IsFinished("NS").Return(false)
-	s.mockTlsRepo.EXPECT().GetById(tlsHome).Return(&tlsHome)
-	s.mockTlsRepo.EXPECT().GetById(tlsAway).Return(&tlsAway)
+	s.mockTlsRepo.EXPECT().GetById(tlsHome).Return(&tlsHome, nil)
+	s.mockTlsRepo.EXPECT().GetById(tlsAway).Return(&tlsAway, nil)
 	s.mockTsRepo.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
@@ -84,8 +84,8 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsid}).Return(&model.TeamStats{TeamStatsId: tsid})
+	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsid}).Return(&model.TeamStats{TeamStatsId: tsid}, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -103,7 +103,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureError() {
 	// set the TLS max fixture ID to higher than the incoming fixture to cause an error
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 999}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev)
+	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -119,8 +119,8 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(nil)
+	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(nil, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
 
@@ -137,10 +137,10 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes)
+	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
 	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(&model.TeamStats{
 		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
-	})
+	}, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
 
@@ -166,7 +166,7 @@ func (s *teamStatsServiceTestSuite) TestGetTlsNoStats() {
 	tsid := &model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
 
-	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil)
+	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil, nil)
 
 	a, err := s.teamStatsService.getTLS(tsid)
 

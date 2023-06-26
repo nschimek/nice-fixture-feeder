@@ -21,46 +21,32 @@ func TestTeamRepositoryTestSuite(t *testing.T) {
 
 func (s *teamRepositoryTestSuite) SetupTest() {
 	s.teams = []model.Team{
-		{
-			Team: model.TeamTeam{
-				Id: 1,
-				Name: "Test",
-			},
-		},
-		{
-			Team: model.TeamTeam{
-				Id: 2,
-				Name: "Test",
-			},
-		},
+		{Team: model.TeamTeam{Id: 1, Name: "Test"}},
+		{Team: model.TeamTeam{Id: 2, Name: "Test"}},
 	}
 	s.mockDatabase = &core.MockDatabase{}
 }
 
-func (s *teamRepositoryTestSuite) TestUpsertteamsSuccess() {
-	r := core.DatabaseResult{RowsAffected: 2, Error: nil}
+func (s *teamRepositoryTestSuite) TestUpsertTeamsSuccess() {
+	r := core.DatabaseResult{RowsAffected: 2}
 
 	s.mockDatabase.EXPECT().Upsert(&s.teams).Return(r)
 
 	repo := NewTeamRepository(s.mockDatabase)
-	actual := repo.Upsert(s.teams)
+	actual, err := repo.Upsert(s.teams)
 
-	s.Equal(0, actual.Error["team"])
-	s.Equal(0, actual.Error["team_league_season"])
-	s.Equal(2, actual.Success["team"])
-	s.Equal(2, actual.Success["team_league_season"])
+	s.Equal(s.teams, actual)
+	s.Nil(err)
 }
 
-func (s *teamRepositoryTestSuite) TestUpsertteamError() {
+func (s *teamRepositoryTestSuite) TestUpsertTeamError() {
 	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
 
 	s.mockDatabase.EXPECT().Upsert(&s.teams).Return(r)
 
 	repo := NewTeamRepository(s.mockDatabase)
-	actual := repo.Upsert(s.teams)
+	actual, err := repo.Upsert(s.teams)
 
-	s.Equal(2, actual.Error["team"])
-	s.Equal(2, actual.Error["team_league_season"])
-	s.Equal(0, actual.Success["team"])
-	s.Equal(0, actual.Success["team_league_season"])
+	s.Nil(actual)
+	s.ErrorContains(err, "test")
 }

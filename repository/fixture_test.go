@@ -38,10 +38,10 @@ func (s *fixtureRepositoryTestSuite) TestUpsertFixturesSuccess() {
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)
 
 	repo := NewFixtureRepository(s.mockDatabase)
-	actual := repo.Upsert(s.fixtures)
+	actual, err := repo.Upsert(s.fixtures)
 
-	s.Equal(0, actual.Error["fixture"])
-	s.Equal(1, actual.Success["fixture"])
+	s.Equal(s.fixtures, actual)
+	s.Nil(err)
 }
 
 func (s *fixtureRepositoryTestSuite) TestUpsertFixtureError() {
@@ -50,8 +50,8 @@ func (s *fixtureRepositoryTestSuite) TestUpsertFixtureError() {
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)
 
 	repo := NewFixtureRepository(s.mockDatabase)
-	actual := repo.Upsert(s.fixtures)
+	actual, err := repo.Upsert(s.fixtures)
 
-	s.Equal(1, actual.Error["fixture"])
-	s.Equal(0, actual.Success["fixture"])
+	s.Nil(actual)
+	s.ErrorContains(err, "test")
 }

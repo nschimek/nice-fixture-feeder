@@ -18,19 +18,29 @@ func (_m *MockUpsertRepository[T]) EXPECT() *MockUpsertRepository_Expecter[T] {
 }
 
 // Upsert provides a mock function with given fields: entities
-func (_m *MockUpsertRepository[T]) Upsert(entities []T) *ResultStats {
+func (_m *MockUpsertRepository[T]) Upsert(entities []T) ([]T, error) {
 	ret := _m.Called(entities)
 
-	var r0 *ResultStats
-	if rf, ok := ret.Get(0).(func([]T) *ResultStats); ok {
+	var r0 []T
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]T) ([]T, error)); ok {
+		return rf(entities)
+	}
+	if rf, ok := ret.Get(0).(func([]T) []T); ok {
 		r0 = rf(entities)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ResultStats)
+			r0 = ret.Get(0).([]T)
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func([]T) error); ok {
+		r1 = rf(entities)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockUpsertRepository_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
@@ -51,12 +61,12 @@ func (_c *MockUpsertRepository_Upsert_Call[T]) Run(run func(entities []T)) *Mock
 	return _c
 }
 
-func (_c *MockUpsertRepository_Upsert_Call[T]) Return(_a0 *ResultStats) *MockUpsertRepository_Upsert_Call[T] {
-	_c.Call.Return(_a0)
+func (_c *MockUpsertRepository_Upsert_Call[T]) Return(_a0 []T, _a1 error) *MockUpsertRepository_Upsert_Call[T] {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockUpsertRepository_Upsert_Call[T]) RunAndReturn(run func([]T) *ResultStats) *MockUpsertRepository_Upsert_Call[T] {
+func (_c *MockUpsertRepository_Upsert_Call[T]) RunAndReturn(run func([]T) ([]T, error)) *MockUpsertRepository_Upsert_Call[T] {
 	_c.Call.Return(run)
 	return _c
 }

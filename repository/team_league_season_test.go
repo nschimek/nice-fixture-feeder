@@ -30,10 +30,11 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdFound() {
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 1})
 
-	resp := s.teamLeagueSeasonRepository.GetById(id)
+	resp, err := s.teamLeagueSeasonRepository.GetById(id)
 
 	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
 	s.Equal(&entity, resp) // due to mocking, expect the response to just be the entity passed through
+	s.Nil(err)
 }
 
 func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdNotFound() {
@@ -42,32 +43,23 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdNotFound() {
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0})
 
-	resp := s.teamLeagueSeasonRepository.GetById(id)
+	resp, err := s.teamLeagueSeasonRepository.GetById(id)
 
 	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
 	s.Nil(resp)
-}
-
-func (s *teamLeagueSeasonRepositoryTestSuite) TestSaveSuccess() {
-	e := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}}
-	
-	s.mockDatabase.EXPECT().Save(&e).Return(core.DatabaseResult{RowsAffected: 1})
-
-	a, err := s.teamLeagueSeasonRepository.Save(&e)
-
-	s.mockDatabase.AssertCalled(s.T(), "Save", &e)
-	s.Equal(&e, a)
 	s.Nil(err)
 }
 
-func (s *teamLeagueSeasonRepositoryTestSuite) TestSaveError() {
-	e := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}}
-	
-	s.mockDatabase.EXPECT().Save(&e).Return(core.DatabaseResult{Error: errors.New("test")})
+func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdError() {
+	var entity model.TeamLeagueSeason
+	id := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 99, LeagueId: 9, Season: 2022}}
 
-	a, err := s.teamLeagueSeasonRepository.Save(&e)
+	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")})
 
-	s.mockDatabase.AssertCalled(s.T(), "Save", &e)
-	s.Nil(a)
+	resp, err := s.teamLeagueSeasonRepository.GetById(id)
+
+	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
+	s.Nil(resp)
 	s.ErrorContains(err, "test")
 }
+

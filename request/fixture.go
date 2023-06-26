@@ -15,7 +15,6 @@ const fixturesEndpoint = "fixtures"
 type FixtureRequest interface {
 	Request(startDate, endDate time.Time, leagueIds... string)
 	Persist()
-	GetData() []model.Fixture
 	GetMap() map[int]model.Fixture
 	GetIds() []int
 }
@@ -33,6 +32,7 @@ func NewFixtureRequest(config *core.Config, repo repository.FixtureRepository) F
 	return &fixtureRequest{
 		config: config,
 		requester: NewRequester[model.Fixture](config),
+		fixtureMap: make(map[int]model.Fixture),
 		repo: repo,
 	}
 }
@@ -71,27 +71,18 @@ func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId string) 
 }
 
 func (r *fixtureRequest) Persist() {
-	rs := r.repo.Upsert(r.requestedData)
-	if rs.HasErrors() {
-		r.requestedData = nil
-	} else {
-		rs.LogSuccesses()
+	var err error
+	r.requestedData, err = r.repo.Upsert(r.requestedData)
+	if err == nil {
 		r.postPersist()
 	}
 }
 
 func (r *fixtureRequest) postPersist() {
-	if r.fixtureMap == nil {
-		r.fixtureMap = make(map[int]model.Fixture)
-	}
 	for _, fixture := range r.requestedData {
 		r.fixtureIds = append(r.fixtureIds, fixture.Fixture.Id)
 		r.fixtureMap[fixture.Fixture.Id] = fixture
 	}
-}
-
-func (r *fixtureRequest) GetData() []model.Fixture {
-	return r.requestedData
 }
 
 func (r *fixtureRequest) GetIds() []int {

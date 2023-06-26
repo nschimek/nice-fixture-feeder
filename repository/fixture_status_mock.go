@@ -21,10 +21,14 @@ func (_m *MockFixtureStatusRepository) EXPECT() *MockFixtureStatusRepository_Exp
 }
 
 // GetAll provides a mock function with given fields:
-func (_m *MockFixtureStatusRepository) GetAll() []model.FixtureStatus {
+func (_m *MockFixtureStatusRepository) GetAll() ([]model.FixtureStatus, error) {
 	ret := _m.Called()
 
 	var r0 []model.FixtureStatus
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]model.FixtureStatus, error)); ok {
+		return rf()
+	}
 	if rf, ok := ret.Get(0).(func() []model.FixtureStatus); ok {
 		r0 = rf()
 	} else {
@@ -33,7 +37,13 @@ func (_m *MockFixtureStatusRepository) GetAll() []model.FixtureStatus {
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockFixtureStatusRepository_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
@@ -53,12 +63,12 @@ func (_c *MockFixtureStatusRepository_GetAll_Call) Run(run func()) *MockFixtureS
 	return _c
 }
 
-func (_c *MockFixtureStatusRepository_GetAll_Call) Return(_a0 []model.FixtureStatus) *MockFixtureStatusRepository_GetAll_Call {
-	_c.Call.Return(_a0)
+func (_c *MockFixtureStatusRepository_GetAll_Call) Return(_a0 []model.FixtureStatus, _a1 error) *MockFixtureStatusRepository_GetAll_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockFixtureStatusRepository_GetAll_Call) RunAndReturn(run func() []model.FixtureStatus) *MockFixtureStatusRepository_GetAll_Call {
+func (_c *MockFixtureStatusRepository_GetAll_Call) RunAndReturn(run func() ([]model.FixtureStatus, error)) *MockFixtureStatusRepository_GetAll_Call {
 	_c.Call.Return(run)
 	return _c
 }

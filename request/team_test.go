@@ -58,13 +58,15 @@ func (s *teamRequestTestSuite) TestRequestValid() {
 
 		s.teamRequest.Request("39", "140")
 
-		s.Len(s.teamRequest.GetData(), 6)
-		s.Equal(s.teamRequest.GetData()[0].Team.Name, "Liverpool")
-		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.Id.LeagueId, 39)
-		s.Equal(s.teamRequest.GetData()[0].TeamLeagueSeason.Id.Season, 2022)
-		s.Equal(s.teamRequest.GetData()[3].Team.Name, "Barcelona")
-		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.Id.LeagueId, 140)
-		s.Equal(s.teamRequest.GetData()[3].TeamLeagueSeason.Id.Season, 2022)
+		s.Len(s.teamRequest.requestedData, 6)
+		s.Contains(s.teamRequest.requestedData, model.Team{
+			Team: s.teams[0].Team, 
+			TeamLeagueSeason: model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}},
+		})
+		s.Contains(s.teamRequest.requestedData, model.Team{
+			Team: s.teams[3].Team, 
+			TeamLeagueSeason: model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 529, LeagueId: 140, Season: 2022}},
+		})
 }
 
 func (s *teamRequestTestSuite) TestRequestError() {
@@ -73,33 +75,34 @@ func (s *teamRequestTestSuite) TestRequestError() {
 
 	s.teamRequest.Request("39")
 
-	s.Len(s.teamRequest.GetData(), 0)
+	s.Len(s.teamRequest.requestedData, 0)
 }
 
-func (s *teamRequestTestSuite) TestPersist() {
-	rs := &repository.ResultStats{
-		Success: map[string]int{"team": 6, "team_league_season": 6},
-		Error: map[string]int{"team": 0, "team_league_season": 0},
-	}
-	// prep by pre-populating with leagues, and mocking the Upsert result stats
-	s.teamRequest.RequestedData = s.teams
-	s.mockRepository.EXPECT().Upsert(s.teams).Return(rs)
+func (s *teamRequestTestSuite) TestPersistSuccess() {
+	teams := s.teams[0:3] // don't need all of them for this test
+	s.teamRequest.requestedData = teams
 
-	s.teamRequest.Persist()
-
-	s.mockRepository.AssertCalled(s.T(), "Upsert", s.teams)
-}
-
-func (s *teamRequestTestSuite) TestPostPersist() {
-	s.teamRequest.RequestedData = s.teams[0:3]
-
+	s.mockRepository.EXPECT().Upsert(teams).Return(teams, nil)
+	// postPersist
 	s.mockImageService.EXPECT().TransferURL(s.teams[0].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
 	s.mockImageService.EXPECT().TransferURL(s.teams[1].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
 	s.mockImageService.EXPECT().TransferURL(s.teams[2].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
 
-	s.teamRequest.PostPersist()
+	s.teamRequest.Persist()
 
+	s.mockRepository.AssertCalled(s.T(), "Upsert", teams)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[0].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[1].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[2].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
+}
+
+func (s *teamRequestTestSuite) TestPersistError() {
+	s.teamRequest.requestedData = s.teams
+
+	s.mockRepository.EXPECT().Upsert(s.teams).Return(nil, errors.New("test"))
+
+	s.teamRequest.Persist()
+
+	s.Nil(s.teamRequest.requestedData)
+	s.mockImageService.AssertNotCalled(s.T(), "TransferURL")
 }

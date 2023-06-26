@@ -9,22 +9,17 @@ import (
 type TeamStatsRepository interface {
 	UpsertRepository[model.TeamStats]
 	GetByIdRepository[model.TeamStats, model.TeamStats]
-	SaveRepository[model.TeamStats]
 }
 
 type teamStatsRepository struct {
 	upsertRepository[model.TeamStats]
 	getByIdRepository[model.TeamStats, model.TeamStats]
-	saveRepository[model.TeamStats]
 }
 
 func NewTeamStatsRepository(db core.Database) *teamStatsRepository {
+	r := newRepo(db, "team_stats")
 	return &teamStatsRepository{
-		upsertRepository: upsertRepository[model.TeamStats]{
-			db: db,
-			label: "team_stats",
-		},
-		getByIdRepository: getByIdRepository[model.TeamStats, model.TeamStats]{db: db},
-		saveRepository: saveRepository[model.TeamStats]{db: db},
+		upsertRepository: upsertRepository[model.TeamStats]{repository: r},
+		getByIdRepository: getByIdRepository[model.TeamStats, model.TeamStats]{repository: r},
 	}
 }

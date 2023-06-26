@@ -21,10 +21,14 @@ func (_m *MockTeamLeagueSeasonRepository) EXPECT() *MockTeamLeagueSeasonReposito
 }
 
 // GetById provides a mock function with given fields: id
-func (_m *MockTeamLeagueSeasonRepository) GetById(id model.TeamLeagueSeason) *model.TeamLeagueSeason {
+func (_m *MockTeamLeagueSeasonRepository) GetById(id model.TeamLeagueSeason) (*model.TeamLeagueSeason, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.TeamLeagueSeason
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)); ok {
+		return rf(id)
+	}
 	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) *model.TeamLeagueSeason); ok {
 		r0 = rf(id)
 	} else {
@@ -33,7 +37,13 @@ func (_m *MockTeamLeagueSeasonRepository) GetById(id model.TeamLeagueSeason) *mo
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(model.TeamLeagueSeason) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockTeamLeagueSeasonRepository_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
@@ -54,12 +64,12 @@ func (_c *MockTeamLeagueSeasonRepository_GetById_Call) Run(run func(id model.Tea
 	return _c
 }
 
-func (_c *MockTeamLeagueSeasonRepository_GetById_Call) Return(_a0 *model.TeamLeagueSeason) *MockTeamLeagueSeasonRepository_GetById_Call {
-	_c.Call.Return(_a0)
+func (_c *MockTeamLeagueSeasonRepository_GetById_Call) Return(_a0 *model.TeamLeagueSeason, _a1 error) *MockTeamLeagueSeasonRepository_GetById_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockTeamLeagueSeasonRepository_GetById_Call) RunAndReturn(run func(model.TeamLeagueSeason) *model.TeamLeagueSeason) *MockTeamLeagueSeasonRepository_GetById_Call {
+func (_c *MockTeamLeagueSeasonRepository_GetById_Call) RunAndReturn(run func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)) *MockTeamLeagueSeasonRepository_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -119,19 +129,29 @@ func (_c *MockTeamLeagueSeasonRepository_Save_Call) RunAndReturn(run func(*model
 }
 
 // Upsert provides a mock function with given fields: entities
-func (_m *MockTeamLeagueSeasonRepository) Upsert(entities []model.TeamLeagueSeason) *ResultStats {
+func (_m *MockTeamLeagueSeasonRepository) Upsert(entities []model.TeamLeagueSeason) ([]model.TeamLeagueSeason, error) {
 	ret := _m.Called(entities)
 
-	var r0 *ResultStats
-	if rf, ok := ret.Get(0).(func([]model.TeamLeagueSeason) *ResultStats); ok {
+	var r0 []model.TeamLeagueSeason
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]model.TeamLeagueSeason) ([]model.TeamLeagueSeason, error)); ok {
+		return rf(entities)
+	}
+	if rf, ok := ret.Get(0).(func([]model.TeamLeagueSeason) []model.TeamLeagueSeason); ok {
 		r0 = rf(entities)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ResultStats)
+			r0 = ret.Get(0).([]model.TeamLeagueSeason)
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func([]model.TeamLeagueSeason) error); ok {
+		r1 = rf(entities)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockTeamLeagueSeasonRepository_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
@@ -152,12 +172,12 @@ func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) Run(run func(entities []mo
 	return _c
 }
 
-func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) Return(_a0 *ResultStats) *MockTeamLeagueSeasonRepository_Upsert_Call {
-	_c.Call.Return(_a0)
+func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) Return(_a0 []model.TeamLeagueSeason, _a1 error) *MockTeamLeagueSeasonRepository_Upsert_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) RunAndReturn(run func([]model.TeamLeagueSeason) *ResultStats) *MockTeamLeagueSeasonRepository_Upsert_Call {
+func (_c *MockTeamLeagueSeasonRepository_Upsert_Call) RunAndReturn(run func([]model.TeamLeagueSeason) ([]model.TeamLeagueSeason, error)) *MockTeamLeagueSeasonRepository_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

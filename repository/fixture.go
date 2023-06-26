@@ -11,16 +11,6 @@ type FixtureRepository struct {
 
 func NewFixtureRepository(db core.Database) *FixtureRepository {
 	return &FixtureRepository{
-		UpsertRepository: upsertRepository[model.Fixture]{
-			db: db,
-			label: "fixtures",
-			statsFunc: func(e []model.Fixture, r core.DatabaseResult, rs *ResultStats) {
-				if r.Error == nil {
-					rs.Success["fixture"] = len(e)
-				} else {
-					rs.Error["fixture"] = len(e)
-				}
-			},
-		},
+		UpsertRepository: upsertRepository[model.Fixture]{repository: newRepo(db, "fixtures")},
 	}
 }

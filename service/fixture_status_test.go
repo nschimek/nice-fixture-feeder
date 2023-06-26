@@ -30,7 +30,7 @@ func (s *fixtureStatusServiceTestSuite) SetupTest() {
 }
 
 func (s *fixtureStatusServiceTestSuite) TestGetMap() {
-	s.mockRepository.EXPECT().GetAll().Return(s.statuses)
+	s.mockRepository.EXPECT().GetAll().Return(s.statuses, nil)
 
 	s.Equal("FI", s.fixtureStatusService.GetType("ft"))
 	s.Equal("SC", s.fixtureStatusService.GetType("NS"))
@@ -41,14 +41,14 @@ func (s *fixtureStatusServiceTestSuite) TestGetMap() {
 }
 
 func (s *fixtureStatusServiceTestSuite) TestFinished() {
-	s.mockRepository.EXPECT().GetAll().Return(s.statuses)
+	s.mockRepository.EXPECT().GetAll().Return(s.statuses, nil)
 
 	s.True(s.fixtureStatusService.IsFinished("FT"))
 	s.False(s.fixtureStatusService.IsFinished("NS"))
 }
 
 func (s *fixtureStatusServiceTestSuite) TestScheduled() {
-	s.mockRepository.EXPECT().GetAll().Return(s.statuses)
+	s.mockRepository.EXPECT().GetAll().Return(s.statuses, nil)
 
 	s.True(s.fixtureStatusService.IsScheduled("NS"))
 	s.False(s.fixtureStatusService.IsScheduled("LIVE"))

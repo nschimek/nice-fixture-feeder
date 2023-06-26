@@ -60,8 +60,8 @@ func (s *leagueRequestTestSuite) TestRequestValid() {
 
 	s.leagueRequest.Request("39", "140")
 
-	s.Contains(s.leagueRequest.GetData(), r1.Response[0])
-	s.Contains(s.leagueRequest.GetData(), r2.Response[0])
+	s.Contains(s.leagueRequest.requestedData, r1.Response[0])
+	s.Contains(s.leagueRequest.requestedData, r2.Response[0])
 }
 
 func (s *leagueRequestTestSuite) TestRequestError() {
@@ -70,36 +70,35 @@ func (s *leagueRequestTestSuite) TestRequestError() {
 
 	s.leagueRequest.Request("39")
 
-	s.Len(s.leagueRequest.GetData(), 0)
+	s.Len(s.leagueRequest.requestedData, 0)
 }
 
 func (s *leagueRequestTestSuite) TestPersist() {
-	rs := &repository.ResultStats{
-		Success: map[string]int{"league": 1, "season": 1},
-		Error: map[string]int{"league": 0, "season": 0},
-	}
-	// prep by pre-populating with leagues, and mocking the Upsert result stats
-	s.leagueRequest.RequestedData = s.leagues
-	s.mockRepository.EXPECT().Upsert(s.leagues).Return(rs)
+	s.leagueRequest.requestedData = s.leagues
 
-	s.leagueRequest.Persist()
-
-	s.mockRepository.AssertCalled(s.T(), "Upsert", s.leagues)
-}
-
-func (s *leagueRequestTestSuite) TestPostPersist() {
-	s.leagueRequest.RequestedData = s.leagues
-
+	s.mockRepository.EXPECT().Upsert(s.leagues).Return(s.leagues, nil)
+	// postPersist
 	s.mockImageService.EXPECT().TransferURL(s.leagues[0].League.Logo, core.MockConfig.AWS.BucketName, leagueKeyFormat).Return(true)
 	s.mockImageService.EXPECT().TransferURL(s.leagues[0].Country.Flag, core.MockConfig.AWS.BucketName, countryKeyFormat).Return(true)
 	s.mockImageService.EXPECT().TransferURL(s.leagues[1].League.Logo, core.MockConfig.AWS.BucketName, leagueKeyFormat).Return(true)
 	s.mockImageService.EXPECT().TransferURL(s.leagues[1].Country.Flag, core.MockConfig.AWS.BucketName, countryKeyFormat).Return(true)
 
-	s.leagueRequest.PostPersist()
+	s.leagueRequest.Persist()
 
+	s.mockRepository.AssertCalled(s.T(), "Upsert", s.leagues)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.leagues[0].League.Logo, core.MockConfig.AWS.BucketName, leagueKeyFormat)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.leagues[0].Country.Flag, core.MockConfig.AWS.BucketName, countryKeyFormat)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.leagues[1].League.Logo, core.MockConfig.AWS.BucketName, leagueKeyFormat)
 	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.leagues[1].Country.Flag, core.MockConfig.AWS.BucketName, countryKeyFormat)
 }
 
+func (s *leagueRequestTestSuite) TestPersistError() {
+	s.leagueRequest.requestedData = s.leagues
+
+	s.mockRepository.EXPECT().Upsert(s.leagues).Return(nil, errors.New("test"))
+
+	s.leagueRequest.Persist()
+
+	s.Nil(s.leagueRequest.requestedData)
+	s.mockImageService.AssertNotCalled(s.T(), "TransferURL")
+}

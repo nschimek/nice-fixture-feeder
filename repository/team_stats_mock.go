@@ -21,10 +21,14 @@ func (_m *MockTeamStatsRepository) EXPECT() *MockTeamStatsRepository_Expecter {
 }
 
 // GetById provides a mock function with given fields: id
-func (_m *MockTeamStatsRepository) GetById(id model.TeamStats) *model.TeamStats {
+func (_m *MockTeamStatsRepository) GetById(id model.TeamStats) (*model.TeamStats, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.TeamStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamStats) (*model.TeamStats, error)); ok {
+		return rf(id)
+	}
 	if rf, ok := ret.Get(0).(func(model.TeamStats) *model.TeamStats); ok {
 		r0 = rf(id)
 	} else {
@@ -33,7 +37,13 @@ func (_m *MockTeamStatsRepository) GetById(id model.TeamStats) *model.TeamStats 
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(model.TeamStats) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockTeamStatsRepository_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
@@ -54,12 +64,12 @@ func (_c *MockTeamStatsRepository_GetById_Call) Run(run func(id model.TeamStats)
 	return _c
 }
 
-func (_c *MockTeamStatsRepository_GetById_Call) Return(_a0 *model.TeamStats) *MockTeamStatsRepository_GetById_Call {
-	_c.Call.Return(_a0)
+func (_c *MockTeamStatsRepository_GetById_Call) Return(_a0 *model.TeamStats, _a1 error) *MockTeamStatsRepository_GetById_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockTeamStatsRepository_GetById_Call) RunAndReturn(run func(model.TeamStats) *model.TeamStats) *MockTeamStatsRepository_GetById_Call {
+func (_c *MockTeamStatsRepository_GetById_Call) RunAndReturn(run func(model.TeamStats) (*model.TeamStats, error)) *MockTeamStatsRepository_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -119,19 +129,29 @@ func (_c *MockTeamStatsRepository_Save_Call) RunAndReturn(run func(*model.TeamSt
 }
 
 // Upsert provides a mock function with given fields: entities
-func (_m *MockTeamStatsRepository) Upsert(entities []model.TeamStats) *ResultStats {
+func (_m *MockTeamStatsRepository) Upsert(entities []model.TeamStats) ([]model.TeamStats, error) {
 	ret := _m.Called(entities)
 
-	var r0 *ResultStats
-	if rf, ok := ret.Get(0).(func([]model.TeamStats) *ResultStats); ok {
+	var r0 []model.TeamStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]model.TeamStats) ([]model.TeamStats, error)); ok {
+		return rf(entities)
+	}
+	if rf, ok := ret.Get(0).(func([]model.TeamStats) []model.TeamStats); ok {
 		r0 = rf(entities)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ResultStats)
+			r0 = ret.Get(0).([]model.TeamStats)
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func([]model.TeamStats) error); ok {
+		r1 = rf(entities)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockTeamStatsRepository_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
@@ -152,12 +172,12 @@ func (_c *MockTeamStatsRepository_Upsert_Call) Run(run func(entities []model.Tea
 	return _c
 }
 
-func (_c *MockTeamStatsRepository_Upsert_Call) Return(_a0 *ResultStats) *MockTeamStatsRepository_Upsert_Call {
-	_c.Call.Return(_a0)
+func (_c *MockTeamStatsRepository_Upsert_Call) Return(_a0 []model.TeamStats, _a1 error) *MockTeamStatsRepository_Upsert_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockTeamStatsRepository_Upsert_Call) RunAndReturn(run func([]model.TeamStats) *ResultStats) *MockTeamStatsRepository_Upsert_Call {
+func (_c *MockTeamStatsRepository_Upsert_Call) RunAndReturn(run func([]model.TeamStats) ([]model.TeamStats, error)) *MockTeamStatsRepository_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

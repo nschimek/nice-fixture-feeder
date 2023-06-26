@@ -7,7 +7,7 @@ import (
 
 //go:generate mockery --name FixtureStatusRepository --filename fixture_status_mock.go
 type FixtureStatusRepository interface {
-	GetAll() []model.FixtureStatus
+	GetAll() ([]model.FixtureStatus, error)
 }
 
 type fixtureStatusRepository struct {
@@ -18,8 +18,10 @@ func NewFixtureStatusRepository(db core.Database) FixtureStatusRepository {
 	return &fixtureStatusRepository{db: db}
 }
 
-func (r *fixtureStatusRepository) GetAll() []model.FixtureStatus {
+func (r *fixtureStatusRepository) GetAll() ([]model.FixtureStatus, error) {
 	var statues []model.FixtureStatus
-	r.db.GetAll(&statues)
-	return statues
+	if err := r.db.GetAll(&statues).Error; err != nil {
+		return nil, err
+	}
+	return statues, nil
 }

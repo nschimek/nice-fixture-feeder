@@ -54,14 +54,10 @@ func (s *teamStatsService) Persist() {
 		"team_stats": len(s.statsMap), "team_league_seasons": len(s.tlsMap),
 	}).Info("Persisting Team Stats...")
 
-	tsStats := s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
-	tsStats.LogSuccesses()
-	tsStats.LogErrors()
+	_, err := s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
 
-	if !tsStats.HasErrors() {
-		tlsStats := s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
-		tlsStats.LogSuccesses()
-		tlsStats.LogErrors()
+	if err == nil {
+		s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
 	}
 }
 
@@ -120,7 +116,7 @@ func (s *teamStatsService) getTLS(tsid *model.TeamStatsId) (*model.TeamLeagueSea
 	if mv, ok := s.tlsMap[id]; ok {
 		tls = &mv // use the map value, since we have it
 	} else {
-		tls = s.tlsRepo.GetById(model.TeamLeagueSeason{Id: id})
+		tls, _ = s.tlsRepo.GetById(model.TeamLeagueSeason{Id: id})
 	}
 
 	if tls == nil {
@@ -149,7 +145,7 @@ func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model
 	if mv, ok := s.statsMap[id]; ok {
 		stats = &mv // use the map value, since we have it
 	} else {
-		stats = s.tsRepo.GetById(model.TeamStats{TeamStatsId: id})
+		stats, _ = s.tsRepo.GetById(model.TeamStats{TeamStatsId: id})
 	}
 
 	if stats == nil {

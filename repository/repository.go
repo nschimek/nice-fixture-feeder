@@ -4,55 +4,55 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
+type repository struct {
+	db core.Database
+	label string
+}
+
+func newRepo(db core.Database, label string) *repository {
+	return &repository{db: db, label: label}
+}
+
 //go:generate mockery --name UpsertRepository --filename repository_upsert_mock.go
 type UpsertRepository[T any] interface {
-	Upsert(entities []T) *ResultStats
+	Upsert(entities []T) ([]T, error)
 }
 
 type upsertRepository[T any] struct {
-	db core.Database
-	label string
-	statsFunc func(e []T, r core.DatabaseResult, rs *ResultStats)
+	*repository
 }
 
-func (u upsertRepository[T]) Upsert(entities []T) *ResultStats {
-	rs := NewResultStats()
-	core.Log.WithField(u.label, len(entities)).Infof("Create/updating %s...", u.label)
+func (r upsertRepository[T]) Upsert(entities []T) ([]T, error) {
+	core.Log.WithField(r.label, len(entities)).Infof("Create/updating %s...", r.label)
 
-	res := u.db.Upsert(&entities)
+	res := r.db.Upsert(&entities)
 
-	if (u.statsFunc != nil) {
-		u.statsFunc(entities, res, rs)
-	} else {
-		u.defaultStatsFunc(entities, res, rs)
+	if res.Error != nil {
+		core.Log.WithField(r.label, len(entities)).Error("Issues during persistence")
+		return nil, res.Error
 	}
 
-	return rs
-}
-
-func (u upsertRepository[T]) defaultStatsFunc(e []T, r core.DatabaseResult, rs *ResultStats) {
-	if r.Error == nil {
-		rs.Success[u.label] = len(e)
-	} else {
-		rs.Error[u.label] = len(e)
-	}
+	core.Log.WithField(r.label, len(entities)).Info("Persistence successful!")
+	return entities, nil
 }
 
 //go:generate mockery --name GetByIdRepository --filename repository_id_mock.go
 type GetByIdRepository[T any, I any] interface {
-	GetById(id I) *T
+	GetById(id I) (*T, error)
 }
 
 type getByIdRepository[T any, I any] struct {
-	db core.Database
+	*repository
 }
 
-func (r getByIdRepository[T, I]) GetById(id I) *T {
+func (r getByIdRepository[T, I]) GetById(id I) (*T, error) {
 	var dest T
-	if c := r.db.GetById(id, &dest).RowsAffected; c == 0 {
-		return nil
+	if res := r.db.GetById(id, &dest); res.RowsAffected == 0 && res.Error == nil {
+		return nil, nil
+	} else if res.Error != nil {
+		return nil, res.Error
 	}
-	return &dest
+	return &dest, nil
 }
 
 //go:generate mockery --name SaveRepository --filename repository_save_mock.go
@@ -61,12 +61,14 @@ type SaveRepository[T any] interface {
 }
 
 type saveRepository[T any] struct {
-	db core.Database
+	*repository
 }
 
 func (r saveRepository[T]) Save(entity *T) (*T, error) {
 	if err := r.db.Save(entity).Error; err != nil {
+		core.Log.Errorf("Issues during persistence of %s", r.label)
 		return nil, err
 	}
+	core.Log.Infof("Persistence of %s successful!", r.label)
 	return entity, nil
 }

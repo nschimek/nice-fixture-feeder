@@ -19,8 +19,6 @@ const (
 type TeamRequest interface {
 	Request(ids ...string)
 	Persist()
-	PostPersist()
-	GetData() []model.Team
 }
 
 type teamRequest struct {
@@ -28,7 +26,7 @@ type teamRequest struct {
 	requester Requester[model.Team]
 	repo repository.UpsertRepository[model.Team]
 	imageService service.ImageService
-	RequestedData []model.Team
+	requestedData []model.Team
 }
 
 func NewTeamRequest(config *core.Config, repo repository.TeamRepository, is service.ImageService) TeamRequest {
@@ -43,7 +41,7 @@ func NewTeamRequest(config *core.Config, repo repository.TeamRepository, is serv
 func (r *teamRequest) Request(ids ...string) {
 	for leagueId := range core.IdArrayToMap(ids) {
 		if teams, err := r.request(leagueId); err == nil {
-			r.RequestedData = append(r.RequestedData, teams...)
+			r.requestedData = append(r.requestedData, teams...)
 		} else {
 			core.Log.Errorf("Could not get teams for league %s: %v", leagueId, err)
 		}
@@ -72,17 +70,15 @@ func (r *teamRequest) request(leagueId string) ([]model.Team, error) {
 }
 
 func (r *teamRequest) Persist() {
-	rs := r.repo.Upsert(r.RequestedData)
-	rs.LogErrors()
-	rs.LogSuccesses()
-}
-
-func (r *teamRequest) PostPersist() {
-	for _, team := range r.RequestedData {
-		r.imageService.TransferURL(team.Team.Logo, r.config.AWS.BucketName, teamKeyFormat)
+	var err error
+	r.requestedData, err = r.repo.Upsert(r.requestedData)
+	if err == nil {
+		r.postPersist()
 	}
 }
 
-func (r *teamRequest) GetData() []model.Team {
-	return r.RequestedData
+func (r *teamRequest) postPersist() {
+	for _, team := range r.requestedData {
+		r.imageService.TransferURL(team.Team.Logo, r.config.AWS.BucketName, teamKeyFormat)
+	}
 }

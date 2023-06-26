@@ -40,7 +40,8 @@ func (s *fixtureStatusService) IsScheduled(id string) bool {
 
 func (s *fixtureStatusService) initializeMap() {
 	s.idMap = make(map[string]string)
-	for _, fs := range s.repo.GetAll() {
+	all, _ := s.repo.GetAll()
+	for _, fs := range all {
 		s.idMap[fs.Id] = fs.Type
 	}
 }

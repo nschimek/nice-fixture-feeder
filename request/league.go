@@ -20,8 +20,6 @@ const (
 type LeagueRequest interface {
 	Request(ids ...string)
 	Persist()
-	PostPersist()
-	GetData() []model.League
 }
 
 type leagueRequest struct {
@@ -29,7 +27,7 @@ type leagueRequest struct {
 	requester Requester[model.League]
 	repo repository.UpsertRepository[model.League]
 	imageService service.ImageService
-	RequestedData []model.League
+	requestedData []model.League
 }
 
 func NewLeagueRequest(config *core.Config, repo repository.LeagueRepository, is service.ImageService) LeagueRequest {
@@ -44,7 +42,7 @@ func NewLeagueRequest(config *core.Config, repo repository.LeagueRepository, is 
 func (r *leagueRequest) Request(ids ...string) {
 	for id := range core.IdArrayToMap(ids) {
 		if leagues, err := r.request(id); err == nil {
-			r.RequestedData = append(r.RequestedData, leagues...)
+			r.requestedData = append(r.requestedData, leagues...)
 		} else {
 			core.Log.Errorf("Could not get league %s: %v", id, err)
 		}
@@ -66,18 +64,16 @@ func (r *leagueRequest) request(id string) ([]model.League, error) {
 }
 
 func (r *leagueRequest) Persist() {
-	rs := r.repo.Upsert(r.RequestedData)
-	rs.LogErrors()
-	rs.LogSuccesses()
-}
-
-func (r *leagueRequest) PostPersist() {
-	for _, league := range r.RequestedData {
-		r.imageService.TransferURL(league.League.Logo, r.config.AWS.BucketName, leagueKeyFormat)
-		r.imageService.TransferURL(league.Country.Flag, r.config.AWS.BucketName, countryKeyFormat)
+	var err error
+	r.requestedData, err = r.repo.Upsert(r.requestedData)
+	if err == nil {
+		r.postPersist()
 	}
 }
 
-func (r *leagueRequest) GetData() []model.League {
-	return r.RequestedData
+func (r *leagueRequest) postPersist() {
+	for _, league := range r.requestedData {
+		r.imageService.TransferURL(league.League.Logo, r.config.AWS.BucketName, leagueKeyFormat)
+		r.imageService.TransferURL(league.Country.Flag, r.config.AWS.BucketName, countryKeyFormat)
+	}
 }

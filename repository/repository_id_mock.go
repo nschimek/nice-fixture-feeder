@@ -18,10 +18,14 @@ func (_m *MockGetByIdRepository[T, I]) EXPECT() *MockGetByIdRepository_Expecter[
 }
 
 // GetById provides a mock function with given fields: id
-func (_m *MockGetByIdRepository[T, I]) GetById(id I) *T {
+func (_m *MockGetByIdRepository[T, I]) GetById(id I) (*T, error) {
 	ret := _m.Called(id)
 
 	var r0 *T
+	var r1 error
+	if rf, ok := ret.Get(0).(func(I) (*T, error)); ok {
+		return rf(id)
+	}
 	if rf, ok := ret.Get(0).(func(I) *T); ok {
 		r0 = rf(id)
 	} else {
@@ -30,7 +34,13 @@ func (_m *MockGetByIdRepository[T, I]) GetById(id I) *T {
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(I) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockGetByIdRepository_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
@@ -51,12 +61,12 @@ func (_c *MockGetByIdRepository_GetById_Call[T, I]) Run(run func(id I)) *MockGet
 	return _c
 }
 
-func (_c *MockGetByIdRepository_GetById_Call[T, I]) Return(_a0 *T) *MockGetByIdRepository_GetById_Call[T, I] {
-	_c.Call.Return(_a0)
+func (_c *MockGetByIdRepository_GetById_Call[T, I]) Return(_a0 *T, _a1 error) *MockGetByIdRepository_GetById_Call[T, I] {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockGetByIdRepository_GetById_Call[T, I]) RunAndReturn(run func(I) *T) *MockGetByIdRepository_GetById_Call[T, I] {
+func (_c *MockGetByIdRepository_GetById_Call[T, I]) RunAndReturn(run func(I) (*T, error)) *MockGetByIdRepository_GetById_Call[T, I] {
 	_c.Call.Return(run)
 	return _c
 }

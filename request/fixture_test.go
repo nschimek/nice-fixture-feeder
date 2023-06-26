@@ -31,6 +31,7 @@ func (s *fixtureRequestTestSuite) SetupTest() {
 		config: core.MockConfig, 
 		requester: s.mockRequest,
 		repo: s.mockRepository,
+		fixtureMap: make(map[int]model.Fixture),
 	}
 	s.fixtures = []model.Fixture{
 		{
@@ -52,7 +53,7 @@ func (s *fixtureRequestTestSuite) TestRequestValid() {
 
 	s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC), "39")
 
-	s.Contains(s.fixtureRequest.GetData(), r.Response[0])
+	s.Contains(s.fixtureRequest.requestedData, r.Response[0])
 }
 
 func (s *fixtureRequestTestSuite) TestRequestValidNoDate() {
@@ -76,44 +77,31 @@ func (s *fixtureRequestTestSuite) TestRequestError() {
 
 	s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC), "39")
 
-	s.Len(s.fixtureRequest.GetData(), 0)
+	s.Len(s.fixtureRequest.requestedData, 0)
 }
 
 func (s *fixtureRequestTestSuite) TestPersistSuccess() {
-	rs := &repository.ResultStats{
-		Success: map[string]int{"fixture": 1},
-		Error: map[string]int{"fixture": 0},
-	}
-	// prep by pre-populating with leagues, and mocking the Upsert result stats
 	s.fixtureRequest.requestedData = s.fixtures
-	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(rs)
+	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(s.fixtures, nil)
 
 	s.fixtureRequest.Persist()
 
 	s.mockRepository.AssertCalled(s.T(), "Upsert", s.fixtures)
+	// check postPersist results
+	s.Contains(s.fixtureRequest.GetIds(), 100)
+	s.Contains(s.fixtureRequest.GetMap(), 100)
+	s.NotContains(s.fixtureRequest.GetIds(), 101)
+	s.NotContains(s.fixtureRequest.GetMap(), 101)
 }
 
 func (s *fixtureRequestTestSuite) TestPersistError() {
-	rs := &repository.ResultStats{
-		Success: map[string]int{"fixture": 0},
-		Error: map[string]int{"fixture": 1},
-	}
-	// prep by pre-populating with leagues, and mocking the Upsert result stats
 	s.fixtureRequest.requestedData = s.fixtures
-	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(rs)
+	s.mockRepository.EXPECT().Upsert(s.fixtures).Return(nil, errors.New("test"))
 
 	s.fixtureRequest.Persist()
 
 	s.mockRepository.AssertCalled(s.T(), "Upsert", s.fixtures)
 	s.Nil(s.fixtureRequest.requestedData)
-}
-
-func (s *fixtureRequestTestSuite) TestPostPersist() {
-	s.fixtureRequest.requestedData = s.fixtures
-	s.fixtureRequest.postPersist()
-
-	s.Contains(s.fixtureRequest.GetIds(), 100)
-	s.Contains(s.fixtureRequest.GetMap(), 100)
-	s.NotContains(s.fixtureRequest.GetIds(), 101)
-	s.NotContains(s.fixtureRequest.GetMap(), 101)
+	s.Len(s.fixtureRequest.GetIds(), 0)
+	s.Len(s.fixtureRequest.GetMap(), 0)
 }
