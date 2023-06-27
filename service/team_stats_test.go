@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/model"
@@ -267,3 +268,48 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStatsError() {
 	s.ErrorContains(err, "GTE")
 }
 
+func (s *teamStatsServiceTestSuite) TestPersistSuccess() {
+	s.teamStatsService.statsMap = map[model.TeamStatsId]model.TeamStats{
+		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
+		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
+	}
+	s.teamStatsService.tlsMap = map[model.TeamLeagueSeasonId]model.TeamLeagueSeason{
+		{TeamId: 40, LeagueId: 39, Season: 2022}: {Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+		{TeamId: 41, LeagueId: 39, Season: 2022}: {Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+	}
+
+	stats := []model.TeamStats{
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
+	}
+
+	tls := []model.TeamLeagueSeason{
+		{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+		{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+	}
+
+	s.mockTsRepo.EXPECT().Upsert(stats).Return(stats, nil)
+	s.mockTlsRepo.EXPECT().Upsert(tls).Return(tls, nil)
+
+	s.teamStatsService.Persist()
+
+	s.mockTsRepo.AssertCalled(s.T(), "Upsert", stats)
+	s.mockTlsRepo.AssertCalled(s.T(), "Upsert", tls)
+}
+
+func (s *teamStatsServiceTestSuite) TestPersistError() {
+	s.teamStatsService.statsMap = map[model.TeamStatsId]model.TeamStats{
+		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
+		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
+	}
+	stats := []model.TeamStats{
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
+	}
+
+	s.mockTsRepo.EXPECT().Upsert(stats).Return(nil, errors.New("test"))
+
+	s.teamStatsService.Persist()
+	s.mockTsRepo.AssertCalled(s.T(), "Upsert", stats)
+	s.mockTlsRepo.AssertNotCalled(s.T(), "Upsert")
+}
