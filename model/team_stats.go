@@ -1,5 +1,16 @@
 package model
 
+type TeamStats struct {
+	Id TeamStatsId `gorm:"embedded"`
+	NextFixtureId int
+	TeamStatsFixtures TeamStatsFixtures `gorm:"embedded;embeddedPrefix:fixtures_"`
+	TeamStatsGoals TeamStatsGoals `gorm:"embedded;embeddedPrefix:goals_"`
+	GoalDifferential int
+	Form string
+	CleanSheets TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:cs_"`
+	FailedToScore TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:fts_"`
+	Audit
+}
 
 type TeamStatsId struct {
 	TeamId int `gorm:"primaryKey"`
@@ -16,16 +27,6 @@ func (t TeamStatsId) GetTlsId() TeamLeagueSeasonId {
 	}
 }
 
-type TeamStats struct {
-	TeamStatsId TeamStatsId `gorm:"embedded"`
-	NextFixtureId int
-	TeamStatsFixtures TeamStatsFixtures `gorm:"embedded;embeddedPrefix:fixtures_"`
-	TeamStatsGoals TeamStatsGoals `gorm:"embedded;embeddedPrefix:goals_"`
-	GoalDifferential int
-	Form string
-	CleanSheets TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:cs_"`
-	FailedToScore TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:fts_"`
-}
 
 type TeamStatsFixtures struct {
 	FixturesPlayed TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:played_"`

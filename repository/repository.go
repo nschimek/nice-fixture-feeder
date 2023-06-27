@@ -54,21 +54,3 @@ func (r getByIdRepository[T, I]) GetById(id I) (*T, error) {
 	}
 	return &dest, nil
 }
-
-//go:generate mockery --name SaveRepository --filename repository_save_mock.go
-type SaveRepository[T any] interface {
-	Save(entity *T) (*T, error)
-}
-
-type saveRepository[T any] struct {
-	*repository
-}
-
-func (r saveRepository[T]) Save(entity *T) (*T, error) {
-	if err := r.db.Save(entity).Error; err != nil {
-		core.Log.Errorf("Issues during persistence of %s", r.label)
-		return nil, err
-	}
-	core.Log.Infof("Persistence of %s successful!", r.label)
-	return entity, nil
-}

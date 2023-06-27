@@ -13,6 +13,7 @@ type teamLeagueSeasonRepositoryTestSuite struct {
 	suite.Suite
 	mockDatabase *core.MockDatabase
 	teamLeagueSeasonRepository TeamLeagueSeasonRepository
+	teamLeagueSeasons []model.TeamLeagueSeason
 }
 
 func TestTeamLeagueSeasonRepositoryTestSuite(t *testing.T) {
@@ -22,11 +23,38 @@ func TestTeamLeagueSeasonRepositoryTestSuite(t *testing.T) {
 func (s *teamLeagueSeasonRepositoryTestSuite) SetupTest() {
 	s.mockDatabase = &core.MockDatabase{}
 	s.teamLeagueSeasonRepository = NewTeamLeagueSeasonRepository(s.mockDatabase)
+	s.teamLeagueSeasons = []model.TeamLeagueSeason{
+		{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}},
+		{Id: model.TeamLeagueSeasonId{TeamId: 43, LeagueId: 39, Season: 2022}},
+		{Id: model.TeamLeagueSeasonId{TeamId: 44, LeagueId: 39, Season: 2022}},
+	}
+}
+
+func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertSuccess() {
+	r := core.DatabaseResult{RowsAffected: 1, Error: nil}
+
+	s.mockDatabase.EXPECT().Upsert(&s.teamLeagueSeasons).Return(r)
+
+	actual, err := s.teamLeagueSeasonRepository.Upsert(s.teamLeagueSeasons)
+
+	s.Equal(s.teamLeagueSeasons, actual)
+	s.Nil(err)
+}
+
+func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertError() {
+	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
+
+	s.mockDatabase.EXPECT().Upsert(&s.teamLeagueSeasons).Return(r)
+
+	actual, err := s.teamLeagueSeasonRepository.Upsert(s.teamLeagueSeasons)
+
+	s.Nil(actual)
+	s.ErrorContains(err, "test")
 }
 
 func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdFound() {
 	var entity model.TeamLeagueSeason
-	id := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}}
+	id := s.teamLeagueSeasons[0]
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 1})
 

@@ -16,6 +16,7 @@ type Fixture struct {
 	League FixtureLeague `gorm:"embedded"`
 	Teams FixtureTeams `gorm:"embedded;embeddedPrefix:team_"`
 	Goals FixtureGoals `gorm:"embedded;embeddedPrefix:goals_"`
+	Audit   `json:"-"`
 }
 
 // not persisted, but used for maintaining stats

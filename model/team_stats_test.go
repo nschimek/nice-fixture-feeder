@@ -6,6 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetTlsId(t *testing.T) {
+	ts := TeamStats{Id: TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022}}
+
+	a := ts.Id.GetTlsId()
+
+	assert.Equal(t, TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, a)
+}
+
 func TestTeamStatsIncrement(t *testing.T) {
 	s := &TeamStats{
 		TeamStatsGoals: TeamStatsGoals{

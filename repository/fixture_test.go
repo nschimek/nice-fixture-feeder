@@ -32,7 +32,7 @@ func (s *fixtureRepositoryTestSuite) SetupTest() {
 	s.mockDatabase = &core.MockDatabase{}
 }
 
-func (s *fixtureRepositoryTestSuite) TestUpsertFixturesSuccess() {
+func (s *fixtureRepositoryTestSuite) TestUpsertSuccess() {
 	r := core.DatabaseResult{RowsAffected: 1, Error: nil}
 
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)
@@ -44,7 +44,7 @@ func (s *fixtureRepositoryTestSuite) TestUpsertFixturesSuccess() {
 	s.Nil(err)
 }
 
-func (s *fixtureRepositoryTestSuite) TestUpsertFixtureError() {
+func (s *fixtureRepositoryTestSuite) TestUpsertError() {
 	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
 
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)

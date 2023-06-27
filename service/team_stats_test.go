@@ -85,7 +85,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 
 	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsid}).Return(&model.TeamStats{TeamStatsId: tsid}, nil)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsid}).Return(&model.TeamStats{Id: tsid}, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -120,7 +120,7 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
 	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(nil, nil)
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(nil, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
 
@@ -138,8 +138,8 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
 	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{TeamStatsId: tsidPrev}).Return(&model.TeamStats{
-		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
+	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(&model.TeamStats{
+		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
 	}, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
@@ -177,7 +177,7 @@ func (s *teamStatsServiceTestSuite) TestGetTlsNoStats() {
 func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
 	tls := &model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	ts := model.TeamStats{TeamStatsId: tsid, Form: "W"}
+	ts := model.TeamStats{Id: tsid, Form: "W"}
 
 	s.teamStatsService.statsMap[tsid] = ts
 	a, err := s.teamStatsService.getPreviousStats(tls)
@@ -187,12 +187,12 @@ func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
 }
 
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
-	prev := &model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}}
+	prev := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}}
 	a1, err1 := s.teamStatsService.calculateCurrentStats(prev, &s.fixtures[0])
 
 	// expected (1st iteration)
 	e1 := &model.TeamStats{
-		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100},
+		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100},
 		TeamStatsFixtures: model.TeamStatsFixtures{
 			FixturesPlayed: model.TeamStatsHomeAwayTotal{Home: 0, Away: 1, Total: 1},
 			FixturesWins: model.TeamStatsHomeAwayTotal{Home: 0, Away: 1, Total: 1},
@@ -216,7 +216,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 
 	// expected (2nd iteration)
 	e2 := &model.TeamStats{
-		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101},
+		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101},
 		TeamStatsFixtures: model.TeamStatsFixtures{
 			FixturesPlayed: model.TeamStatsHomeAwayTotal{Home: 1, Away: 1, Total: 2},
 			FixturesWins: model.TeamStatsHomeAwayTotal{Home: 0, Away: 1, Total: 1},
@@ -239,7 +239,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 	a3, err3 := s.teamStatsService.calculateCurrentStats(a2, &s.fixtures[2])
 
 	e3 := &model.TeamStats{
-		TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 102},
+		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 102},
 		TeamStatsFixtures: model.TeamStatsFixtures{
 			FixturesPlayed: model.TeamStatsHomeAwayTotal{Home: 2, Away: 1, Total: 3},
 			FixturesWins: model.TeamStatsHomeAwayTotal{Home: 0, Away: 1, Total: 1},
@@ -261,7 +261,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 }
 
 func (s *teamStatsServiceTestSuite) TestCalculateCurrentStatsError() {
-	prev := &model.TeamStats{TeamStatsId: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}}
+	prev := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}}
 	_, err := s.teamStatsService.calculateCurrentStats(prev, &s.fixtures[0])
 
 	s.ErrorContains(err, "GTE")

@@ -1,44 +1,9 @@
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON nice_fixture.* TO 'go';
 
-CREATE TABLE `fixture_statuses` (
-  `id` varchar(4) NOT NULL,
-  `name` varchar(45) NOT NULL,
-  `type` enum('SC','IP','FI','PP','CA','AB','NP') NOT NULL,
-  `description` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE `fixtures` (
-  `id` int unsigned NOT NULL,
-  `league_id` smallint unsigned NOT NULL,
-  `season` smallint unsigned NOT NULL,
-  `date` date NOT NULL,
-  `venue_name` varchar(45) NOT NULL,
-  `venue_city` varchar(45) NOT NULL,
-  `status_id` varchar(4) NOT NULL,
-  `team_home_id` mediumint unsigned NOT NULL,
-  `team_home_result` enum('W','L','D') DEFAULT NULL,
-  `team_away_id` mediumint unsigned NOT NULL,
-  `team_away_result` enum('W','L','D') DEFAULT NULL,
-  `goals_home` smallint unsigned DEFAULT NULL,
-  `goals_away` smallint unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
-  KEY `fixtures.league_id2tls.league_id_idx` (`league_id`,`team_home_id`,`season`),
-  KEY `fixtures.team_away2team_league_seasons_idx` (`league_id`,`team_away_id`,`season`),
-  KEY `fixtures.status_id2fixture_status.id_idx` (`status_id`),
-  KEY `fixtures.team_home2team_league_seasons` (`team_home_id`,`league_id`,`season`),
-  KEY `fixtures.team_away2team_league_seasons` (`team_away_id`,`league_id`,`season`),
-  CONSTRAINT `fixtures.status_id2fixture_status.id` FOREIGN KEY (`status_id`) REFERENCES `fixture_statuses` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fixtures.team_away2team_league_seasons` FOREIGN KEY (`team_away_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fixtures.team_home2team_league_seasons` FOREIGN KEY (`team_home_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE nice_fixture.`leagues` (
-  `id` int unsigned NOT NULL,
+CREATE TABLE `leagues` (
+  `id` smallint unsigned NOT NULL,
   `name` varchar(100) NOT NULL,
+  `type` enum('league','cup') NOT NULL,
   `country_name` varchar(100) NOT NULL,
   `country_code` varchar(3) NOT NULL,
   `created_at` datetime NOT NULL,
@@ -67,7 +32,10 @@ CREATE TABLE `teams` (
   `national` tinyint unsigned NOT NULL,
   `venue_name` varchar(100) NOT NULL,
   `venue_city` varchar(100) NOT NULL,
+  `venue_address` varchar(100) NOT NULL,
   `venue_capacity` mediumint unsigned NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `team_id_UNIQUE` (`id`),
   UNIQUE KEY `code_UNIQUE` (`code`)
@@ -78,6 +46,8 @@ CREATE TABLE `team_league_seasons` (
   `league_id` smallint unsigned NOT NULL,
   `season` smallint unsigned NOT NULL,
   `max_fixture_id` int unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
   PRIMARY KEY (`team_id`,`league_id`,`season`),
   KEY `team_league_seasons2league_seasons_idx` (`league_id`,`season`) /*!80000 INVISIBLE */,
   KEY `team_league_seasons2fixtures_idx` (`team_id`,`league_id`,`season`),
@@ -85,6 +55,43 @@ CREATE TABLE `team_league_seasons` (
   CONSTRAINT `team_league_seasons2league_seasons` FOREIGN KEY (`league_id`, `season`) REFERENCES `league_seasons` (`league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE `fixture_statuses` (
+  `id` varchar(4) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `type` enum('SC','IP','FI','PP','CA','AB','NP') NOT NULL,
+  `description` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `fixtures` (
+  `id` int unsigned NOT NULL,
+  `league_id` smallint unsigned NOT NULL,
+  `season` smallint unsigned NOT NULL,
+  `date` date NOT NULL,
+  `venue_name` varchar(45) NOT NULL,
+  `venue_city` varchar(45) NOT NULL,
+  `status_id` varchar(4) NOT NULL,
+  `team_home_id` mediumint unsigned NOT NULL,
+  `team_home_result` enum('W','L','D') DEFAULT NULL,
+  `team_away_id` mediumint unsigned NOT NULL,
+  `team_away_result` enum('W','L','D') DEFAULT NULL,
+  `goals_home` smallint unsigned DEFAULT NULL,
+  `goals_away` smallint unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  KEY `fixtures.league_id2tls.league_id_idx` (`league_id`,`team_home_id`,`season`),
+  KEY `fixtures.team_away2team_league_seasons_idx` (`league_id`,`team_away_id`,`season`),
+  KEY `fixtures.status_id2fixture_status.id_idx` (`status_id`),
+  KEY `fixtures.team_home2team_league_seasons` (`team_home_id`,`league_id`,`season`),
+  KEY `fixtures.team_away2team_league_seasons` (`team_away_id`,`league_id`,`season`),
+  CONSTRAINT `fixtures.status_id2fixture_status.id` FOREIGN KEY (`status_id`) REFERENCES `fixture_statuses` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fixtures.team_away2team_league_seasons` FOREIGN KEY (`team_away_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fixtures.team_home2team_league_seasons` FOREIGN KEY (`team_home_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `team_stats` (
   `team_id` mediumint unsigned NOT NULL,
@@ -110,6 +117,7 @@ CREATE TABLE `team_stats` (
   `goals_against_home` tinyint unsigned NOT NULL,
   `goals_against_away` tinyint unsigned NOT NULL,
   `goals_against_total` tinyint unsigned NOT NULL,
+  `form` varchar(100) NOT NULL,
   `goal_differential` tinyint NOT NULL,
   `cs_home` tinyint unsigned NOT NULL COMMENT 'clean sheets home',
   `cs_away` tinyint unsigned NOT NULL COMMENT 'clean sheets away',
@@ -117,11 +125,12 @@ CREATE TABLE `team_stats` (
   `fts_home` tinyint unsigned NOT NULL COMMENT 'failed to score home',
   `fts_away` tinyint unsigned NOT NULL COMMENT 'failed to score away',
   `fts_total` tinyint unsigned NOT NULL COMMENT 'failed to score total',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
   PRIMARY KEY (`team_id`,`league_id`,`season`,`fixture_id`),
   KEY `team_stats2team_league_seasons` (`team_id`,`league_id`,`season`),
-  KEY `team_stats.fixture_id2fixtures.id_idx` (`fixture_id`),
-  KEY `team_stats.next_fixture_id2ffixture.id_idx` (`next_fixture_id`),
+  KEY `team_stats.fixture_id2fixtures.id_idx` (`fixture_id`) /*!80000 INVISIBLE */,
+  KEY `team_stats.next_fixture_id_idx` (`team_id`,`league_id`,`season`,`next_fixture_id`),
   CONSTRAINT `team_stats.fixture_id2fixtures.id` FOREIGN KEY (`fixture_id`) REFERENCES `fixtures` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `team_stats.next_fixture_id2ffixture.id` FOREIGN KEY (`next_fixture_id`) REFERENCES `fixtures` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `team_stats2team_league_seasons` FOREIGN KEY (`team_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

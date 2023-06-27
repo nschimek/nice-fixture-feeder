@@ -69,11 +69,11 @@ func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
 		// if there are no errors, make the ID updates and save these stats in the maps (they will get persisted later)
 		tls.MaxFixtureId = fixture.Fixture.Id
 		s.tlsMap[tls.Id] = *tls
-		s.statsMap[curr.TeamStatsId] = *curr
+		s.statsMap[curr.Id] = *curr
 		// only persist non-zeroed previous stats (zeroed stats are used at start of season)
-		if prev.TeamStatsId.FixtureId > 0 {
+		if prev.Id.FixtureId > 0 {
 			prev.NextFixtureId = fixture.Fixture.Id
-			s.statsMap[prev.TeamStatsId] = *prev
+			s.statsMap[prev.Id] = *prev
 		}
 	} else {
 		// just log that there were errors.  by not populating the maps, they will not be persisted.
@@ -138,14 +138,14 @@ func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model
 
 	if tls.MaxFixtureId == 0 {
 		core.Log.Debug("max fixture ID was 0, using zeroed stats as previous!")
-		return &model.TeamStats{TeamStatsId: id}, nil
+		return &model.TeamStats{Id: id}, nil
 	}
 
 	var stats *model.TeamStats
 	if mv, ok := s.statsMap[id]; ok {
 		stats = &mv // use the map value, since we have it
 	} else {
-		stats, _ = s.tsRepo.GetById(model.TeamStats{TeamStatsId: id})
+		stats, _ = s.tsRepo.GetById(model.TeamStats{Id: id})
 	}
 
 	if stats == nil {
@@ -157,18 +157,18 @@ func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model
 
 func (s *teamStatsService) calculateCurrentStats(prev *model.TeamStats, fixture *model.Fixture) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
-		"teamId": prev.TeamStatsId.TeamId, "leagueId": prev.TeamStatsId.LeagueId, "season": prev.TeamStatsId.Season,
-		"prevFixtureId": prev.TeamStatsId.FixtureId, "currFixtureId": fixture.Fixture.Id,
+		"teamId": prev.Id.TeamId, "leagueId": prev.Id.LeagueId, "season": prev.Id.Season,
+		"prevFixtureId": prev.Id.FixtureId, "currFixtureId": fixture.Fixture.Id,
 	}).Debug("Calculating current stats...")
 	copy := *prev // create a copy of the current
 	curr := &copy // work with the pointer
 
-	if prev.TeamStatsId.FixtureId >= fixture.Fixture.Id {
+	if prev.Id.FixtureId >= fixture.Fixture.Id {
 		return nil, errors.New("previous fixture ID is GTE incoming fixture ID - out of order")
 	}
 
-	curr.TeamStatsId.FixtureId = fixture.Fixture.Id // this is just a little important...
-	rs := fixture.GetResultStats(curr.TeamStatsId.TeamId)
+	curr.Id.FixtureId = fixture.Fixture.Id // this is just a little important...
+	rs := fixture.GetResultStats(curr.Id.TeamId)
 	
 	curr.TeamStatsFixtures.FixturesPlayed.Increment(1, rs.Home)
 	

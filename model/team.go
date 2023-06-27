@@ -4,6 +4,7 @@ type Team struct {
 	Team TeamTeam `gorm:"embedded"`
 	TeamLeagueSeason TeamLeagueSeason `json:"-"`
 	Venue TeamVenue `gorm:"embedded;embeddedPrefix:venue_"`
+	Audit   `json:"-"`
 }
 
 func (t *Team) SetTLS(leagueId, season int) {
@@ -26,6 +27,7 @@ type TeamTeam struct {
 type TeamLeagueSeason struct {
 	Id TeamLeagueSeasonId `gorm:"embedded"`
 	MaxFixtureId int
+	Audit
 }
 
 func (t TeamLeagueSeason) GetTeamStatsId() TeamStatsId {

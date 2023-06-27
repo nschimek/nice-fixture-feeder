@@ -26,5 +26,5 @@ type LeagueSeason struct {
 	Start    CivilTime `json:""`
 	End      CivilTime `json:""`
 	Current  bool      `json:""`
-	Audit
+	Audit    `json:"-"`
 }
