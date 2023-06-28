@@ -77,3 +77,29 @@ func TestGetTeamStatsId(t *testing.T) {
 	assert.Equal(t, f.League.Season, h.Season)
 	assert.Equal(t, f.League.Season, a.Season)
 }
+
+func TestGetResultStats(t *testing.T) {
+	f := Fixture{
+		Fixture: FixtureFixture{
+			Id: 100,
+			Date: time.Date(2023, 3, 5, 16, 30, 0, 0, core.UTC),
+		},
+		League: FixtureLeague{Id: 39, Season: 2022},
+		Teams: FixtureTeams{
+			Home: FixtureTeam{Id: 40, Result: "W"},
+			Away: FixtureTeam{Id: 33, Result: "L"},
+		},
+		Goals: FixtureGoals{Home: 7, Away: 1},
+	}
+	lp := f.GetResultStats(40)
+	mu := f.GetResultStats(33)
+
+	assert.Equal(t, lp.GoalsFor, 7)
+	assert.Equal(t, lp.GoalsAgainst, 1)
+	assert.True(t, lp.Home)
+	assert.Equal(t, "W", lp.Result)
+	assert.Equal(t, mu.GoalsFor, 1)
+	assert.Equal(t, mu.GoalsAgainst, 7)
+	assert.False(t, mu.Home)
+	assert.Equal(t, "L", mu.Result)
+}
