@@ -18,7 +18,7 @@ const (
 
 //go:generate mockery --name LeagueRequest
 type LeagueRequest interface {
-	Request(ids ...string)
+	Request()
 	Persist()
 }
 
@@ -39,19 +39,19 @@ func NewLeagueRequest(config *core.Config, repo repository.LeagueRepository, is 
 	}
 }
 
-func (r *leagueRequest) Request(ids ...string) {
-	for id := range core.IdArrayToMap(ids) {
+func (r *leagueRequest) Request() {
+	for id := range core.IdArrayToMap(r.config.Leagues) {
 		if leagues, err := r.request(id); err == nil {
 			r.requestedData = append(r.requestedData, leagues...)
 		} else {
-			core.Log.Errorf("Could not get league %s: %v", id, err)
+			core.Log.Errorf("Could not get league %d: %v", id, err)
 		}
 	}
 }
 
-func (r *leagueRequest) request(id string) ([]model.League, error) {
+func (r *leagueRequest) request(id int) ([]model.League, error) {
 	p := url.Values{}
-	p.Add("id", id)
+	p.Add("id", strconv.Itoa(id))
 	p.Add("season", strconv.Itoa(r.config.Season))
 
 	resp, err := r.requester.Get(leaguesEndpoint, p)

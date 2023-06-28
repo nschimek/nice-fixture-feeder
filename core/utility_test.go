@@ -7,18 +7,18 @@ import (
 )
 
 func TestIdMapToArray(t *testing.T) {
-	m := map[string]struct{}{
-		"test1": Exists,
-		"test2": Exists,
+	m := map[int]struct{}{
+		1: Exists,
+		2: Exists,
 	}
-	e := []string{"test1", "test2"}
+	e := []int{1, 2}
 	a := IdMapToArray(m)
 	
 	assert.ElementsMatch(t, e, a)
 }
 
 func TestIdArrayToMap(t *testing.T) {
-	e := []string{"test1", "test2"}
+	e := []int{1, 2}
 	a := IdArrayToMap(e)
 
 	assert.Equal(t, 2, len(e))

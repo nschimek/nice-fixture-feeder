@@ -51,7 +51,7 @@ func test() {
 	start, _ := time.Parse(core.YYYY_MM_DD, "2022-09-02")
 	end, _ := time.Parse(core.YYYY_MM_DD, "2022-10-31")
 	req := request.NewFixtureRequest(core.Cfg, *repository.NewFixtureRepository(core.DB))
-	req.Request(start, end, "39")
+	req.Request(start, end)
 	req.Persist()
 
 	// repo := repository.NewFixtureStatusRepository(core.DB)

@@ -12,6 +12,7 @@ var Cfg *Config
 
 type Config struct {
 	Season        int
+	Leagues				[]int
 	Debug         bool
 	API configAPI
 	Database configDatabase

@@ -17,7 +17,7 @@ const (
 
 //go:generate mockery --name LeagueRequest
 type TeamRequest interface {
-	Request(ids ...string)
+	Request()
 	Persist()
 }
 
@@ -38,19 +38,19 @@ func NewTeamRequest(config *core.Config, repo repository.TeamRepository, is serv
 	}
 }
 
-func (r *teamRequest) Request(ids ...string) {
-	for leagueId := range core.IdArrayToMap(ids) {
+func (r *teamRequest) Request() {
+	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
 		if teams, err := r.request(leagueId); err == nil {
 			r.requestedData = append(r.requestedData, teams...)
 		} else {
-			core.Log.Errorf("Could not get teams for league %s: %v", leagueId, err)
+			core.Log.Errorf("Could not get teams for league %d: %v", leagueId, err)
 		}
 	}
 }
 
-func (r *teamRequest) request(leagueId string) ([]model.Team, error) {
+func (r *teamRequest) request(leagueId int) ([]model.Team, error) {
 	p := url.Values{}
-	p.Add("league", leagueId)
+	p.Add("league", strconv.Itoa(leagueId))
 	p.Add("season", strconv.Itoa(r.config.Season))
 
 	resp, err := r.requester.Get(teamsEndpoint, p)
@@ -59,10 +59,9 @@ func (r *teamRequest) request(leagueId string) ([]model.Team, error) {
 		return nil, err
 	}
 
-	lid, _ := strconv.Atoi(leagueId)
 	teams := make([]model.Team, len(resp.Response))
 	for i, t := range resp.Response {
-		t.SetTLS(lid, r.config.Season)
+		t.SetTLS(leagueId, r.config.Season)
 		teams[i] = t
 	}
 

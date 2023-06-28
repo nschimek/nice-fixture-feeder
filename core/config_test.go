@@ -13,6 +13,7 @@ func TestLoadConfigFile(t *testing.T) {
 	SetupConfigFile("../config/sample.yaml")
 
 	assert.Equal(t, 2022, Cfg.Season)
+	assert.ElementsMatch(t, []int{39,61,140,78,135}, Cfg.Leagues)
 	assert.Equal(t, true, Cfg.Debug)
 	assert.Equal(t, "fake-sample.api.com", Cfg.API.Host)
 	assert.Equal(t, "https://%s/v1", Cfg.API.UrlFormat)

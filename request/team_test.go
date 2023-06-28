@@ -56,7 +56,7 @@ func (s *teamRequestTestSuite) TestRequestValid() {
 		s.mockRequest.EXPECT().Get(teamsEndpoint, p1).Return(r1, nil)
 		s.mockRequest.EXPECT().Get(teamsEndpoint, p2).Return(r2, nil)
 
-		s.teamRequest.Request("39", "140")
+		s.teamRequest.Request()
 
 		s.Len(s.teamRequest.requestedData, 6)
 		s.Contains(s.teamRequest.requestedData, model.Team{
@@ -70,10 +70,12 @@ func (s *teamRequestTestSuite) TestRequestValid() {
 }
 
 func (s *teamRequestTestSuite) TestRequestError() {
-	p := url.Values{"league": {"39"}, "season": {"2022"}}
-	s.mockRequest.EXPECT().Get(teamsEndpoint, p).Return(nil, errors.New("test"))
+	p1 := url.Values{"league": {"39"}, "season": {"2022"}}
+	p2 := url.Values{"league": {"140"}, "season": {"2022"}}
+	s.mockRequest.EXPECT().Get(teamsEndpoint, p1).Return(nil, errors.New("test"))
+	s.mockRequest.EXPECT().Get(teamsEndpoint, p2).Return(nil, errors.New("test"))
 
-	s.teamRequest.Request("39")
+	s.teamRequest.Request()
 
 	s.Len(s.teamRequest.requestedData, 0)
 }

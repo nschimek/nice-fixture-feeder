@@ -13,7 +13,8 @@ import (
 const fixturesEndpoint = "fixtures"
 
 type FixtureRequest interface {
-	Request(startDate, endDate time.Time, leagueIds... string)
+	RequestAll()
+	Request(startDate, endDate time.Time)
 	Persist()
 	GetMap() map[int]model.Fixture
 	GetIds() []int
@@ -37,23 +38,23 @@ func NewFixtureRequest(config *core.Config, repo repository.FixtureRepository) F
 	}
 }
 
-func (r *fixtureRequest) RequestAll(leagueIds... string) {
-	r.Request(time.Time{}, time.Time{}, leagueIds...)
+func (r *fixtureRequest) RequestAll() {
+	r.Request(time.Time{}, time.Time{})
 }
 
-func (r *fixtureRequest) Request(startDate, endDate time.Time, leagueIds... string) {
-	for leagueId := range core.IdArrayToMap(leagueIds) {
+func (r *fixtureRequest) Request(startDate, endDate time.Time) {
+	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
 		if fixtures, err := r.request(startDate, endDate, leagueId); err == nil {
 			r.requestedData = append(r.requestedData, fixtures...)
 		} else {
-			core.Log.Errorf("Could not get fixtures for league ID %s: %v", leagueId, err)
+			core.Log.Errorf("Could not get fixtures for league ID %d: %v", leagueId, err)
 		}
 	}
 }
 
-func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId string) ([]model.Fixture, error) {
+func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
 	p := url.Values{}
-	p.Add("league", leagueId)
+	p.Add("league", strconv.Itoa(leagueId))
 	p.Add("season", strconv.Itoa(r.config.Season))
 
 	if !startDate.IsZero() && !endDate.IsZero() {
