@@ -21,7 +21,7 @@ type imageService struct {
 	s3 core.S3Client
 }
 
-func NewImageService(s3 core.S3Client) ImageService {
+func NewImageService(s3 core.S3Client) *imageService {
 	return &imageService{
 		s3: s3,
 	}

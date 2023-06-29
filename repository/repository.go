@@ -4,6 +4,28 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
+var Repositories *RepositoryRegistry
+
+type RepositoryRegistry struct {
+	Fixture *FixtureRepository
+	FixtureStatus FixtureStatusRepository
+	League *LeagueRepository
+	TeamLeagueSeason TeamLeagueSeasonRepository
+	TeamStats TeamStatsRepository
+	Team *TeamRepository
+}
+
+func Setup(db core.Database) {
+	Repositories = &RepositoryRegistry{
+		Fixture: NewFixtureRepository(db),
+		FixtureStatus: NewFixtureStatusRepository(db),
+		League: NewLeagueRepository(db),
+		TeamLeagueSeason: NewTeamLeagueSeasonRepository(db),
+		TeamStats: NewTeamStatsRepository(db),
+		Team: NewTeamRepository(db),
+	}
+}
+
 type repository struct {
 	db core.Database
 	label string

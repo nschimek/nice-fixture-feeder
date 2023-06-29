@@ -13,9 +13,10 @@ import (
 	"gorm.io/gorm/utils"
 )
 
-var DB *database
-
-var updateAll = clause.OnConflict{UpdateAll: true}
+var (
+	DB *database
+	updateAll = clause.OnConflict{UpdateAll: true}
+)
 
 //go:generate mockery --name Database
 type Database interface {

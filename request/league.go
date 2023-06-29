@@ -30,7 +30,7 @@ type leagueRequest struct {
 	requestedData []model.League
 }
 
-func NewLeagueRequest(config *core.Config, repo repository.LeagueRepository, is service.ImageService) LeagueRequest {
+func NewLeagueRequest(config *core.Config, repo repository.UpsertRepository[model.League], is service.ImageService) LeagueRequest {
 	return &leagueRequest{
 		config: config,
 		requester: NewRequester[model.League](config),

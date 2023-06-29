@@ -54,7 +54,7 @@ func (s *fixtureRequestTestSuite) TestRequestValid() {
 
 	s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(r, nil)
 
-	s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC))
+	s.fixtureRequest.RequestDateRange(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC))
 
 	s.Contains(s.fixtureRequest.requestedData, r.Response[0])
 }
@@ -67,9 +67,9 @@ func (s *fixtureRequestTestSuite) TestRequestValidNoDate() {
 	
 		s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(r, nil)
 	
-		s.fixtureRequest.RequestAll()
-		s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Time{})
-		s.fixtureRequest.Request(time.Time{}, time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC))
+		s.fixtureRequest.Request()
+		s.fixtureRequest.RequestDateRange(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Time{})
+		s.fixtureRequest.RequestDateRange(time.Time{}, time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC))
 	
 		s.mockRequest.AssertCalled(s.T(), "Get", fixturesEndpoint, p)
 }
@@ -78,7 +78,7 @@ func (s *fixtureRequestTestSuite) TestRequestError() {
 	p := url.Values{"league": {"39"}, "season": {"2022"}, "from": {"2023-03-05"}, "to": {"2023-03-06"}}
 	s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(nil, errors.New("test"))
 
-	s.fixtureRequest.Request(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC))
+	s.fixtureRequest.RequestDateRange(time.Date(2023, 3, 5, 0, 0, 0, 0, core.UTC), time.Date(2023, 3, 6, 0, 0, 0, 0, core.UTC))
 
 	s.Len(s.fixtureRequest.requestedData, 0)
 }

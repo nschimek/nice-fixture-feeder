@@ -29,7 +29,7 @@ type teamRequest struct {
 	requestedData []model.Team
 }
 
-func NewTeamRequest(config *core.Config, repo repository.TeamRepository, is service.ImageService) TeamRequest {
+func NewTeamRequest(config *core.Config, repo repository.UpsertRepository[model.Team], is service.ImageService) TeamRequest {
 	return &teamRequest{
 		config: config,
 		requester: NewRequester[model.Team](config),

@@ -19,7 +19,7 @@ type fixtureStatusService struct {
 	idMap map[string]string
 }
 
-func NewFixtureStatusService(repo repository.FixtureStatusRepository) FixtureStatusService {
+func NewFixtureStatusService(repo repository.FixtureStatusRepository) *fixtureStatusService {
 	return &fixtureStatusService{repo: repo}
 }
 

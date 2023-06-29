@@ -2,6 +2,7 @@ package request
 
 import (
 	"net/url"
+	"sort"
 	"strconv"
 	"time"
 
@@ -13,8 +14,8 @@ import (
 const fixturesEndpoint = "fixtures"
 
 type FixtureRequest interface {
-	RequestAll()
-	Request(startDate, endDate time.Time)
+	Request()
+	RequestDateRange(startDate, endDate time.Time)
 	Persist()
 	GetMap() map[int]model.Fixture
 	GetIds() []int
@@ -29,7 +30,7 @@ type fixtureRequest struct {
 	fixtureIds []int
 }
 
-func NewFixtureRequest(config *core.Config, repo repository.FixtureRepository) FixtureRequest {
+func NewFixtureRequest(config *core.Config, repo repository.UpsertRepository[model.Fixture]) FixtureRequest {
 	return &fixtureRequest{
 		config: config,
 		requester: NewRequester[model.Fixture](config),
@@ -38,11 +39,11 @@ func NewFixtureRequest(config *core.Config, repo repository.FixtureRepository) F
 	}
 }
 
-func (r *fixtureRequest) RequestAll() {
-	r.Request(time.Time{}, time.Time{})
+func (r *fixtureRequest) Request() {
+	r.RequestDateRange(time.Time{}, time.Time{})
 }
 
-func (r *fixtureRequest) Request(startDate, endDate time.Time) {
+func (r *fixtureRequest) RequestDateRange(startDate, endDate time.Time) {
 	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
 		if fixtures, err := r.request(startDate, endDate, leagueId); err == nil {
 			r.requestedData = append(r.requestedData, fixtures...)
@@ -51,6 +52,7 @@ func (r *fixtureRequest) Request(startDate, endDate time.Time) {
 		}
 	}
 }
+
 
 func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
 	p := url.Values{}
@@ -83,6 +85,9 @@ func (r *fixtureRequest) postPersist() {
 	for _, fixture := range r.requestedData {
 		r.fixtureIds = append(r.fixtureIds, fixture.Fixture.Id)
 		r.fixtureMap[fixture.Fixture.Id] = fixture
+	}
+	if !sort.IntsAreSorted(r.fixtureIds) {
+		sort.Ints(r.fixtureIds)
 	}
 }
 
