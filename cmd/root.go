@@ -62,7 +62,7 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", defaultConfig, "optional override of config file")
-	rootCmd.PersistentFlags().IntP("season", "s", 0, "optional override of season set in config file")
+	rootCmd.PersistentFlags().IntP("season", "n", 0, "optional override of season set in config file")
 	rootCmd.PersistentFlags().IntSliceP("leagues", "l", []int{0}, "optional override of league IDs set in config file")
 	rootCmd.PersistentFlags().BoolP("debug", "d", false, "debug mode - use for more detailed logging")
 

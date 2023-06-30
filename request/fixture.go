@@ -92,6 +92,7 @@ func (r *fixtureRequest) postPersist() {
 		r.fixtureIds = append(r.fixtureIds, fixture.Fixture.Id)
 		r.fixtureMap[fixture.Fixture.Id] = fixture
 	}
+	// TODO: test this
 	if !sort.IntsAreSorted(r.fixtureIds) {
 		sort.Ints(r.fixtureIds)
 	}

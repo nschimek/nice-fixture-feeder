@@ -77,7 +77,7 @@ func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
 		}
 	} else {
 		// just log that there were errors.  by not populating the maps, they will not be persisted.
-		core.Log.Errorf("issues with fixture ID %d: %v", fixture.Fixture.Id, err)
+		core.Log.Errorf("issues maintaing stats for fixture ID %d: %v", fixture.Fixture.Id, err)
 	}
 }
 
