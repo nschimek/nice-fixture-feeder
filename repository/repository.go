@@ -47,6 +47,11 @@ type upsertRepository[T any] struct {
 func (r upsertRepository[T]) Upsert(entities []T) ([]T, error) {
 	core.Log.WithField(r.label, len(entities)).Infof("Create/updating %s...", r.label)
 
+	if len(entities) == 0 || entities == nil {
+		core.Log.Warnf("Got no or nil %s, skipping persistence!", r.label)
+		return nil, nil
+	}
+
 	res := r.db.Upsert(&entities)
 
 	if res.Error != nil {

@@ -12,7 +12,7 @@ import (
 type teamLeagueSeasonRepositoryTestSuite struct {
 	suite.Suite
 	mockDatabase *core.MockDatabase
-	teamLeagueSeasonRepository TeamLeagueSeasonRepository
+	repo TeamLeagueSeasonRepository
 	teamLeagueSeasons []model.TeamLeagueSeason
 }
 
@@ -22,7 +22,7 @@ func TestTeamLeagueSeasonRepositoryTestSuite(t *testing.T) {
 
 func (s *teamLeagueSeasonRepositoryTestSuite) SetupTest() {
 	s.mockDatabase = &core.MockDatabase{}
-	s.teamLeagueSeasonRepository = NewTeamLeagueSeasonRepository(s.mockDatabase)
+	s.repo = NewTeamLeagueSeasonRepository(s.mockDatabase)
 	s.teamLeagueSeasons = []model.TeamLeagueSeason{
 		{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}},
 		{Id: model.TeamLeagueSeasonId{TeamId: 43, LeagueId: 39, Season: 2022}},
@@ -35,7 +35,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertSuccess() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.teamLeagueSeasons).Return(r)
 
-	actual, err := s.teamLeagueSeasonRepository.Upsert(s.teamLeagueSeasons)
+	actual, err := s.repo.Upsert(s.teamLeagueSeasons)
 
 	s.Equal(s.teamLeagueSeasons, actual)
 	s.Nil(err)
@@ -46,7 +46,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertError() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.teamLeagueSeasons).Return(r)
 
-	actual, err := s.teamLeagueSeasonRepository.Upsert(s.teamLeagueSeasons)
+	actual, err := s.repo.Upsert(s.teamLeagueSeasons)
 
 	s.Nil(actual)
 	s.ErrorContains(err, "test")
@@ -58,7 +58,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdFound() {
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 1})
 
-	resp, err := s.teamLeagueSeasonRepository.GetById(id)
+	resp, err := s.repo.GetById(id)
 
 	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
 	s.Equal(&entity, resp) // due to mocking, expect the response to just be the entity passed through
@@ -71,7 +71,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdNotFound() {
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0})
 
-	resp, err := s.teamLeagueSeasonRepository.GetById(id)
+	resp, err := s.repo.GetById(id)
 
 	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
 	s.Nil(resp)
@@ -84,10 +84,18 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdError() {
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")})
 
-	resp, err := s.teamLeagueSeasonRepository.GetById(id)
+	resp, err := s.repo.GetById(id)
 
 	s.mockDatabase.AssertCalled(s.T(), "GetById", id, &entity)
 	s.Nil(resp)
 	s.ErrorContains(err, "test")
 }
 
+func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertEmptyAndNil() {
+	a1, e1 := s.repo.Upsert([]model.TeamLeagueSeason{})
+	s.Nil(a1)
+	s.Nil(e1)
+	a2, e2 := s.repo.Upsert(nil)
+	s.Nil(a2)
+	s.Nil(e2)
+}

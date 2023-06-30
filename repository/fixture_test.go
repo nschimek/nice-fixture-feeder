@@ -14,6 +14,7 @@ type fixtureRepositoryTestSuite struct {
 	suite.Suite
 	fixtures []model.Fixture
 	mockDatabase *core.MockDatabase
+	repo *FixtureRepository
 }
 
 func TestFixtureRepositoryTestSuite(t *testing.T) {
@@ -30,6 +31,7 @@ func (s *fixtureRepositoryTestSuite) SetupTest() {
 		},
 	}
 	s.mockDatabase = &core.MockDatabase{}
+	s.repo = NewFixtureRepository(s.mockDatabase)
 }
 
 func (s *fixtureRepositoryTestSuite) TestUpsertSuccess() {
@@ -37,8 +39,7 @@ func (s *fixtureRepositoryTestSuite) TestUpsertSuccess() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)
 
-	repo := NewFixtureRepository(s.mockDatabase)
-	actual, err := repo.Upsert(s.fixtures)
+	actual, err := s.repo.Upsert(s.fixtures)
 
 	s.Equal(s.fixtures, actual)
 	s.Nil(err)
@@ -49,9 +50,17 @@ func (s *fixtureRepositoryTestSuite) TestUpsertError() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.fixtures).Return(r)
 
-	repo := NewFixtureRepository(s.mockDatabase)
-	actual, err := repo.Upsert(s.fixtures)
+	actual, err := s.repo.Upsert(s.fixtures)
 
 	s.Nil(actual)
 	s.ErrorContains(err, "test")
+}
+
+func (s *fixtureRepositoryTestSuite) TestUpsertEmptyAndNil() {
+	a1, e1 := s.repo.Upsert([]model.Fixture{})
+	s.Nil(a1)
+	s.Nil(e1)
+	a2, e2 := s.repo.Upsert(nil)
+	s.Nil(a2)
+	s.Nil(e2)
 }

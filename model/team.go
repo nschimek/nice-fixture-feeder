@@ -14,6 +14,7 @@ func (t *Team) SetTLS(leagueId, season int) {
 			LeagueId: leagueId,
 			Season: season,
 		},
+		MaxFixtureId: 0,
 	}
 }
 

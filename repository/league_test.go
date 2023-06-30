@@ -15,6 +15,7 @@ type leagueRepositoryTestSuite struct {
 	league model.LeagueLeague
 	leagues []model.League
 	mockDatabase *core.MockDatabase
+	repo *LeagueRepository
 }
 
 func TestLeagueRepositoryTestSuite(t *testing.T) {
@@ -26,6 +27,7 @@ func (s *leagueRepositoryTestSuite) SetupTest() {
 	s.league = model.LeagueLeague{Id: 1}
 	s.leagues = []model.League{{League: s.league, Seasons: s.seasons}}
 	s.mockDatabase = &core.MockDatabase{}
+	s.repo = NewLeagueRepository(s.mockDatabase)
 }
 
 func (s *leagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
@@ -33,8 +35,7 @@ func (s *leagueRepositoryTestSuite) TestUpsertLeaguesSuccess() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.leagues).Return(r)
 
-	repo := NewLeagueRepository(s.mockDatabase)
-	actual, err := repo.Upsert(s.leagues)
+	actual, err := s.repo.Upsert(s.leagues)
 
 	s.Equal(s.leagues, actual)
 	s.Nil(err)
@@ -45,9 +46,17 @@ func (s *leagueRepositoryTestSuite) TestUpsertLeagueError() {
 
 	s.mockDatabase.EXPECT().Upsert(&s.leagues).Return(r)
 
-	repo := NewLeagueRepository(s.mockDatabase)
-	actual, err := repo.Upsert(s.leagues)
+	actual, err := s.repo.Upsert(s.leagues)
 
 	s.Nil(actual)
 	s.ErrorContains(err, "test")
+}
+
+func (s *leagueRepositoryTestSuite) TestUpsertEmptyAndNil() {
+	a1, e1 := s.repo.Upsert([]model.League{})
+	s.Nil(a1)
+	s.Nil(e1)
+	a2, e2 := s.repo.Upsert(nil)
+	s.Nil(a2)
+	s.Nil(e2)
 }
