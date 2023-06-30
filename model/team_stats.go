@@ -9,6 +9,7 @@ type TeamStats struct {
 	Form string
 	CleanSheets TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:cs_"`
 	FailedToScore TeamStatsHomeAwayTotal `gorm:"embedded;embeddedPrefix:fts_"`
+	Points int
 	Audit
 }
 

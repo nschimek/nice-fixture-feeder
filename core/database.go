@@ -16,6 +16,7 @@ import (
 var (
 	DB *database
 	updateAll = clause.OnConflict{UpdateAll: true}
+	fullSave = &gorm.Session{FullSaveAssociations: true}
 )
 
 //go:generate mockery --name Database
@@ -48,12 +49,13 @@ func SetupDatabase(config *Config) {
 	DB = db
 }
 
+// Upsert will create (or update, if they are already existing) all entities AND their child associations
 func (db *database) Upsert(value interface{}) DatabaseResult {
-	return gormReturn(db.gorm.Clauses(updateAll).Create(value))
+	return gormReturn(db.gorm.Session(fullSave).Clauses(updateAll).Create(value))
 }
 
 func (db *database) Save(value interface{}) DatabaseResult {
-	return gormReturn(db.gorm.Save(value))
+	return gormReturn(db.gorm.Session(fullSave).Save(value))
 }
 
 func (db *database) GetById(id interface{}, dest interface{}) DatabaseResult {

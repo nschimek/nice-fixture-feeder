@@ -172,13 +172,15 @@ func (s *teamStatsService) calculateCurrentStats(prev *model.TeamStats, fixture 
 	
 	curr.TeamStatsFixtures.FixturesPlayed.Increment(1, rs.Home)
 	
-	// result
+	// result (and points)
 	if (rs.Result == model.ResultWin) {
 		curr.TeamStatsFixtures.FixturesWins.Increment(1, rs.Home)
+		curr.Points = curr.Points + 3
 	} else if (rs.Result == model.ResultLoss) {
 		curr.TeamStatsFixtures.FixturesLosses.Increment(1, rs.Home)
 	} else {
 		curr.TeamStatsFixtures.FixturesDraws.Increment(1, rs.Home)
+		curr.Points = curr.Points + 1
 	}
 	// form
 	curr.Form = curr.Form + rs.Result

@@ -208,6 +208,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 		GoalDifferential: 5,
 		CleanSheets: model.TeamStatsHomeAwayTotal{Home: 0, Away: 0, Total: 0},
 		FailedToScore: model.TeamStatsHomeAwayTotal{Home: 0, Away: 0, Total: 0},
+		Points: 3,
 	}
 
 	s.Equal(e1, a1)
@@ -232,6 +233,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 		GoalDifferential: 4,
 		CleanSheets: model.TeamStatsHomeAwayTotal{Home: 0, Away: 0, Total: 0},
 		FailedToScore: model.TeamStatsHomeAwayTotal{Home: 0, Away: 0, Total: 0},
+		Points: 3,
 	}
 
 	s.Equal(e2, a2)
@@ -255,6 +257,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStats() {
 		GoalDifferential: 4,
 		CleanSheets: model.TeamStatsHomeAwayTotal{Home: 1, Away: 0, Total: 1},
 		FailedToScore: model.TeamStatsHomeAwayTotal{Home: 1, Away: 0, Total: 1},
+		Points: 4,
 	}
 
 	s.Equal(e3, a3)
