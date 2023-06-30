@@ -39,6 +39,7 @@ func NewTeamRequest(config *core.Config, repo repository.UpsertRepository[model.
 }
 
 func (r *teamRequest) Request() {
+	core.Log.WithField("leagues", r.config.Leagues).Info("Requesting teams for leagues...")
 	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
 		if teams, err := r.request(leagueId); err == nil {
 			r.requestedData = append(r.requestedData, teams...)

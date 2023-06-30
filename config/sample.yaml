@@ -1,4 +1,5 @@
 season: 2022
+# Get league IDs from https://dashboard.api-football.com/soccer/ids
 leagues: 39,61,140,78,135
 debug: true
 api:

@@ -72,7 +72,7 @@ func getConfig(useConfigFile bool, configFile string) (*Config, error) {
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("error decoding config struct: %v", err)
 	} else {
-		Log.Infof("Config successfully initialized")
+		Log.WithFields(logrus.Fields{"season": cfg.Season, "leagues": cfg.Leagues}).Infof("Config successfully initialized")
 		return cfg, nil
 	}
 }

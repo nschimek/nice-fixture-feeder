@@ -40,6 +40,7 @@ func NewLeagueRequest(config *core.Config, repo repository.UpsertRepository[mode
 }
 
 func (r *leagueRequest) Request() {
+	core.Log.WithField("leagues", r.config.Leagues).Info("Requesting leagues...")
 	for id := range core.IdArrayToMap(r.config.Leagues) {
 		if leagues, err := r.request(id); err == nil {
 			r.requestedData = append(r.requestedData, leagues...)

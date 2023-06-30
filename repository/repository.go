@@ -15,6 +15,7 @@ type RepositoryRegistry struct {
 	Team *TeamRepository
 }
 
+// Setup the Repositories so that they can be injected in Services and Requesters
 func Setup(db core.Database) {
 	Repositories = &RepositoryRegistry{
 		Fixture: NewFixtureRepository(db),

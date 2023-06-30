@@ -9,6 +9,7 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
+	"github.com/sirupsen/logrus"
 )
 
 const fixturesEndpoint = "fixtures"
@@ -44,6 +45,11 @@ func (r *fixtureRequest) Request() {
 }
 
 func (r *fixtureRequest) RequestDateRange(startDate, endDate time.Time) {
+	core.Log.WithFields(logrus.Fields{
+		"leagues": r.config.Leagues,
+		"startDate": startDate.Format(core.YYYY_MM_DD),
+		"endDate": startDate.Format(core.YYYY_MM_DD),
+	}).Info("Requesting fixtures for leagues...")
 	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
 		if fixtures, err := r.request(startDate, endDate, leagueId); err == nil {
 			r.requestedData = append(r.requestedData, fixtures...)

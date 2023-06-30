@@ -29,9 +29,9 @@ var (
 		Use: "nice-fixture-feeder",
 		Short: "Feed data into Nice Fixture by querying API-Football",
 		Long: `Queries API-Football for configured leagues, teams, and fixtures and loads all relevant data into the database.  
-		Maintains team stats as it loads fixtures.  Because of this, FIXTURES CANNOT BE LOADED OUT-OF-ORDER.  This will fail.
-		To re-load old (played) fixtures for any reason, simply re-initialize the season using the season command.
-		Running without parameters will limit the query to yesterday and today's fixtures only.`,
+Maintains team stats as it loads fixtures.  Because of this, FIXTURES CANNOT BE LOADED OUT-OF-ORDER.  This will fail.
+To re-load old (played) fixtures for any reason, simply re-initialize the season using the season command.
+Running without parameters will limit the query to yesterday and today's fixtures only.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			core.Log.Info("Started without commands or parameters, defaulting to fixtures for yesterday and today")
 			ctx.startDate = time.Now().AddDate(0, 0, -1)
@@ -44,10 +44,14 @@ var (
 
 			// season mode requests leagues and teams
 			if ctx.season {
-				runSeasonRequest(request.Requests.League, request.Requests.Fixture)
+				core.Log.Warn("RUNNING IN INITIALIZE SEASON MODE")
+				runSeasonRequest(request.Requests.League, request.Requests.Team)
 			}
 			// always run fixtures
 			runFixturesRequest(request.Requests.Fixture, service.Services.TeamStats)
+		},
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
 		},
 	}
 )
