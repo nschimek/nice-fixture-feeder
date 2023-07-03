@@ -65,7 +65,7 @@ func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
 	tsid := fixture.GetTeamStatsId(home) // Team Stats ID (TSID) is set from the INCOMING fixture
 	tls, curr, prev, err := s.getUpdatedStats(tsid, fixture)
 
-	if err == nil {
+	if err == nil && tls != nil {
 		// if there are no errors, make the ID updates and save these stats in the maps (they will get persisted later)
 		tls.MaxFixtureId = fixture.Fixture.Id
 		s.tlsMap[tls.Id] = *tls
@@ -75,7 +75,7 @@ func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
 			prev.NextFixtureId = fixture.Fixture.Id
 			s.statsMap[prev.Id] = *prev
 		}
-	} else {
+	} else if err != nil {
 		// just log that there were errors.  by not populating the maps, they will not be persisted.
 		core.Log.Errorf("issues maintaing stats for fixture ID %d: %v", fixture.Fixture.Id, err)
 	}
@@ -87,6 +87,13 @@ func (s *teamStatsService) getUpdatedStats(tsid *model.TeamStatsId,
 
 	if err != nil {
 		return nil, nil, nil, err
+	} else if tls.MaxFixtureId >= tsid.FixtureId {
+		// this will allow completed games to be safely re-requested without causing errors or currupting the team_stats table
+		core.Log.WithFields(logrus.Fields{
+			"fixtureId": tsid.FixtureId,
+			"maxFixtureId": tls.MaxFixtureId,
+		}).Warn("Max Fixture ID is GTE incoming fixture ID (likely a re-run) - cannot maintain stats, skipping...")
+		return nil, nil, nil, nil
 	}
 
 	prev, err = s.getPreviousStats(tls)
@@ -121,9 +128,6 @@ func (s *teamStatsService) getTLS(tsid *model.TeamStatsId) (*model.TeamLeagueSea
 
 	if tls == nil {
 		return nil, errors.New("could not get TLS, was the league setup?")
-	} else if tls.MaxFixtureId >= tsid.FixtureId {
-		core.Log.WithField("tlsMaxFixtureId", tls.MaxFixtureId).Error("Max Fixture ID is invalid")
-		return nil, errors.New("TLS max fixture ID is GTE the incoming fixture ID - out of order")
 	}
 	
 	return tls, nil

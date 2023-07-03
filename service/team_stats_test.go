@@ -97,14 +97,26 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101})
 }
 
-// this will also test the true condition of the first err check of getUpdatedStats()
-func (s *teamStatsServiceTestSuite) TestMaintainFixtureError() {
+// Test a common possiblity: the curent MaxFixtureId is GTE the incoming one (this can happen on re-runs)
+func (s *teamStatsServiceTestSuite) TestMaintainFixturePrevIdHigher() {
 	f := &s.fixtures[1]
 	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
-	// set the TLS max fixture ID to higher than the incoming fixture to cause an error
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 999}
 
 	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
+
+	s.teamStatsService.maintainFixture(f, true)
+
+	// maps should not be populated because the end result should be that we skip persisting this fixture entirely
+	s.Len(s.teamStatsService.tlsMap, 0)
+	s.Len(s.teamStatsService.statsMap, 0)
+}
+
+func (s *teamStatsServiceTestSuite) TestMaintainFixtureErrorNoTLS() {
+	f := &s.fixtures[1]
+	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+
+	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -161,18 +173,6 @@ func (s *teamStatsServiceTestSuite) TestGetTlsExisting() {
 
 	s.Equal(&tls, a)
 	s.Nil(err)
-}
-
-func (s *teamStatsServiceTestSuite) TestGetTlsNoStats() {
-	tsid := &model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
-
-	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil, nil)
-
-	a, err := s.teamStatsService.getTLS(tsid)
-
-	s.Nil(a)
-	s.ErrorContains(err, "could not get TLS")
 }
 
 func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {

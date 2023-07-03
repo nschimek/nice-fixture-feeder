@@ -16,7 +16,7 @@ const (
 	countryKeyFormat = "images/flags/%s"
 )
 
-//go:generate mockery --name LeagueRequest
+//go:generate mockery --name LeagueRequest --filename league_mock.go
 type LeagueRequest interface {
 	Request()
 	Persist()

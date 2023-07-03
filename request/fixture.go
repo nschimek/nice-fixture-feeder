@@ -14,6 +14,7 @@ import (
 
 const fixturesEndpoint = "fixtures"
 
+//go:generate mockery --name FixtureRequest --filename fixture_mock.go
 type FixtureRequest interface {
 	Request()
 	RequestDateRange(startDate, endDate time.Time)

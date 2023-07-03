@@ -15,7 +15,7 @@ const (
 	teamKeyFormat = "images/logos/teams/%s"
 )
 
-//go:generate mockery --name LeagueRequest
+//go:generate mockery --name TeamRequest --filename team_mock.go
 type TeamRequest interface {
 	Request()
 	Persist()
