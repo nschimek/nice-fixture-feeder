@@ -4,8 +4,6 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
-var Repositories *RepositoryRegistry
-
 type RepositoryRegistry struct {
 	Fixture *FixtureRepository
 	FixtureStatus FixtureStatusRepository
@@ -16,8 +14,8 @@ type RepositoryRegistry struct {
 }
 
 // Setup the Repositories so that they can be injected in Services and Requesters
-func Setup(db core.Database) {
-	Repositories = &RepositoryRegistry{
+func Setup(db core.Database) *RepositoryRegistry {
+	return &RepositoryRegistry{
 		Fixture: NewFixtureRepository(db),
 		FixtureStatus: NewFixtureStatusRepository(db),
 		League: NewLeagueRepository(db),

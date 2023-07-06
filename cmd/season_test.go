@@ -4,7 +4,17 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/request"
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestSeasonCommand(t *testing.T) {
+	ctx = new(commandContext)
+
+	seasonCmd.Run(&cobra.Command{}, []string{})
+
+	assert.True(t, ctx.season)
+}
 
 func TestRunSeasonRequest(t *testing.T) {
 	lr := &request.MockLeagueRequest{}

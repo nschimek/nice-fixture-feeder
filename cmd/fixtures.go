@@ -16,9 +16,10 @@ var (
 		Short: "Request fixtures by date range",
 		Long: `Request fixtures by date range, without setting up a new season.  Team stats will be maintained.
 This should primarily be used if there are issues with the daily request that result in catch-up runs being necessary.
-DO NOT ATTEMPT TO RUN DATE RANGES OUT OF ORDER.  This will fail.`,
+DO NOT ATTEMPT TO RUN DATE RANGES OUT OF ORDER.  This will fail.  In order re-runs will work, but stats will not be maintained.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if startDate, endDate, err := dateRangeFromStrings(startDateString, endDateString); err == nil {
+				core.Log.Info(startDate, endDate)
 				ctx.startDate = startDate
 				ctx.endDate = endDate
 			} else {

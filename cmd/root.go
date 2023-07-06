@@ -25,30 +25,38 @@ type commandContext struct {
 var (
 	ctx *commandContext
 	configFile string
+	services *service.ServiceRegistry
+	requests *request.RequestRegistry
+	runSeasonFunc = runSeasonRequest
+	runFixturesFunc = runFixturesRequest
+	exitFunc = os.Exit
 	rootCmd = &cobra.Command{
 		Use: "nice-fixture-feeder",
 		Short: "Feed data into Nice Fixture by querying API-Football",
 		Long: `Queries API-Football for configured leagues, teams, and fixtures and loads all relevant data into the database.  
-Maintains team stats as it loads fixtures.  Because of this, FIXTURES CANNOT BE LOADED OUT-OF-ORDER.  This will fail.
-To re-load old (played) fixtures for any reason, simply re-initialize the season using the season command.
+Maintains team stats as it loads in order played fixtures for the first time.  Re-runs of played fixtures will not have stats maintained.
+If previously loaded played fixtures need stats re-maintained, use the season command to re-initialize the season instead.
 Running without parameters will limit the query to yesterday and today's fixtures only.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			core.Log.Info("Started without commands or parameters, defaulting to fixtures for yesterday and today")
 			ctx.startDate = time.Now().AddDate(0, 0, -1)
 			ctx.endDate = time.Now()
 		},
-		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Use == "version" {
-				os.Exit(0) // the version command should do nothing more
+				Exit(0) // the version command should do nothing more
+				return nil
 			}
 
 			// season mode requests leagues and teams
 			if ctx.season {
 				core.Log.Warn("RUNNING IN INITIALIZE SEASON MODE")
-				runSeasonRequest(request.Requests.League, request.Requests.Team)
+				runSeasonFunc(requests.League, requests.Team)
 			}
 			// always run fixtures
-			runFixturesRequest(request.Requests.Fixture, service.Services.TeamStats)
+			runFixturesFunc(requests.Fixture, services.TeamStats)
+
+			return nil
 		},
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd: true,
@@ -56,8 +64,13 @@ Running without parameters will limit the query to yesterday and today's fixture
 	}
 )
 
+// Application entry point from main.go
 func Execute() error {
 	return rootCmd.Execute()
+}
+
+func Exit(code int) {
+	exitFunc(code)
 }
 
 func init() {
@@ -75,9 +88,10 @@ func init() {
 
 func setup() {
 	core.Setup(configFile)
-	repository.Setup(core.DB)
-	service.Setup(core.Cfg, core.S3, repository.Repositories)
-	request.Setup(core.Cfg, repository.Repositories, service.Services)
+	
+	repos := repository.Setup(core.DB)
+	services = service.Setup(core.Cfg, core.S3, repos)
+	requests = request.Setup(core.Cfg, repos, services)
 
 	ctx = new(commandContext)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --name TeamStatsService --filename team_stats_mock.go
 type TeamStatsService interface {
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
 	Persist()

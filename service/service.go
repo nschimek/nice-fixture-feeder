@@ -5,16 +5,14 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/repository"
 )
 
-var Services *ServiceRegistry
-
 type ServiceRegistry struct {
 	FixtureStatus FixtureStatusService
 	Image ImageService
 	TeamStats TeamStatsService
 }
 
-func Setup(cfg *core.Config, s3 core.S3Client, repos *repository.RepositoryRegistry) {
-	Services = &ServiceRegistry{
+func Setup(cfg *core.Config, s3 core.S3Client, repos *repository.RepositoryRegistry) *ServiceRegistry {
+	return &ServiceRegistry{
 		FixtureStatus: NewFixtureStatusService(repos.FixtureStatus),
 		Image: NewImageService(s3),
 		TeamStats: NewTeamStatsService(
