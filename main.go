@@ -7,10 +7,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	defaultConfig = "./config/default.yaml"
-)
-
 func main() {
 	if viper.GetBool("serverless") {
 		lambda.Start(LambdaHandler)
