@@ -32,6 +32,7 @@ func TestWithoutConfigFile(t *testing.T) {
 	SetupViper()
 
 	os.Setenv("NF_USE_CONFIG_FILE", "false")
+	os.Setenv("NF_DEBUG", "false")
 	os.Setenv("NF_SEASON", "2022")
 	os.Setenv("NF_API_HOST", "fake-sample.api.com")
 	os.Setenv("NF_API_URL_FORMAT", "https://%s/v1")

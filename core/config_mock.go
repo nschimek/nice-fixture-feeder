@@ -1,9 +1,9 @@
 package core
 
 // Can be injected into tests to provide mocked config values
-var MockConfig = &Config{
+var MockConfig = Config{
 	Season: 2022,
-	Leagues: []int{39,140},
+	Leagues: []int{39, 140},
 	Debug: true,
 	API: configAPI{
 		Host: "api.sample-host.com",
@@ -11,7 +11,7 @@ var MockConfig = &Config{
 		Key: "not-a-real-key",
 	},
 	Database: configDatabase{
-		User: "test",
+		User: "lol",
 		Password: "fake",
 		Location: "localhost",
 		Name: "nice-fixture",

@@ -26,7 +26,7 @@ func TestRequesterTestSuite(t *testing.T) {
 }
 
 func (s *requesterTestSuite) SetupTest() {
-	s.requester = &requester[model.League]{config: core.MockConfig}
+	s.requester = &requester[model.League]{config: &core.MockConfig}
 }
 
 func (s *requesterTestSuite) TestValidWithParams() {

@@ -25,13 +25,14 @@ func TestFixtureRequestTestSuite(t *testing.T) {
 }
 
 func (s *fixtureRequestTestSuite) SetupTest() {
+	// use a slightly different config for these tests (make a copy so we don't impact others!)
 	cfg := core.MockConfig
 	cfg.Leagues = []int{39}
 
 	s.mockRequest = &MockRequester[model.Fixture]{}
 	s.mockRepository = &repository.MockUpsertRepository[model.Fixture]{}
 	s.fixtureRequest = &fixtureRequest{
-		config: core.MockConfig, 
+		config: &cfg, 
 		requester: s.mockRequest,
 		repo: s.mockRepository,
 		fixtureMap: make(map[int]model.Fixture),

@@ -30,7 +30,7 @@ func (s *teamRequestTestSuite) SetupTest() {
 	s.mockRepository = &repository.MockUpsertRepository[model.Team]{}
 	s.mockImageService = &service.MockImageService{}
 	s.teamRequest = &teamRequest{
-		config: core.MockConfig, 
+		config: &core.MockConfig, 
 		requester: s.mockRequest,
 		repo: s.mockRepository,
 		imageService: s.mockImageService,
