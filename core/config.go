@@ -41,7 +41,7 @@ func SetupViper() {
 	viper.AutomaticEnv()
 }
 
-// this is intentionally kept separate from SetupViper() as configFile will eventually be passed in from a Cobra command
+// this is intentionally kept separate from SetupViper() as configFile is passed in from a Cobra command
 func SetupConfigFile(configFile string) {
 	if cfg, err := getConfig(viper.GetBool("use-config-file"), configFile); err == nil {
 		Cfg = cfg // set the global variable
