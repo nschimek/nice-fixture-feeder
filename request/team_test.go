@@ -5,19 +5,20 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/nschimek/nice-fixture-feeder/core"
+	core_mocks "github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
-	"github.com/nschimek/nice-fixture-feeder/repository"
-	"github.com/nschimek/nice-fixture-feeder/service"
+	repo_mocks "github.com/nschimek/nice-fixture-feeder/repository/mocks"
+	"github.com/nschimek/nice-fixture-feeder/request/mocks"
+	svc_mocks "github.com/nschimek/nice-fixture-feeder/service/mocks"
 	"github.com/stretchr/testify/suite"
 )
 
 type teamRequestTestSuite struct {
 	suite.Suite
-	mockRequest *MockRequester[model.Team]
-	mockRepository *repository.MockUpsertRepository[model.Team]
-	mockImageService *service.MockImageService
-	teamRequest *teamRequest
+	mockRequest *mocks.Requester[model.Team]
+	mockRepository *repo_mocks.UpsertRepository[model.Team]
+	mockImageService *svc_mocks.Image
+	teamRequest *team
 	teams []model.Team
 }
 
@@ -26,11 +27,11 @@ func TestTeamRequestTestSuite(t *testing.T) {
 }
 
 func (s *teamRequestTestSuite) SetupTest() {
-	s.mockRequest = &MockRequester[model.Team]{}
-	s.mockRepository = &repository.MockUpsertRepository[model.Team]{}
-	s.mockImageService = &service.MockImageService{}
-	s.teamRequest = &teamRequest{
-		config: &core.MockConfig, 
+	s.mockRequest = &mocks.Requester[model.Team]{}
+	s.mockRepository = &repo_mocks.UpsertRepository[model.Team]{}
+	s.mockImageService = &svc_mocks.Image{}
+	s.teamRequest = &team{
+		config: &core_mocks.Config, 
 		requester: s.mockRequest,
 		repo: s.mockRepository,
 		imageService: s.mockImageService,
@@ -50,8 +51,8 @@ func (s *teamRequestTestSuite) TestRequestValid() {
 		p1 := url.Values{"league": {"39"}, "season": {"2022"}}
 		p2 := url.Values{"league": {"140"}, "season": {"2022"}}
 		// responses
-		r1 := &Response[model.Team]{Response: s.teams[0:3]}
-		r2 := &Response[model.Team]{Response: s.teams[3:6]}
+		r1 := &model.Response[model.Team]{Response: s.teams[0:3]}
+		r2 := &model.Response[model.Team]{Response: s.teams[3:6]}
 
 		s.mockRequest.EXPECT().Get(teamsEndpoint, p1).Return(r1, nil)
 		s.mockRequest.EXPECT().Get(teamsEndpoint, p2).Return(r2, nil)
@@ -86,16 +87,16 @@ func (s *teamRequestTestSuite) TestPersistSuccess() {
 
 	s.mockRepository.EXPECT().Upsert(teams).Return(teams, nil)
 	// postPersist
-	s.mockImageService.EXPECT().TransferURL(s.teams[0].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
-	s.mockImageService.EXPECT().TransferURL(s.teams[1].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
-	s.mockImageService.EXPECT().TransferURL(s.teams[2].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat).Return(true)
+	s.mockImageService.EXPECT().TransferURL(s.teams[0].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat).Return(true)
+	s.mockImageService.EXPECT().TransferURL(s.teams[1].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat).Return(true)
+	s.mockImageService.EXPECT().TransferURL(s.teams[2].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat).Return(true)
 
 	s.teamRequest.Persist()
 
 	s.mockRepository.AssertCalled(s.T(), "Upsert", teams)
-	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[0].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
-	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[1].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
-	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[2].Team.Logo, core.MockConfig.AWS.BucketName, teamKeyFormat)
+	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[0].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat)
+	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[1].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat)
+	s.mockImageService.AssertCalled(s.T(), "TransferURL", s.teams[2].Team.Logo, core_mocks.Config.AWS.BucketName, teamKeyFormat)
 }
 
 func (s *teamRequestTestSuite) TestPersistError() {

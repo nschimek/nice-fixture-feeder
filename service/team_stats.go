@@ -9,24 +9,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name TeamStatsService --filename team_stats_mock.go
-type TeamStatsService interface {
+//go:generate mockery --name TeamStats --filename team_stats_mock.go
+type TeamStats interface {
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
 	Persist()
 }
 
-type teamStatsService struct {
-	tsRepo repository.TeamStatsRepository
-	tlsRepo repository.TeamLeagueSeasonRepository
-	statusService FixtureStatusService
+type teamStats struct {
+	tsRepo repository.TeamStats
+	tlsRepo repository.TeamLeagueSeason
+	statusService FixtureStatus
 	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
 	statsMap map[model.TeamStatsId]model.TeamStats
 }
 
-func NewTeamStatsService(tsRepo repository.TeamStatsRepository, 
-	tlsRepo repository.TeamLeagueSeasonRepository,
-	statusService FixtureStatusService) *teamStatsService {
-	return &teamStatsService{
+func NewTeamStats(tsRepo repository.TeamStats, 
+	tlsRepo repository.TeamLeagueSeason,
+	statusService FixtureStatus) *teamStats {
+	return &teamStats{
 		tsRepo: tsRepo, 
 		tlsRepo: tlsRepo, 
 		statusService: statusService,
@@ -36,7 +36,7 @@ func NewTeamStatsService(tsRepo repository.TeamStatsRepository,
 }
 
 // fixtureIds MUST be sorted ascending and all fixture IDs must be present in the fixture map!
-func (s *teamStatsService) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture) {
+func (s *teamStats) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture) {
 	for _, id := range fixtureIds {
 		if fixture, ok := fixtureMap[id]; ok {
 			if s.statusService.IsFinished(fixture.Fixture.Status.Id) {
@@ -50,7 +50,7 @@ func (s *teamStatsService) MaintainStats(fixtureIds []int, fixtureMap map[int]mo
 	}
 }
 
-func (s *teamStatsService) Persist() {
+func (s *teamStats) Persist() {
 	core.Log.WithFields(logrus.Fields{
 		"team_stats": len(s.statsMap), "team_league_seasons": len(s.tlsMap),
 	}).Info("Persisting Team Stats...")
@@ -62,7 +62,7 @@ func (s *teamStatsService) Persist() {
 	}
 }
 
-func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
+func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 	tsid := fixture.GetTeamStatsId(home) // Team Stats ID (TSID) is set from the INCOMING fixture
 	tls, curr, prev, err := s.getUpdatedStats(tsid, fixture)
 
@@ -82,7 +82,7 @@ func (s *teamStatsService) maintainFixture(fixture *model.Fixture, home bool) {
 	}
 }
 
-func (s *teamStatsService) getUpdatedStats(tsid *model.TeamStatsId, 
+func (s *teamStats) getUpdatedStats(tsid *model.TeamStatsId, 
 	fixture *model.Fixture) (tls *model.TeamLeagueSeason, curr, prev *model.TeamStats, err error) {
 	tls, err = s.getTLS(tsid)
 
@@ -113,7 +113,7 @@ func (s *teamStatsService) getUpdatedStats(tsid *model.TeamStatsId,
 }
 
 // get Team League Season (TLS), which contains the current max fixture ID (which will be the last played fixture)
-func (s *teamStatsService) getTLS(tsid *model.TeamStatsId) (*model.TeamLeagueSeason, error) {
+func (s *teamStats) getTLS(tsid *model.TeamStatsId) (*model.TeamLeagueSeason, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": tsid.TeamId, "leagueId": tsid.LeagueId, "season": tsid.Season,
 	}).Debug("Getting team league season (TLS)...")
@@ -134,7 +134,7 @@ func (s *teamStatsService) getTLS(tsid *model.TeamStatsId) (*model.TeamLeagueSea
 	return tls, nil
 }
 
-func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model.TeamStats, error) {
+func (s *teamStats) getPreviousStats(tls *model.TeamLeagueSeason) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season, "prevFixtureId": tls.MaxFixtureId,
 	}).Debug("Getting previous stats using TLS...")
@@ -160,7 +160,7 @@ func (s *teamStatsService) getPreviousStats(tls *model.TeamLeagueSeason) (*model
 	return stats, nil
 }
 
-func (s *teamStatsService) calculateCurrentStats(prev *model.TeamStats, fixture *model.Fixture) (*model.TeamStats, error) {
+func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.Fixture) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": prev.Id.TeamId, "leagueId": prev.Id.LeagueId, "season": prev.Id.Season,
 		"prevFixtureId": prev.Id.FixtureId, "currFixtureId": fixture.Fixture.Id,

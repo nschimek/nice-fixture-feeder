@@ -5,23 +5,23 @@ import (
 )
 
 type RepositoryRegistry struct {
-	Fixture *FixtureRepository
-	FixtureStatus FixtureStatusRepository
-	League *LeagueRepository
-	TeamLeagueSeason TeamLeagueSeasonRepository
-	TeamStats TeamStatsRepository
-	Team *TeamRepository
+	Fixture *Fixture
+	FixtureStatus FixtureStatus
+	League *League
+	TeamLeagueSeason TeamLeagueSeason
+	TeamStats TeamStats
+	Team *Team
 }
 
 // Setup the Repositories so that they can be injected in Services and Requesters
 func Setup(db core.Database) *RepositoryRegistry {
 	return &RepositoryRegistry{
-		Fixture: NewFixtureRepository(db),
-		FixtureStatus: NewFixtureStatusRepository(db),
-		League: NewLeagueRepository(db),
-		TeamLeagueSeason: NewTeamLeagueSeasonRepository(db),
-		TeamStats: NewTeamStatsRepository(db),
-		Team: NewTeamRepository(db),
+		Fixture: NewFixture(db),
+		FixtureStatus: NewFixtureStatus(db),
+		League: NewLeague(db),
+		TeamLeagueSeason: NewTeamLeagueSeason(db),
+		TeamStats: NewTeamStats(db),
+		Team: NewTeam(db),
 	}
 }
 

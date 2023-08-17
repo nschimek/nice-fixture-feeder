@@ -14,8 +14,8 @@ import (
 
 const fixturesEndpoint = "fixtures"
 
-//go:generate mockery --name FixtureRequest --filename fixture_mock.go
-type FixtureRequest interface {
+//go:generate mockery --name Fixture --filename fixture_mock.go
+type Fixture interface {
 	Request()
 	RequestDateRange(startDate, endDate time.Time)
 	Persist()
@@ -23,7 +23,7 @@ type FixtureRequest interface {
 	GetIds() []int
 }
 
-type fixtureRequest struct {
+type fixture struct {
 	config *core.Config
 	requester Requester[model.Fixture]
 	repo repository.UpsertRepository[model.Fixture]
@@ -32,8 +32,8 @@ type fixtureRequest struct {
 	fixtureIds []int
 }
 
-func NewFixtureRequest(config *core.Config, repo repository.UpsertRepository[model.Fixture]) FixtureRequest {
-	return &fixtureRequest{
+func NewFixture(config *core.Config, repo repository.UpsertRepository[model.Fixture]) Fixture {
+	return &fixture{
 		config: config,
 		requester: NewRequester[model.Fixture](config),
 		fixtureMap: make(map[int]model.Fixture),
@@ -41,11 +41,11 @@ func NewFixtureRequest(config *core.Config, repo repository.UpsertRepository[mod
 	}
 }
 
-func (r *fixtureRequest) Request() {
+func (r *fixture) Request() {
 	r.RequestDateRange(time.Time{}, time.Time{})
 }
 
-func (r *fixtureRequest) RequestDateRange(startDate, endDate time.Time) {
+func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 	core.Log.WithFields(logrus.Fields{
 		"leagues": r.config.Leagues,
 		"startDate": startDate.Format(core.YYYY_MM_DD),
@@ -61,7 +61,7 @@ func (r *fixtureRequest) RequestDateRange(startDate, endDate time.Time) {
 }
 
 
-func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
+func (r *fixture) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
 	p := url.Values{}
 	p.Add("league", strconv.Itoa(leagueId))
 	p.Add("season", strconv.Itoa(r.config.Season))
@@ -80,7 +80,7 @@ func (r *fixtureRequest) request(startDate, endDate time.Time, leagueId int) ([]
 	return resp.Response, nil
 }
 
-func (r *fixtureRequest) Persist() {
+func (r *fixture) Persist() {
 	var err error
 	r.requestedData, err = r.repo.Upsert(r.requestedData)
 	if err == nil {
@@ -88,7 +88,7 @@ func (r *fixtureRequest) Persist() {
 	}
 }
 
-func (r *fixtureRequest) postPersist() {
+func (r *fixture) postPersist() {
 	for _, fixture := range r.requestedData {
 		r.fixtureIds = append(r.fixtureIds, fixture.Fixture.Id)
 		r.fixtureMap[fixture.Fixture.Id] = fixture
@@ -99,10 +99,10 @@ func (r *fixtureRequest) postPersist() {
 	}
 }
 
-func (r *fixtureRequest) GetIds() []int {
+func (r *fixture) GetIds() []int {
 	return r.fixtureIds
 }
 
-func (r *fixtureRequest) GetMap() map[int]model.Fixture {
+func (r *fixture) GetMap() map[int]model.Fixture {
 	return r.fixtureMap
 }

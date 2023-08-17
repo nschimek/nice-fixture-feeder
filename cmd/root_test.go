@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/nschimek/nice-fixture-feeder/request"
+	req_mocks "github.com/nschimek/nice-fixture-feeder/request/mocks"
 	"github.com/nschimek/nice-fixture-feeder/service"
+	svc_mocks "github.com/nschimek/nice-fixture-feeder/service/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,17 +35,17 @@ func TestRootCommandVersion(t *testing.T) {
 
 func TestRootSeason(t *testing.T) {
 	var ok1, ok2 bool
-	runSeasonFunc = func(lr request.LeagueRequest, tr request.TeamRequest) {
+	runSeasonFunc = func(lr request.League, tr request.Team) {
 		ok1 = true
 	}
-	runFixturesFunc = func(fr request.FixtureRequest, ts service.TeamStatsService) {
+	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats) {
 		ok2 = true
 	}
-	services = &service.ServiceRegistry{TeamStats: &service.MockTeamStatsService{}}
+	services = &service.ServiceRegistry{TeamStats: &svc_mocks.TeamStats{}}
 	requests = &request.RequestRegistry{
-		League: &request.MockLeagueRequest{}, 
-		Team: &request.MockTeamRequest{}, 
-		Fixture: &request.MockFixtureRequest{},
+		League: &req_mocks.League{}, 
+		Team: &req_mocks.Team{}, 
+		Fixture: &req_mocks.Fixture{},
 	}
 
 	ctx = new(commandContext)
@@ -58,17 +60,17 @@ func TestRootSeason(t *testing.T) {
 
 func TestRootNoSeason(t *testing.T) {
 	var ok1, ok2 bool
-	runSeasonFunc = func(lr request.LeagueRequest, tr request.TeamRequest) {
+	runSeasonFunc = func(lr request.League, tr request.Team) {
 		ok1 = true
 	}
-	runFixturesFunc = func(fr request.FixtureRequest, ts service.TeamStatsService) {
+	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats) {
 		ok2 = true
 	}
-	services = &service.ServiceRegistry{TeamStats: &service.MockTeamStatsService{}}
+	services = &service.ServiceRegistry{TeamStats: &svc_mocks.TeamStats{}}
 	requests = &request.RequestRegistry{
-		League: &request.MockLeagueRequest{}, 
-		Team: &request.MockTeamRequest{}, 
-		Fixture: &request.MockFixtureRequest{},
+		League: &req_mocks.League{}, 
+		Team: &req_mocks.Team{}, 
+		Fixture: &req_mocks.Fixture{},
 	}
 
 	ctx = new(commandContext)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
@@ -13,8 +14,8 @@ import (
 type fixtureRepositoryTestSuite struct {
 	suite.Suite
 	fixtures []model.Fixture
-	mockDatabase *core.MockDatabase
-	repo *FixtureRepository
+	mockDatabase *mocks.Database
+	repo *Fixture
 }
 
 func TestFixtureRepositoryTestSuite(t *testing.T) {
@@ -30,8 +31,8 @@ func (s *fixtureRepositoryTestSuite) SetupTest() {
 			Goals: model.FixtureGoals{Home: 7, Away: 0},
 		},
 	}
-	s.mockDatabase = &core.MockDatabase{}
-	s.repo = NewFixtureRepository(s.mockDatabase)
+	s.mockDatabase = &mocks.Database{}
+	s.repo = NewFixture(s.mockDatabase)
 }
 
 func (s *fixtureRepositoryTestSuite) TestUpsertSuccess() {

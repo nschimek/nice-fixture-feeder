@@ -7,16 +7,18 @@ import (
 	"time"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	core_mocks "github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
-	"github.com/nschimek/nice-fixture-feeder/repository"
+	repo_mocks "github.com/nschimek/nice-fixture-feeder/repository/mocks"
+	"github.com/nschimek/nice-fixture-feeder/request/mocks"
 	"github.com/stretchr/testify/suite"
 )
 
 type fixtureRequestTestSuite struct {
 	suite.Suite
-	mockRequest *MockRequester[model.Fixture]
-	mockRepository *repository.MockUpsertRepository[model.Fixture]
-	fixtureRequest *fixtureRequest
+	mockRequest *mocks.Requester[model.Fixture]
+	mockRepository *repo_mocks.UpsertRepository[model.Fixture]
+	fixtureRequest *fixture
 	fixtures []model.Fixture
 }
 
@@ -26,12 +28,12 @@ func TestFixtureRequestTestSuite(t *testing.T) {
 
 func (s *fixtureRequestTestSuite) SetupTest() {
 	// use a slightly different config for these tests (make a copy so we don't impact others!)
-	cfg := core.MockConfig
+	cfg := core_mocks.Config
 	cfg.Leagues = []int{39}
 
-	s.mockRequest = &MockRequester[model.Fixture]{}
-	s.mockRepository = &repository.MockUpsertRepository[model.Fixture]{}
-	s.fixtureRequest = &fixtureRequest{
+	s.mockRequest = &mocks.Requester[model.Fixture]{}
+	s.mockRepository = &repo_mocks.UpsertRepository[model.Fixture]{}
+	s.fixtureRequest = &fixture{
 		config: &cfg, 
 		requester: s.mockRequest,
 		repo: s.mockRepository,
@@ -51,7 +53,7 @@ func (s *fixtureRequestTestSuite) TestRequestValid() {
 	// expected parameters
 	p := url.Values{"league": {"39"}, "season": {"2022"}, "from": {"2023-03-05"}, "to": {"2023-03-06"}}
 	// response
-	r := &Response[model.Fixture]{Response: s.fixtures}
+	r := &model.Response[model.Fixture]{Response: s.fixtures}
 
 	s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(r, nil)
 
@@ -64,7 +66,7 @@ func (s *fixtureRequestTestSuite) TestRequestValidNoDate() {
 		// expected parameters
 		p := url.Values{"league": {"39"}, "season": {"2022"}}
 		// response
-		r := &Response[model.Fixture]{Response: s.fixtures}
+		r := &model.Response[model.Fixture]{Response: s.fixtures}
 	
 		s.mockRequest.EXPECT().Get(fixturesEndpoint, p).Return(r, nil)
 	

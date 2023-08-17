@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +26,7 @@ func TestRequesterTestSuite(t *testing.T) {
 }
 
 func (s *requesterTestSuite) SetupTest() {
-	s.requester = &requester[model.League]{config: &core.MockConfig}
+	s.requester = &requester[model.League]{config: &mocks.Config}
 }
 
 func (s *requesterTestSuite) TestValidWithParams() {

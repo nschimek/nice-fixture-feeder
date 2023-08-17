@@ -19,7 +19,7 @@ var (
 	fullSave = &gorm.Session{FullSaveAssociations: true}
 )
 
-//go:generate mockery --name Database
+//go:generate mockery --name Database --filename database_mock.go
 type Database interface {
 	Upsert(value interface{}) DatabaseResult
 	Save(value interface{}) DatabaseResult

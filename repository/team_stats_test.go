@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
 
 type teamStatsRepositoryTestSuite struct {
 	suite.Suite
-	mockDatabase *core.MockDatabase
-	repo TeamStatsRepository
+	mockDatabase *mocks.Database
+	repo TeamStats
 	teamStats []model.TeamStats
 }
 
@@ -21,8 +22,8 @@ func TestTeamStatsRepositoryTestSuite(t *testing.T) {
 }
 
 func (s *teamStatsRepositoryTestSuite) SetupTest() {
-	s.mockDatabase = &core.MockDatabase{}
-	s.repo = NewTeamStatsRepository(s.mockDatabase)
+	s.mockDatabase = &mocks.Database{}
+	s.repo = NewTeamStats(s.mockDatabase)
 	s.teamStats = []model.TeamStats{
 		{Id: model.TeamStatsId{TeamId: 1, LeagueId: 2, Season: 2022, FixtureId: 100}},
 		{Id: model.TeamStatsId{TeamId: 1, LeagueId: 2, Season: 2022, FixtureId: 101}},

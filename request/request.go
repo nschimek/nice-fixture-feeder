@@ -7,15 +7,15 @@ import (
 )
 
 type RequestRegistry struct {
-	Fixture FixtureRequest
-	League LeagueRequest
-	Team TeamRequest
+	Fixture Fixture
+	League League
+	Team Team
 }
 
 func Setup(cfg *core.Config, repos *repository.RepositoryRegistry, svcs *service.ServiceRegistry) *RequestRegistry {
 	return &RequestRegistry{
-		Fixture: NewFixtureRequest(cfg, repos.Fixture),
-		League: NewLeagueRequest(cfg, repos.League, svcs.Image),
-		Team: NewTeamRequest(cfg, repos.Team, svcs.Image),
+		Fixture: NewFixture(cfg, repos.Fixture),
+		League: NewLeague(cfg, repos.League, svcs.Image),
+		Team: NewTeam(cfg, repos.Team, svcs.Image),
 	}
 }

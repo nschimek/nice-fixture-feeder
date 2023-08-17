@@ -3,7 +3,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/nschimek/nice-fixture-feeder/request"
+	"github.com/nschimek/nice-fixture-feeder/request/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,8 +17,8 @@ func TestSeasonCommand(t *testing.T) {
 }
 
 func TestRunSeasonRequest(t *testing.T) {
-	lr := &request.MockLeagueRequest{}
-	tr := &request.MockTeamRequest{}
+	lr := &mocks.League{}
+	tr := &mocks.Team{}
 
 	lr.EXPECT().Request()
 	lr.EXPECT().Persist()

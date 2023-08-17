@@ -12,22 +12,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//go:generate mockery --name ImageService --filename image_mock.go
-type ImageService interface {
+//go:generate mockery --name Image --filename image_mock.go
+type Image interface {
 	TransferURL(url, bucket, keyFormat string) bool
 }
 
-type imageService struct {
+type image struct {
 	s3 core.S3Client
 }
 
-func NewImageService(s3 core.S3Client) *imageService {
-	return &imageService{
+func NewImage(s3 core.S3Client) *image {
+	return &image{
 		s3: s3,
 	}
 }
 
-func (is *imageService) TransferURL(url, bucket, keyFormat string) bool {
+func (is *image) TransferURL(url, bucket, keyFormat string) bool {
 	time.Sleep(500 * time.Millisecond) // half second rate limit 
 	finalKeyName := fmt.Sprintf(keyFormat, path.Base(url))
 	core.Log.WithFields(logrus.Fields{
@@ -59,7 +59,7 @@ func (is *imageService) TransferURL(url, bucket, keyFormat string) bool {
 	}
 }
 
-func (is *imageService) download(url string) ([]byte, error) {
+func (is *image) download(url string) ([]byte, error) {
 	res, err := http.Get(url)
 
 	if err != nil {

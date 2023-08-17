@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/model"
-	"github.com/nschimek/nice-fixture-feeder/repository"
+	"github.com/nschimek/nice-fixture-feeder/repository/mocks"
 	"github.com/stretchr/testify/suite"
 )
 
 type fixtureStatusServiceTestSuite struct {
 	suite.Suite
-	mockRepository *repository.MockFixtureStatusRepository
-	fixtureStatusService FixtureStatusService
+	mockRepository *mocks.FixtureStatus
+	fixtureStatusService FixtureStatus
 	statuses []model.FixtureStatus
 }
 
@@ -20,8 +20,8 @@ func TestFixtureStatusServiceTestSuite(t *testing.T) {
 }
 
 func (s *fixtureStatusServiceTestSuite) SetupTest() {
-	s.mockRepository = &repository.MockFixtureStatusRepository{}
-	s.fixtureStatusService = NewFixtureStatusService(s.mockRepository)
+	s.mockRepository = &mocks.FixtureStatus{}
+	s.fixtureStatusService = NewFixtureStatus(s.mockRepository)
 	s.statuses = []model.FixtureStatus{
 		{Id: "FT", Type: "FI"},
 		{Id: "NS", Type: "SC"},

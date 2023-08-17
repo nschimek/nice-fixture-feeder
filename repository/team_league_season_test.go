@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
 
 type teamLeagueSeasonRepositoryTestSuite struct {
 	suite.Suite
-	mockDatabase *core.MockDatabase
-	repo TeamLeagueSeasonRepository
+	mockDatabase *mocks.Database
+	repo TeamLeagueSeason
 	teamLeagueSeasons []model.TeamLeagueSeason
 }
 
@@ -21,8 +22,8 @@ func TestTeamLeagueSeasonRepositoryTestSuite(t *testing.T) {
 }
 
 func (s *teamLeagueSeasonRepositoryTestSuite) SetupTest() {
-	s.mockDatabase = &core.MockDatabase{}
-	s.repo = NewTeamLeagueSeasonRepository(s.mockDatabase)
+	s.mockDatabase = &mocks.Database{}
+	s.repo = NewTeamLeagueSeason(s.mockDatabase)
 	s.teamLeagueSeasons = []model.TeamLeagueSeason{
 		{Id: model.TeamLeagueSeasonId{TeamId: 42, LeagueId: 39, Season: 2022}},
 		{Id: model.TeamLeagueSeasonId{TeamId: 43, LeagueId: 39, Season: 2022}},

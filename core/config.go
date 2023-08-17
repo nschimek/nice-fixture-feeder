@@ -14,20 +14,20 @@ type Config struct {
 	Season        int
 	Leagues				[]int
 	Debug         bool
-	API configAPI
-	Database configDatabase
-	AWS configAWS
+	API ConfigAPI
+	Database ConfigDatabase
+	AWS ConfigAWS
 }
 
-type configAPI struct {
+type ConfigAPI struct {
 	Host, Key string
 	UrlFormat	string `mapstructure:"url-format"`
 }
-type configDatabase struct {
+type ConfigDatabase struct {
 	User, Password, Location, Name string
 	Port                           int
 }
-type configAWS struct {
+type ConfigAWS struct {
 	Region string
 	AccessKeyId string `mapstructure:"access-key-id"`
 	SecretAccessKey string `mapstructure:"secret-access-key"`

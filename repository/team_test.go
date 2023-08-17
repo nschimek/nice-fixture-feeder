@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
@@ -12,8 +13,8 @@ import (
 type teamRepositoryTestSuite struct {
 	suite.Suite
 	teams []model.Team
-	mockDatabase *core.MockDatabase
-	repo *TeamRepository
+	mockDatabase *mocks.Database
+	repo *Team
 }
 
 func TestTeamRepositoryTestSuite(t *testing.T) {
@@ -25,8 +26,8 @@ func (s *teamRepositoryTestSuite) SetupTest() {
 		{Team: model.TeamTeam{Id: 1, Name: "Test"}},
 		{Team: model.TeamTeam{Id: 2, Name: "Test"}},
 	}
-	s.mockDatabase = &core.MockDatabase{}
-	s.repo = NewTeamRepository(s.mockDatabase)
+	s.mockDatabase = &mocks.Database{}
+	s.repo = NewTeam(s.mockDatabase)
 }
 
 func (s *teamRepositoryTestSuite) TestUpsertTeamsSuccess() {

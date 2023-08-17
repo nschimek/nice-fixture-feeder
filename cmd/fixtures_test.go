@@ -6,8 +6,8 @@ import (
 
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
-	"github.com/nschimek/nice-fixture-feeder/request"
-	"github.com/nschimek/nice-fixture-feeder/service"
+	req_mocks "github.com/nschimek/nice-fixture-feeder/request/mocks"
+	svc_mocks "github.com/nschimek/nice-fixture-feeder/service/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -46,8 +46,8 @@ func TestRunFixturesRequestSeason(t *testing.T) {
 	fixtures := map[int]model.Fixture{100: {}, 101: {}, 102: {}}
 	ctx = &commandContext{season: true}
 
-	fr := &request.MockFixtureRequest{}
-	ts := &service.MockTeamStatsService{}
+	fr := &req_mocks.Fixture{}
+	ts := &svc_mocks.TeamStats{}
 
 	fr.EXPECT().Request()
 	fr.EXPECT().Persist()
@@ -72,8 +72,8 @@ func TestRunFixturesRequestNoSeason(t *testing.T) {
 	fixtures := map[int]model.Fixture{100: {}, 101: {}, 102: {}}
 	ctx = &commandContext{season: false, startDate: sd, endDate: ed}
 
-	fr := &request.MockFixtureRequest{}
-	ts := &service.MockTeamStatsService{}
+	fr := &req_mocks.Fixture{}
+	ts := &svc_mocks.TeamStats{}
 
 	fr.EXPECT().RequestDateRange(sd, ed)
 	fr.EXPECT().Persist()

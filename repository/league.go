@@ -5,12 +5,12 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-type LeagueRepository struct {
+type League struct {
 	upsertRepository[model.League]
 }
 
-func NewLeagueRepository(db core.Database) *LeagueRepository {
-	return &LeagueRepository{
+func NewLeague(db core.Database) *League {
+	return &League{
 		upsertRepository: upsertRepository[model.League]{
 			repository: newRepo(db, "leagues and seasons"),
 		},

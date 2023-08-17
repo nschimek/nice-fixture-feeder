@@ -5,16 +5,18 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/model"
-	"github.com/nschimek/nice-fixture-feeder/repository"
+	repo_mocks "github.com/nschimek/nice-fixture-feeder/repository/mocks"
+	"github.com/nschimek/nice-fixture-feeder/service/mocks"
+
 	"github.com/stretchr/testify/suite"
 )
 
 type teamStatsServiceTestSuite struct {
 	suite.Suite
-	mockTsRepo *repository.MockTeamStatsRepository
-	mockTlsRepo *repository.MockTeamLeagueSeasonRepository
-	mockStatusService *MockFixtureStatusService
-	teamStatsService *teamStatsService
+	mockTsRepo *repo_mocks.TeamStats
+	mockTlsRepo *repo_mocks.TeamLeagueSeason
+	mockStatusService *mocks.FixtureStatus
+	teamStatsService *teamStats
 	fixtures []model.Fixture
 	fixtureIds []int
 }
@@ -24,10 +26,10 @@ func TestTeamStatsServiceTestSuite(t *testing.T) {
 }
 
 func (s *teamStatsServiceTestSuite) SetupTest() {
-	s.mockTsRepo = &repository.MockTeamStatsRepository{}
-	s.mockTlsRepo = &repository.MockTeamLeagueSeasonRepository{}
-	s.mockStatusService = &MockFixtureStatusService{}
-	s.teamStatsService = NewTeamStatsService(s.mockTsRepo, s.mockTlsRepo, s.mockStatusService)
+	s.mockTsRepo = &repo_mocks.TeamStats{}
+	s.mockTlsRepo = &repo_mocks.TeamLeagueSeason{}
+	s.mockStatusService = &mocks.FixtureStatus{}
+	s.teamStatsService = NewTeamStats(s.mockTsRepo, s.mockTlsRepo, s.mockStatusService)
 	s.fixtures = []model.Fixture{
 		{
 			Fixture: model.FixtureFixture{Id: 100, Status: model.FixtureStatusId{Id: "FT"}},

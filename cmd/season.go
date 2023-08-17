@@ -22,7 +22,7 @@ func init() {
 	rootCmd.AddCommand(seasonCmd)
 }
 
-func runSeasonRequest(leagueRequest request.LeagueRequest, teamRequest request.TeamRequest) {
+func runSeasonRequest(leagueRequest request.League, teamRequest request.Team) {
 	leagueRequest.Request()
 	leagueRequest.Persist()
 	teamRequest.Request()

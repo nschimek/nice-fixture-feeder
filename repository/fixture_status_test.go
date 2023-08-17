@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/stretchr/testify/suite"
 )
 
 type fixtureStatusRepositoryTestSuite struct {
 	suite.Suite
-	mockDatabase *core.MockDatabase
-	fixtureStatusRepository FixtureStatusRepository
+	mockDatabase *mocks.Database
+	fixtureStatusRepository FixtureStatus
 }
 
 func TestFixtureStatusRepositoryTestSuite(t *testing.T) {
@@ -20,8 +21,8 @@ func TestFixtureStatusRepositoryTestSuite(t *testing.T) {
 }
 
 func (s *fixtureStatusRepositoryTestSuite) SetupTest() {
-	s.mockDatabase = &core.MockDatabase{}
-	s.fixtureStatusRepository = NewFixtureStatusRepository(s.mockDatabase)
+	s.mockDatabase = &mocks.Database{}
+	s.fixtureStatusRepository = NewFixtureStatus(s.mockDatabase)
 }
 
 func (s *fixtureStatusRepositoryTestSuite) TestGetAllSuccess() {

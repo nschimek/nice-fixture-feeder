@@ -1,4 +1,4 @@
-package request
+package model
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnmarshalValid(t *testing.T) {
+func TestMapOrEmptyArrayUnmarshalValid(t *testing.T) {
 	str := `{"field 1": "test 2", "field 2": "test 2"}`
 	m := map[string]string{"field 1": "test 2", "field 2": "test 2"}
 
@@ -20,7 +20,7 @@ func TestUnmarshalValid(t *testing.T) {
 	assert.Equal(t, e, a)
 }
 
-func TestUnmarshalEmpty(t *testing.T) {
+func TestMapOrEmptyArrayUnmarshalEmpty(t *testing.T) {
 	e := new(MapOrEmptyArray)
 	*e = MapOrEmptyArray(nil)
 
@@ -31,7 +31,7 @@ func TestUnmarshalEmpty(t *testing.T) {
 	assert.Equal(t, e, a)
 }
 
-func TestUnmarshalError(t *testing.T) {
+func TestMapOrEmptyArrayUnmarshalError(t *testing.T) {
 	a := new(MapOrEmptyArray)
 	err := a.UnmarshalJSON([]byte(`{invalidJson}`))
 

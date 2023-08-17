@@ -5,12 +5,12 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-type FixtureRepository struct {
+type Fixture struct {
 	UpsertRepository[model.Fixture]
 }
 
-func NewFixtureRepository(db core.Database) *FixtureRepository {
-	return &FixtureRepository{
+func NewFixture(db core.Database) *Fixture {
+	return &Fixture{
 		UpsertRepository: upsertRepository[model.Fixture]{repository: newRepo(db, "fixtures")},
 	}
 }

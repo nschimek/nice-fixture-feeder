@@ -23,7 +23,7 @@ func SetupS3(config *Config) {
 	}
 }
 
-//go:generate mockery --name S3Client  --filename s3_mock.go
+//go:generate mockery --name S3Client --filename s3_mock.go
 type S3Client interface {
 	Exists(bucket, key string) (bool, error)
 	Upload(data []byte, bucket, key string) error

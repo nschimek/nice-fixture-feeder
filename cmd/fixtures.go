@@ -61,7 +61,7 @@ func stringToDate(dateString string) (time.Time, error) {
 	}
 }
 
-func runFixturesRequest(fixtureRequest request.FixtureRequest, teamStatsService service.TeamStatsService) {
+func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service.TeamStats) {
 	if ctx.season {
 		fixtureRequest.Request()
 	} else {

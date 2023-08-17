@@ -7,38 +7,38 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/repository"
 )
 
-//go:generate mockery --name FixtureStatusService  --filename fixture_status_mock.go
-type FixtureStatusService interface {
+//go:generate mockery --name FixtureStatus --filename fixture_status_mock.go
+type FixtureStatus interface {
 	GetType(id string) string
 	IsFinished(id string) bool
 	IsScheduled(id string) bool
 }
 
-type fixtureStatusService struct {
-	repo repository.FixtureStatusRepository
+type fixtureStatus struct {
+	repo repository.FixtureStatus
 	idMap map[string]string
 }
 
-func NewFixtureStatusService(repo repository.FixtureStatusRepository) *fixtureStatusService {
-	return &fixtureStatusService{repo: repo}
+func NewFixtureStatus(repo repository.FixtureStatus) *fixtureStatus {
+	return &fixtureStatus{repo: repo}
 }
 
-func (s *fixtureStatusService) GetType(id string) string {
+func (s *fixtureStatus) GetType(id string) string {
 	if (s.idMap == nil) {
 		s.initializeMap()
 	}
 	return s.idMap[strings.ToUpper(id)]
 }
 
-func (s *fixtureStatusService) IsFinished(id string) bool {
+func (s *fixtureStatus) IsFinished(id string) bool {
 	return s.GetType(id) == model.StatusTypeFinished
 }
 
-func (s *fixtureStatusService) IsScheduled(id string) bool {
+func (s *fixtureStatus) IsScheduled(id string) bool {
 	return s.GetType(id) == model.StatusTypeScheduled
 }
 
-func (s *fixtureStatusService) initializeMap() {
+func (s *fixtureStatus) initializeMap() {
 	s.idMap = make(map[string]string)
 	all, _ := s.repo.GetAll()
 	for _, fs := range all {

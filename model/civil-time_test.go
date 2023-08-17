@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnmarshalValid(t *testing.T) {
+func TestCivilTimeUnmarshalValid(t *testing.T) {
 	date := "2023-05-26"
 	dateTime, _ := time.Parse("2006-01-02", date)
 	
@@ -22,7 +22,7 @@ func TestUnmarshalValid(t *testing.T) {
 	assert.Equal(t, e, a)
 }
 
-func TestUnmarshalNull(t *testing.T) {
+func TestCivilTimeUnmarshalNull(t *testing.T) {
 	e := new(CivilTime)
 	*e = CivilTime(time.Time{})
 
@@ -33,12 +33,12 @@ func TestUnmarshalNull(t *testing.T) {
 	assert.Equal(t, e, a)
 }
 
-func TestUnmarshalInvalid(t *testing.T) {
+func TestCivilTimeUnmarshalInvalid(t *testing.T) {
 	a := new(CivilTime)
 	assert.Error(t, a.UnmarshalJSON([]byte("20220529")))
 }
 
-func TestMarshal(t *testing.T) {
+func TestCivilTimeMarshal(t *testing.T) {
 	date := "2023-05-26"
 	dateTime, _ := time.Parse("2006-01-02", date)
 
@@ -51,7 +51,7 @@ func TestMarshal(t *testing.T) {
 	assert.Equal(t, eb, ab)
 }
 
-func TestScanValid(t *testing.T) {
+func TestCivilTimeScanValid(t *testing.T) {
 	date := "2023-05-26"
 	dateTime, _ := time.Parse("2006-01-02", date)
 	
@@ -65,12 +65,12 @@ func TestScanValid(t *testing.T) {
 	assert.Equal(t, e, a)
 }
 
-func TestScanInvalid(t *testing.T) {
+func TestCivilTimecanInvalid(t *testing.T) {
 	a := new(CivilTime)
 	assert.Error(t, a.Scan("asdf"))
 }
 
-func TestValue(t *testing.T) {
+func TestCivilTimeValue(t *testing.T) {
 	date := "2023-05-26"
 	dateTime, _ := time.Parse("2006-01-02", date)
 

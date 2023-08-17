@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -21,8 +21,8 @@ const (
 
 type imageServiceTestSuite struct {
 	suite.Suite
-	mockS3 *core.MockS3Client
-	imageService *imageService
+	mockS3 *mocks.S3Client
+	imageService *image
 }
 
 func TestLeagueRepositoryTestSuite(t *testing.T) {
@@ -30,8 +30,8 @@ func TestLeagueRepositoryTestSuite(t *testing.T) {
 }
 
 func (s *imageServiceTestSuite) SetupTest() {
-	s.mockS3 = &core.MockS3Client{}
-	s.imageService = &imageService{s3: s.mockS3}
+	s.mockS3 = &mocks.S3Client{}
+	s.imageService = &image{s3: s.mockS3}
 }
 
 func (s *imageServiceTestSuite) TestSuccessful() {

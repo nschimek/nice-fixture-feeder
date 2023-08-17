@@ -1,4 +1,5 @@
-inpackage: True
+inpackage: False
 with-expecter: True
 case: underscore
 inpackage-suffix: True
+outpkg: mocks

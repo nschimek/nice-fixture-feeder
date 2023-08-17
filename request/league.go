@@ -16,22 +16,22 @@ const (
 	countryKeyFormat = "images/flags/%s"
 )
 
-//go:generate mockery --name LeagueRequest --filename league_mock.go
-type LeagueRequest interface {
+//go:generate mockery --name League --filename league_mock.go
+type League interface {
 	Request()
 	Persist()
 }
 
-type leagueRequest struct {
+type league struct {
 	config *core.Config
 	requester Requester[model.League]
 	repo repository.UpsertRepository[model.League]
-	imageService service.ImageService
+	imageService service.Image
 	requestedData []model.League
 }
 
-func NewLeagueRequest(config *core.Config, repo repository.UpsertRepository[model.League], is service.ImageService) LeagueRequest {
-	return &leagueRequest{
+func NewLeague(config *core.Config, repo repository.UpsertRepository[model.League], is service.Image) League {
+	return &league{
 		config: config,
 		requester: NewRequester[model.League](config),
 		imageService: is,
@@ -39,7 +39,7 @@ func NewLeagueRequest(config *core.Config, repo repository.UpsertRepository[mode
 	}
 }
 
-func (r *leagueRequest) Request() {
+func (r *league) Request() {
 	core.Log.WithField("leagues", r.config.Leagues).Info("Requesting leagues...")
 	for id := range core.IdArrayToMap(r.config.Leagues) {
 		if leagues, err := r.request(id); err == nil {
@@ -50,7 +50,7 @@ func (r *leagueRequest) Request() {
 	}
 }
 
-func (r *leagueRequest) request(id int) ([]model.League, error) {
+func (r *league) request(id int) ([]model.League, error) {
 	p := url.Values{}
 	p.Add("id", strconv.Itoa(id))
 	p.Add("season", strconv.Itoa(r.config.Season))
@@ -64,7 +64,7 @@ func (r *leagueRequest) request(id int) ([]model.League, error) {
 	return resp.Response, nil
 }
 
-func (r *leagueRequest) Persist() {
+func (r *league) Persist() {
 	var err error
 	r.requestedData, err = r.repo.Upsert(r.requestedData)
 	if err == nil {
@@ -72,7 +72,7 @@ func (r *leagueRequest) Persist() {
 	}
 }
 
-func (r *leagueRequest) postPersist() {
+func (r *league) postPersist() {
 	for _, league := range r.requestedData {
 		r.imageService.TransferURL(league.League.Logo, r.config.AWS.BucketName, leagueKeyFormat)
 		r.imageService.TransferURL(league.Country.Flag, r.config.AWS.BucketName, countryKeyFormat)

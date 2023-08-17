@@ -9,11 +9,12 @@ import (
 	"net/url"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-//go:generate mockery --name Requester
+//go:generate mockery --name Requester --filename requester_mock.go
 type Requester[T any] interface {
-	Get(endpoint string, params url.Values) (*Response[T], error)
+	Get(endpoint string, params url.Values) (*model.Response[T], error)
 }
 
 type requester[T any] struct {
@@ -33,7 +34,7 @@ func NewRequester[T any](config *core.Config) *requester[T] {
 	}
 }
 
-func (r *requester[T]) Get(endpoint string, params url.Values) (*Response[T], error) {
+func (r *requester[T]) Get(endpoint string, params url.Values) (*model.Response[T], error) {
 	req, _ := http.NewRequest("GET", r.BaseUrl + "/" + endpoint, nil)
 
 	req.Header.Add(headerKey, r.config.API.Key)
@@ -75,8 +76,8 @@ func (r *requester[T]) doRequest(req *http.Request) ([]byte, error) {
 	return body, nil
 }
 
-func (r *requester[T]) unmarshal(bytes []byte) (*Response[T], error) {
-	var response Response[T]
+func (r *requester[T]) unmarshal(bytes []byte) (*model.Response[T], error) {
+	var response model.Response[T]
 	err := json.Unmarshal(bytes, &response)
 	
 	if len(response.Response) == 0 {

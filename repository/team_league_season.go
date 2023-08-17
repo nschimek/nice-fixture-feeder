@@ -5,20 +5,20 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-//go:generate mockery --name TeamLeagueSeasonRepository --filename team_league_season_mock.go
-type TeamLeagueSeasonRepository interface {
+//go:generate mockery --name TeamLeagueSeason --filename team_league_season_mock.go
+type TeamLeagueSeason interface {
 	UpsertRepository[model.TeamLeagueSeason]
 	GetByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]
 }
 
-type teamLeagueSeasonRepository struct {
+type teamLeagueSeason struct {
 	upsertRepository[model.TeamLeagueSeason]
 	getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]
 }
 
-func NewTeamLeagueSeasonRepository(db core.Database) *teamLeagueSeasonRepository {
+func NewTeamLeagueSeason(db core.Database) *teamLeagueSeason {
 	r := newRepo(db, "team_league_season")
-	return &teamLeagueSeasonRepository{
+	return &teamLeagueSeason{
 		upsertRepository: upsertRepository[model.TeamLeagueSeason]{repository: r},
 		getByIdRepository: getByIdRepository[model.TeamLeagueSeason, model.TeamLeagueSeason]{repository: r},
 	}
