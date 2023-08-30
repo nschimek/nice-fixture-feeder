@@ -14,6 +14,14 @@ func TestGetTlsId(t *testing.T) {
 	assert.Equal(t, TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, a)
 }
 
+func TestGetNextTSID(t *testing.T) {
+	ts := TeamStats{Id: TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022}, NextFixtureId: 123456}
+
+	a := ts.GetNextTsId()
+
+	assert.Equal(t, TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 123456, Season: 2022}, a)
+}
+
 func TestTeamStatsIncrement(t *testing.T) {
 	s := &TeamStats{
 		TeamStatsGoals: TeamStatsGoals{

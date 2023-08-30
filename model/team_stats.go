@@ -13,6 +13,16 @@ type TeamStats struct {
 	Audit
 }
 
+// Get an instance of TeamStatsId using the NextFixtureId as the FixtureId
+func (ts TeamStats) GetNextTsId() TeamStatsId {
+	return TeamStatsId{
+		TeamId: ts.Id.TeamId,
+		LeagueId: ts.Id.LeagueId,
+		Season: ts.Id.Season,
+		FixtureId: ts.NextFixtureId,
+	}
+}
+
 type TeamStatsId struct {
 	TeamId int `gorm:"primaryKey"`
 	LeagueId int `gorm:"primaryKey"`
