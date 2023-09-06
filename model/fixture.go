@@ -43,13 +43,6 @@ func (f *Fixture) GetTeamStatsId(home bool) *TeamStatsId {
 	}
 }
 
-// equivalent to the above method, but for the previous seasion
-func (f *Fixture) GetTeamStatsIdPrevSeason(home bool) *TeamStatsId {
-	ts := f.GetTeamStatsId(home)
-	ts.Season--
-	return ts
-}
-
 func (f *Fixture) GetResultStats(teamId int) FixtureResultStats {
 	if (f.Teams.Home.Id == teamId) {
 		return FixtureResultStats{

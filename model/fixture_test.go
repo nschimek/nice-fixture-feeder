@@ -23,7 +23,6 @@ func TestGetTeamStatsId(t *testing.T) {
 	}
 	h := f.GetTeamStatsId(true)
 	a := f.GetTeamStatsId(false)
-	p := f.GetTeamStatsIdPrevSeason(true)
 
 	assert.Equal(t, f.Teams.Home.Id, h.TeamId)
 	assert.Equal(t, f.Teams.Away.Id, a.TeamId)
@@ -33,7 +32,6 @@ func TestGetTeamStatsId(t *testing.T) {
 	assert.Equal(t, f.League.Id, a.LeagueId)
 	assert.Equal(t, f.League.Season, h.Season)
 	assert.Equal(t, f.League.Season, a.Season)
-	assert.Equal(t, f.League.Season - 1, p.Season)
 }
 
 func TestGetResultStats(t *testing.T) {

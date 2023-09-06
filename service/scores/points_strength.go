@@ -7,26 +7,27 @@ import (
 )
 
 type PointsStrength struct {
-	statsMap map[model.TeamStatsId]model.TeamStats
+	statsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)
 }
 
-func NewPointsStrength(statsMap map[model.TeamStatsId]model.TeamStats) *PointsStrength {
+func NewPointsStrength(statsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)) *PointsStrength {
 	return &PointsStrength{
-		statsMap: statsMap,
+		statsFunc: statsFunc,
 	}
 }
 
-func (s *PointsStrength) GetId() int {
-	return int(PointsStrengthId)
+func (s *PointsStrength) GetId() ScoreId {
+	return PointsStrengthId
 }
 
+// we can only score if round was correcdtly parsed and we can get stats
 func (s *PointsStrength) CanScore(fixture *model.Fixture) bool {
-	return true
+	hs, as := s.statsFunc(fixture)
+	return fixture.League.Round > 0 && hs != nil && as != nil
 }
 
 func (s *PointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
-	hs := s.statsMap[*fixture.GetTeamStatsId(true)]
-	as := s.statsMap[*fixture.GetTeamStatsId(false)]
+	hs, as := s.statsFunc(fixture)
 
 	// Each team contributes their percentage of points equally.  If both teams have 100% of available points, it will be a perfect score.
 	value := math.Round((s.pointsPercent(hs.Points, hs.TeamStatsFixtures.FixturesPlayed.Total) / 2) + 
@@ -34,7 +35,7 @@ func (s *PointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
 
 	return &model.FixtureScore{
 		FixtureId: fixture.Fixture.Id,
-		ScoreId:   s.GetId(),
+		ScoreId:   int(s.GetId()),
 		Value: int(value),
 	}
 }
