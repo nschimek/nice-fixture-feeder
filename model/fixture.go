@@ -2,6 +2,8 @@ package model
 
 import (
 	"errors"
+	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -41,6 +43,13 @@ func (f *Fixture) GetTeamStatsId(home bool) *TeamStatsId {
 	}
 }
 
+// equivalent to the above method, but for the previous seasion
+func (f *Fixture) GetTeamStatsIdPrevSeason(home bool) *TeamStatsId {
+	ts := f.GetTeamStatsId(home)
+	ts.Season--
+	return ts
+}
+
 func (f *Fixture) GetResultStats(teamId int) FixtureResultStats {
 	if (f.Teams.Home.Id == teamId) {
 		return FixtureResultStats{
@@ -70,6 +79,7 @@ type FixtureFixture struct {
 type FixtureLeague struct {
 	Id int `gorm:"column:league_id"`
 	Season int
+	Round Round 
 }
 
 type FixtureVenue struct {
@@ -112,5 +122,23 @@ func (w *WinnerBool) UnmarshalJSON(data []byte) error {
 	}
 
 	*w = WinnerBool(s)
+	return nil
+}
+
+type Round int
+
+// converts the API's round string value into an integer
+func (r *Round) UnmarshalJSON(data []byte) error {
+	v := string(data)
+	var i int
+
+	if v == "null" {
+		i = 0
+	} else {
+		re := regexp.MustCompile(`[^0-9]+`)
+		i, _ = strconv.Atoi(re.ReplaceAllString(v, ""))
+	}
+
+	*r = Round(i)
 	return nil
 }

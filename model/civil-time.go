@@ -14,17 +14,17 @@ type CivilTime time.Time
 
 // JSON Unmarshal and Marshal interface implementations
 func (c *CivilTime) UnmarshalJSON(b []byte) error {
-	value := strings.Trim(string(b), `"`) //get rid of "
+	value := strings.Trim(string(b), `"`) // get rid of "
 	if value == "" || value == "null" {
 			return nil
 	}
 
-	t, err := time.Parse(core.YYYY_MM_DD, value) //parse time
+	t, err := time.Parse(core.YYYY_MM_DD, value) // parse time
 	if err != nil {
 			return err
 	}
 	
-	*c = CivilTime(t) //set result using the pointer
+	*c = CivilTime(t) // set result using the pointer
 	return nil
 }
 
