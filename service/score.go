@@ -8,46 +8,51 @@ import (
 
 type score struct {
 	tsRepo repository.TeamStats
-	tlsRepo repository.TeamLeagueSeason
+	scores *scores.ScoreRegistry
 	statusService FixtureStatus
-	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
+	tlsService TeamLeagueSeason
 	statsMap map[model.TeamStatsId]model.TeamStats
-	scoreMap map[scores.ScoreId]scores.Score
 }
 
 func NewScore(tsRepo repository.TeamStats, 
-	tlsRepo repository.TeamLeagueSeason,
-	statusService FixtureStatus) *score {
-	return &score{
+	scores *scores.ScoreRegistry,
+	statusService FixtureStatus,
+	tlsService TeamLeagueSeason) *score {
+	s := &score{
 		tsRepo: tsRepo, 
-		tlsRepo: tlsRepo, 
+		scores: scores,
 		statusService: statusService,
-		tlsMap: make(map[model.TeamLeagueSeasonId]model.TeamLeagueSeason),
+		tlsService: tlsService,
 		statsMap: make(map[model.TeamStatsId]model.TeamStats),
-		scoreMap: make(map[scores.ScoreId]scores.Score),
 	}
+	s.setup()
+	return s
 }
 
-func (s *score) buildScoreMap() {
-	s.scoreMap[scores.PointsStrengthId] = scores.NewPointsStrength(s.getStats)
+func (s *score) setup() {
+	s.scores.PointsStrength.SetStatsFunc(s.getStats)
 }
 
 func (s *score) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats) {
-	var htsid, atsid *model.TeamStatsId
+	// this code needs to be moved to its own function as its only for HOME
+	tsid := fixture.GetTeamStatsId(true)
 
-	// TODO: 1) if round is LTE 5, use previous season; 2) if fixture is NS, use TLS to get fixture ID
-	htsid = fixture.GetTeamStatsId(true)
-	atsid = fixture.GetTeamStatsId(false)
+	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round <= 5 {
+		if fixture.League.Round <= 5 {
+			tsid.Season--
+		}
+		tls := s.tlsService.GetTLS(tsid.GetTlsId())
+		tsid = tls.GetTeamStatsId()
+	}
 
 	var hts, ats *model.TeamStats
 
-	if v, ok := s.statsMap[*htsid]; ok {
-		hts = &v
+	if mv, ok := s.statsMap[*tsid]; ok {
+		hts = &mv // use the map value, since we have it
+	} else {
+		hts, _ = s.tsRepo.GetById(model.TeamStats{Id: *tsid})
 	}
 
-	if v, ok := s.statsMap[*atsid]; ok {
-		ats = &v
-	}
 
 	return hts, ats
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/request"
 	"github.com/nschimek/nice-fixture-feeder/service"
+	"github.com/nschimek/nice-fixture-feeder/service/scores"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -90,7 +91,8 @@ func setup() {
 	core.Setup(configFile)
 	
 	repos := repository.Setup(core.DB)
-	services = service.Setup(core.Cfg, core.S3, repos)
+	scores := scores.Setup()
+	services = service.Setup(core.Cfg, core.S3, repos, scores)
 	requests = request.Setup(core.Cfg, repos, services)
 
 	ctx = new(commandContext)

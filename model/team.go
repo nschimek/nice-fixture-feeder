@@ -31,8 +31,8 @@ type TeamLeagueSeason struct {
 	Audit
 }
 
-func (t TeamLeagueSeason) GetTeamStatsId() TeamStatsId {
-	return TeamStatsId{
+func (t TeamLeagueSeason) GetTeamStatsId() *TeamStatsId {
+	return &TeamStatsId{
 		TeamId: t.Id.TeamId,
 		LeagueId: t.Id.LeagueId,
 		Season: t.Id.Season,

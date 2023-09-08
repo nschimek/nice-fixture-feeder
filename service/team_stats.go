@@ -139,7 +139,7 @@ func (s *teamStats) getPreviousStats(tls *model.TeamLeagueSeason) (*model.TeamSt
 		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season, "prevFixtureId": tls.MaxFixtureId,
 	}).Debug("Getting previous stats using TLS...")
 
-	id := tls.GetTeamStatsId()
+	id := *tls.GetTeamStatsId()
 
 	if tls.MaxFixtureId == 0 {
 		core.Log.Debug("max fixture ID was 0, using zeroed stats as previous!")

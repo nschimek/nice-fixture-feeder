@@ -6,28 +6,34 @@ import (
 	"github.com/nschimek/nice-fixture-feeder/model"
 )
 
-type PointsStrength struct {
-	statsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)
+type PointsStrength interface {
+	Score
+	SetStatsFunc(func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats))
 }
 
-func NewPointsStrength(statsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)) *PointsStrength {
-	return &PointsStrength{
-		statsFunc: statsFunc,
-	}
+type pointsStrength struct {
+	StatsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)
 }
 
-func (s *PointsStrength) GetId() ScoreId {
+func NewPointsStrength() *pointsStrength {
+	return &pointsStrength{}
+}
+
+func (s *pointsStrength) GetId() ScoreId {
 	return PointsStrengthId
 }
 
-// we can only score if round was correcdtly parsed and we can get stats
-func (s *PointsStrength) CanScore(fixture *model.Fixture) bool {
-	hs, as := s.statsFunc(fixture)
-	return fixture.League.Round > 0 && hs != nil && as != nil
+// we can only score if round was correcdtly parsed corectly
+func (s *pointsStrength) CanScore(fixture *model.Fixture) bool {
+	return fixture.League.Round > 0
 }
 
-func (s *PointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
-	hs, as := s.statsFunc(fixture)
+func (s *pointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
+	hs, as := s.StatsFunc(fixture)
+
+	if hs == nil || as == nil {
+		return nil
+	}
 
 	// Each team contributes their percentage of points equally.  If both teams have 100% of available points, it will be a perfect score.
 	value := math.Round((s.pointsPercent(hs.Points, hs.TeamStatsFixtures.FixturesPlayed.Total) / 2) + 
@@ -41,6 +47,10 @@ func (s *PointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
 }
 
 // Divides a team's current points total by the total number of points possible given the number of games they have played
-func (s *PointsStrength) pointsPercent(points, played int) float64 {
+func (s *pointsStrength) pointsPercent(points, played int) float64 {
 	return math.Round((float64)(points / (played * 3)))
+}
+
+func (s *pointsStrength) SetStatsFunc(f func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)) {
+	s.StatsFunc = f
 }

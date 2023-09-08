@@ -17,3 +17,12 @@ type Score interface {
 	Score(fixture *model.Fixture) *model.FixtureScore
 }
 
+type ScoreRegistry struct {
+	PointsStrength PointsStrength
+}
+
+func Setup() *ScoreRegistry {
+	return &ScoreRegistry{
+		PointsStrength: NewPointsStrength(),
+	}
+}
