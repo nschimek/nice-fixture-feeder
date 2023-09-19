@@ -23,7 +23,7 @@ func (s *pointsStrength) GetId() ScoreId {
 	return PointsStrengthId
 }
 
-// we can only score if round was correcdtly parsed corectly
+// we can only score if round was parsed corectly
 func (s *pointsStrength) CanScore(fixture *model.Fixture) bool {
 	return fixture.League.Round > 0
 }

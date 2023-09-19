@@ -33,26 +33,28 @@ func (s *score) setup() {
 	s.scores.PointsStrength.SetStatsFunc(s.getStats)
 }
 
-func (s *score) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats) {
-	// this code needs to be moved to its own function as its only for HOME
-	tsid := fixture.GetTeamStatsId(true)
+func (s *score) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats) {	
+	return s.getStatsTeam(fixture, true), s.getStatsTeam(fixture, false)
+}
 
-	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round <= 5 {
-		if fixture.League.Round <= 5 {
+func (s *score) getStatsTeam(fixture *model.Fixture, home bool) *model.TeamStats {
+	tsid := fixture.GetTeamStatsId(home)
+	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round < 5 {
+		if fixture.League.Round < 5 {
 			tsid.Season--
 		}
 		tls := s.tlsService.GetTLS(tsid.GetTlsId())
 		tsid = tls.GetTeamStatsId()
 	}
 
-	var hts, ats *model.TeamStats
+	var ts *model.TeamStats
 
+	// need to get by next fixture ID instead...
 	if mv, ok := s.statsMap[*tsid]; ok {
-		hts = &mv // use the map value, since we have it
+		ts = &mv // use the map value, since we have it
 	} else {
-		hts, _ = s.tsRepo.GetById(model.TeamStats{Id: *tsid})
+		ts, _ = s.tsRepo.GetById(model.TeamStats{Id: *tsid})
 	}
 
-
-	return hts, ats
+	return ts
 }
