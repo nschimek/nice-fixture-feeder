@@ -12,6 +12,7 @@ type score struct {
 	statusService FixtureStatus
 	tlsService TeamLeagueSeason
 	statsMap map[model.TeamStatsId]model.TeamStats
+	prevStatsMap map[model.TeamStatsId]model.TeamStats
 }
 
 func NewScore(tsRepo repository.TeamStats, 
@@ -24,6 +25,7 @@ func NewScore(tsRepo repository.TeamStats,
 		statusService: statusService,
 		tlsService: tlsService,
 		statsMap: make(map[model.TeamStatsId]model.TeamStats),
+		prevStatsMap: make(map[model.TeamStatsId]model.TeamStats),
 	}
 	s.setup()
 	return s
@@ -38,23 +40,19 @@ func (s *score) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamS
 }
 
 func (s *score) getStatsTeam(fixture *model.Fixture, home bool) *model.TeamStats {
-	tsid := fixture.GetTeamStatsId(home)
+	id := *fixture.GetTeamStatsId(home)
+	id.FixtureId = 0
+	tsid := model.TeamStats{Id: id, NextFixtureId: fixture.Fixture.Id}
+
 	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round < 5 {
 		if fixture.League.Round < 5 {
-			tsid.Season--
+			tsid.Id.Season--
 		}
-		tls := s.tlsService.GetTLS(tsid.GetTlsId())
-		tsid = tls.GetTeamStatsId()
+		tls := s.tlsService.GetTLS(tsid.Id.GetTlsId())
+		tsid = model.TeamStats{Id: *tls.GetTeamStatsId(), NextFixtureId: 0}
 	}
 
-	var ts *model.TeamStats
-
-	// need to get by next fixture ID instead...
-	if mv, ok := s.statsMap[*tsid]; ok {
-		ts = &mv // use the map value, since we have it
-	} else {
-		ts, _ = s.tsRepo.GetById(model.TeamStats{Id: *tsid})
-	}
-
+	// should use the maps first (prevStats by default, statsMap when using TLS)
+	ts, _ := s.tsRepo.GetById(tsid)
 	return ts
 }
