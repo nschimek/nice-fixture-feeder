@@ -9,17 +9,21 @@ import (
 type ServiceRegistry struct {
 	FixtureStatus FixtureStatus
 	Image Image
+	TeamLeagueSeason TeamLeagueSeason
 	TeamStats TeamStats
 }
 
 func Setup(cfg *core.Config, s3 core.S3Client, repos *repository.RepositoryRegistry, scores *scores.ScoreRegistry) *ServiceRegistry {
+	fixtureStatus := NewFixtureStatus(repos.FixtureStatus)
+	teamLeagueSeason := NewTeamLeagueSeason(repos.TeamLeagueSeason)
 	return &ServiceRegistry{
-		FixtureStatus: NewFixtureStatus(repos.FixtureStatus),
+		FixtureStatus: fixtureStatus,
 		Image: NewImage(s3),
+		TeamLeagueSeason: teamLeagueSeason,
 		TeamStats: NewTeamStats(
 			repos.TeamStats, 
-			repos.TeamLeagueSeason, 
-			NewFixtureStatus(repos.FixtureStatus),
+			teamLeagueSeason,
+			fixtureStatus,
 		),
 	}
 }

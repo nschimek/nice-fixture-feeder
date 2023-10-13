@@ -31,13 +31,20 @@ type TeamLeagueSeason struct {
 	Audit
 }
 
-func (t TeamLeagueSeason) GetTeamStatsId() *TeamStatsId {
-	return &TeamStatsId{
+func (t TeamLeagueSeason) GetTeamStatsId(current bool) *TeamStatsId {
+	tsid := &TeamStatsId{
 		TeamId: t.Id.TeamId,
 		LeagueId: t.Id.LeagueId,
 		Season: t.Id.Season,
-		FixtureId: t.MaxFixtureId,
 	}
+
+	if current {
+		tsid.FixtureId = t.MaxFixtureId
+	} else {
+		tsid.NextFixtureId = t.MaxFixtureId
+	}
+	
+	return tsid
 }
 
 type TeamLeagueSeasonId struct {

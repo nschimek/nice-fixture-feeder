@@ -55,7 +55,7 @@ func (s *teamStatsRepositoryTestSuite) TestUpsertError() {
 
 func (s *teamStatsRepositoryTestSuite) TestGetByIdFound() {
 	var entity model.TeamStats
-	id := s.teamStats[0]
+	id := s.teamStats[0].Id
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 1})
 
@@ -68,7 +68,7 @@ func (s *teamStatsRepositoryTestSuite) TestGetByIdFound() {
 
 func (s *teamStatsRepositoryTestSuite) TestGetByIdNotFound() {
 	var entity model.TeamStats
-	id := model.TeamStats{Id: model.TeamStatsId{TeamId: 99, LeagueId: 9, Season: 2022, FixtureId: 9999}}
+	id := model.TeamStatsId{TeamId: 99, LeagueId: 9, Season: 2022}
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0})
 
@@ -81,7 +81,7 @@ func (s *teamStatsRepositoryTestSuite) TestGetByIdNotFound() {
 
 func (s *teamStatsRepositoryTestSuite) TestGetByIdError() {
 	var entity model.TeamStats
-	id := model.TeamStats{Id: model.TeamStatsId{TeamId: 99, LeagueId: 9, Season: 2022, FixtureId: 9999}}
+	id := model.TeamStatsId{TeamId: 99, LeagueId: 9, Season: 2022, FixtureId: 9999}
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")})
 

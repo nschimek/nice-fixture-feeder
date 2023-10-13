@@ -10,8 +10,8 @@ import (
 )
 
 type TeamLeagueSeason interface {
-	GetTLS(tsid model.TeamLeagueSeasonId) *model.TeamLeagueSeason
-	AddToMap(model.TeamLeagueSeason)
+	GetById(tsid model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error)
+	AddToMap(tls *model.TeamLeagueSeason) 
 	Persist()
 }
 
@@ -27,7 +27,7 @@ func NewTeamLeagueSeason(tlsRepo repository.TeamLeagueSeason) *teamLeagueSeason 
 	}
 }
 
-func (s *teamLeagueSeason) GetTLS(id model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error) {
+func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season,
 	}).Debug("Getting team league season (TLS)...")
@@ -42,6 +42,8 @@ func (s *teamLeagueSeason) GetTLS(id model.TeamLeagueSeasonId) (*model.TeamLeagu
 	if tls == nil {
 		return nil, errors.New("could not get TLS, was the league setup?")
 	}
+
+	s.AddToMap(tls) // cache in the map
 	
 	return tls, nil
 }

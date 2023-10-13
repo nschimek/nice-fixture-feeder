@@ -43,6 +43,17 @@ func (f *Fixture) GetTeamStatsId(home bool) *TeamStatsId {
 	}
 }
 
+// Get an instance of TSID from the Fixture but populate NextFixtureID with the ID instead
+func (f *Fixture) GetTeamStatsNextId(home bool) *TeamStatsId {
+	tsid := f.GetTeamStatsId(home)
+	return &TeamStatsId{
+		TeamId: tsid.TeamId,
+		LeagueId: tsid.LeagueId,
+		Season: tsid.Season,
+		NextFixtureId: tsid.FixtureId,
+	}
+}
+
 func (f *Fixture) GetResultStats(teamId int) FixtureResultStats {
 	if (f.Teams.Home.Id == teamId) {
 		return FixtureResultStats{

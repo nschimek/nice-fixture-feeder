@@ -40,16 +40,14 @@ func (s *score) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamS
 }
 
 func (s *score) getStatsTeam(fixture *model.Fixture, home bool) *model.TeamStats {
-	id := *fixture.GetTeamStatsId(home)
-	id.FixtureId = 0
-	tsid := model.TeamStats{Id: id, NextFixtureId: fixture.Fixture.Id}
+	tsid := *fixture.GetTeamStatsNextId(home)
 
 	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round < 5 {
-		if fixture.League.Round < 5 {
-			tsid.Id.Season--
+		if fixture.League.Round <= 3 {
+			tsid.Season--
 		}
-		tls := s.tlsService.GetTLS(tsid.Id.GetTlsId())
-		tsid = model.TeamStats{Id: *tls.GetTeamStatsId(), NextFixtureId: 0}
+		tls, _ := s.tlsService.GetById(tsid.GetTlsId())
+		tsid = *tls.GetTeamStatsId(false)
 	}
 
 	// should use the maps first (prevStats by default, statsMap when using TLS)
