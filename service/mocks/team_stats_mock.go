@@ -20,6 +20,115 @@ func (_m *TeamStats) EXPECT() *TeamStats_Expecter {
 	return &TeamStats_Expecter{mock: &_m.Mock}
 }
 
+// GetById provides a mock function with given fields: tsid
+func (_m *TeamStats) GetById(tsid model.TeamStatsId) (*model.TeamStats, error) {
+	ret := _m.Called(tsid)
+
+	var r0 *model.TeamStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId) (*model.TeamStats, error)); ok {
+		return rf(tsid)
+	}
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId) *model.TeamStats); ok {
+		r0 = rf(tsid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamStats)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TeamStatsId) error); ok {
+		r1 = rf(tsid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TeamStats_GetById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetById'
+type TeamStats_GetById_Call struct {
+	*mock.Call
+}
+
+// GetById is a helper method to define mock.On call
+//   - tsid model.TeamStatsId
+func (_e *TeamStats_Expecter) GetById(tsid interface{}) *TeamStats_GetById_Call {
+	return &TeamStats_GetById_Call{Call: _e.mock.On("GetById", tsid)}
+}
+
+func (_c *TeamStats_GetById_Call) Run(run func(tsid model.TeamStatsId)) *TeamStats_GetById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.TeamStatsId))
+	})
+	return _c
+}
+
+func (_c *TeamStats_GetById_Call) Return(_a0 *model.TeamStats, _a1 error) *TeamStats_GetById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TeamStats_GetById_Call) RunAndReturn(run func(model.TeamStatsId) (*model.TeamStats, error)) *TeamStats_GetById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetByIdWithTLS provides a mock function with given fields: tsid, current
+func (_m *TeamStats) GetByIdWithTLS(tsid model.TeamStatsId, current bool) (*model.TeamStats, error) {
+	ret := _m.Called(tsid, current)
+
+	var r0 *model.TeamStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId, bool) (*model.TeamStats, error)); ok {
+		return rf(tsid, current)
+	}
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId, bool) *model.TeamStats); ok {
+		r0 = rf(tsid, current)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamStats)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TeamStatsId, bool) error); ok {
+		r1 = rf(tsid, current)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TeamStats_GetByIdWithTLS_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByIdWithTLS'
+type TeamStats_GetByIdWithTLS_Call struct {
+	*mock.Call
+}
+
+// GetByIdWithTLS is a helper method to define mock.On call
+//   - tsid model.TeamStatsId
+//   - current bool
+func (_e *TeamStats_Expecter) GetByIdWithTLS(tsid interface{}, current interface{}) *TeamStats_GetByIdWithTLS_Call {
+	return &TeamStats_GetByIdWithTLS_Call{Call: _e.mock.On("GetByIdWithTLS", tsid, current)}
+}
+
+func (_c *TeamStats_GetByIdWithTLS_Call) Run(run func(tsid model.TeamStatsId, current bool)) *TeamStats_GetByIdWithTLS_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.TeamStatsId), args[1].(bool))
+	})
+	return _c
+}
+
+func (_c *TeamStats_GetByIdWithTLS_Call) Return(_a0 *model.TeamStats, _a1 error) *TeamStats_GetByIdWithTLS_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TeamStats_GetByIdWithTLS_Call) RunAndReturn(run func(model.TeamStatsId, bool) (*model.TeamStats, error)) *TeamStats_GetByIdWithTLS_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MaintainStats provides a mock function with given fields: fixtureIds, fixtureMap
 func (_m *TeamStats) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture) {
 	_m.Called(fixtureIds, fixtureMap)

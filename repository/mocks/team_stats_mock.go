@@ -21,15 +21,15 @@ func (_m *TeamStats) EXPECT() *TeamStats_Expecter {
 }
 
 // GetById provides a mock function with given fields: id
-func (_m *TeamStats) GetById(id model.TeamStats) (*model.TeamStats, error) {
+func (_m *TeamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.TeamStats
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TeamStats) (*model.TeamStats, error)); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId) (*model.TeamStats, error)); ok {
 		return rf(id)
 	}
-	if rf, ok := ret.Get(0).(func(model.TeamStats) *model.TeamStats); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId) *model.TeamStats); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -37,7 +37,7 @@ func (_m *TeamStats) GetById(id model.TeamStats) (*model.TeamStats, error) {
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.TeamStats) error); ok {
+	if rf, ok := ret.Get(1).(func(model.TeamStatsId) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
@@ -52,14 +52,14 @@ type TeamStats_GetById_Call struct {
 }
 
 // GetById is a helper method to define mock.On call
-//   - id model.TeamStats
+//   - id model.TeamStatsId
 func (_e *TeamStats_Expecter) GetById(id interface{}) *TeamStats_GetById_Call {
 	return &TeamStats_GetById_Call{Call: _e.mock.On("GetById", id)}
 }
 
-func (_c *TeamStats_GetById_Call) Run(run func(id model.TeamStats)) *TeamStats_GetById_Call {
+func (_c *TeamStats_GetById_Call) Run(run func(id model.TeamStatsId)) *TeamStats_GetById_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.TeamStats))
+		run(args[0].(model.TeamStatsId))
 	})
 	return _c
 }
@@ -69,7 +69,7 @@ func (_c *TeamStats_GetById_Call) Return(_a0 *model.TeamStats, _a1 error) *TeamS
 	return _c
 }
 
-func (_c *TeamStats_GetById_Call) RunAndReturn(run func(model.TeamStats) (*model.TeamStats, error)) *TeamStats_GetById_Call {
+func (_c *TeamStats_GetById_Call) RunAndReturn(run func(model.TeamStatsId) (*model.TeamStats, error)) *TeamStats_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }

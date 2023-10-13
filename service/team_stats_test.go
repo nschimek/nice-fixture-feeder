@@ -14,7 +14,7 @@ import (
 type teamStatsServiceTestSuite struct {
 	suite.Suite
 	mockTsRepo *repo_mocks.TeamStats
-	mockTlsRepo *repo_mocks.TeamLeagueSeason
+	mockTlsService *mocks.TeamLeagueSeason
 	mockStatusService *mocks.FixtureStatus
 	teamStatsService *teamStats
 	fixtures []model.Fixture
@@ -27,9 +27,9 @@ func TestTeamStatsServiceTestSuite(t *testing.T) {
 
 func (s *teamStatsServiceTestSuite) SetupTest() {
 	s.mockTsRepo = &repo_mocks.TeamStats{}
-	s.mockTlsRepo = &repo_mocks.TeamLeagueSeason{}
+	s.mockTlsService = &mocks.TeamLeagueSeason{}
 	s.mockStatusService = &mocks.FixtureStatus{}
-	s.teamStatsService = NewTeamStats(s.mockTsRepo, s.mockTlsRepo, s.mockStatusService)
+	s.teamStatsService = NewTeamStats(s.mockTsRepo, s.mockTlsService, s.mockStatusService)
 	s.fixtures = []model.Fixture{
 		{
 			Fixture: model.FixtureFixture{Id: 100, Status: model.FixtureStatusId{Id: "FT"}},
@@ -64,8 +64,8 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 
 	s.mockStatusService.EXPECT().IsFinished("FT").Return(true)
 	s.mockStatusService.EXPECT().IsFinished("NS").Return(false)
-	s.mockTlsRepo.EXPECT().GetById(tlsHome).Return(&tlsHome, nil)
-	s.mockTlsRepo.EXPECT().GetById(tlsAway).Return(&tlsAway, nil)
+	s.mockTlsService.EXPECT().GetById(tlsHome).Return(&tlsHome, nil)
+	s.mockTlsService.EXPECT().GetById(tlsAway).Return(&tlsAway, nil)
 	s.mockTsRepo.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
@@ -87,7 +87,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
+	s.mockTlsService.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
 	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsid}).Return(&model.TeamStats{Id: tsid}, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
@@ -106,7 +106,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixturePrevIdHigher() {
 	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 999}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
+	s.mockTlsService.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -119,7 +119,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureErrorNoTLS() {
 	f := &s.fixtures[1]
 	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
 
-	s.mockTlsRepo.EXPECT().GetById(tls).Return(nil, nil)
+	s.mockTlsService.EXPECT().GetById(tls).Return(nil, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -135,7 +135,7 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
+	s.mockTlsService.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
 	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(nil, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
@@ -153,7 +153,7 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsRepo.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
+	s.mockTlsService.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
 	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(&model.TeamStats{
 		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
 	}, nil)
@@ -164,18 +164,6 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	s.Nil(curr)
 	s.Nil(prev)
 	s.ErrorContains(err, "previous fixture ID")
-}
-
-func (s *teamStatsServiceTestSuite) TestGetTlsExisting() {
-	tsid := &model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
-	tls := model.TeamLeagueSeason{Id: tlsId, MaxFixtureId: 99}
-	
-	s.teamStatsService.tlsMap[tlsId] = tls
-	a, err := s.teamStatsService.getTLS(tsid)
-
-	s.Equal(&tls, a)
-	s.Nil(err)
 }
 
 func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
@@ -289,18 +277,17 @@ func (s *teamStatsServiceTestSuite) TestPersistSuccess() {
 		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
 	}
 
-	tls := []model.TeamLeagueSeason{
-		{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
-		{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
-	}
+	// tls := []model.TeamLeagueSeason{
+	// 	{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+	// 	{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+	// }
 
 	s.mockTsRepo.EXPECT().Upsert(stats).Return(stats, nil)
-	s.mockTlsRepo.EXPECT().Upsert(tls).Return(tls, nil)
 
 	s.teamStatsService.Persist()
 
 	s.mockTsRepo.AssertCalled(s.T(), "Upsert", stats)
-	s.mockTlsRepo.AssertCalled(s.T(), "Upsert", tls)
+	s.mockTlsService.AssertCalled(s.T(), "Persist")
 }
 
 func (s *teamStatsServiceTestSuite) TestPersistError() {
@@ -317,5 +304,5 @@ func (s *teamStatsServiceTestSuite) TestPersistError() {
 
 	s.teamStatsService.Persist()
 	s.mockTsRepo.AssertCalled(s.T(), "Upsert", stats)
-	s.mockTlsRepo.AssertNotCalled(s.T(), "Upsert")
+	s.mockTlsService.AssertNotCalled(s.T(), "Persist")
 }

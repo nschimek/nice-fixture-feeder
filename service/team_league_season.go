@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --name TeamLeagueSeason --filename team_league_season_mock.go
 type TeamLeagueSeason interface {
 	GetById(tsid model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error)
 	AddToMap(tls *model.TeamLeagueSeason) 

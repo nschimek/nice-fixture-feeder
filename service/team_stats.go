@@ -23,7 +23,6 @@ type teamStats struct {
 	statusService FixtureStatus
 	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
 	statsMap map[model.TeamStatsId]model.TeamStats
-	statsNextMap map[model.TeamStatsId]model.TeamStats
 }
 
 func NewTeamStats(tsRepo repository.TeamStats, 
