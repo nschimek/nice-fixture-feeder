@@ -55,7 +55,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestUpsertError() {
 
 func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdFound() {
 	var entity model.TeamLeagueSeason
-	id := s.teamLeagueSeasons[0]
+	id := s.teamLeagueSeasons[0].Id
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 1})
 
@@ -68,7 +68,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdFound() {
 
 func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdNotFound() {
 	var entity model.TeamLeagueSeason
-	id := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 99, LeagueId: 9, Season: 2022}}
+	id := model.TeamLeagueSeasonId{TeamId: 99, LeagueId: 9, Season: 2022}
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0})
 
@@ -81,7 +81,7 @@ func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdNotFound() {
 
 func (s *teamLeagueSeasonRepositoryTestSuite) TestGetByIdError() {
 	var entity model.TeamLeagueSeason
-	id := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 99, LeagueId: 9, Season: 2022}}
+	id := model.TeamLeagueSeasonId{TeamId: 99, LeagueId: 9, Season: 2022}
 
 	s.mockDatabase.EXPECT().GetById(id, &entity).Return(core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")})
 

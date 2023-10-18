@@ -37,7 +37,7 @@ func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeag
 	if mv, ok := s.tlsMap[id]; ok {
 		tls = &mv // use the map value, since we have it
 	} else {
-		tls, _ = s.tlsRepo.GetById(model.TeamLeagueSeason{Id: id})
+		tls, _ = s.tlsRepo.GetById(id)
 	}
 
 	if tls == nil {

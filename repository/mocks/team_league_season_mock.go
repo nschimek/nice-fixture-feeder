@@ -21,15 +21,15 @@ func (_m *TeamLeagueSeason) EXPECT() *TeamLeagueSeason_Expecter {
 }
 
 // GetById provides a mock function with given fields: id
-func (_m *TeamLeagueSeason) GetById(id model.TeamLeagueSeason) (*model.TeamLeagueSeason, error) {
+func (_m *TeamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.TeamLeagueSeason
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error)); ok {
 		return rf(id)
 	}
-	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) *model.TeamLeagueSeason); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeasonId) *model.TeamLeagueSeason); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -37,7 +37,7 @@ func (_m *TeamLeagueSeason) GetById(id model.TeamLeagueSeason) (*model.TeamLeagu
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.TeamLeagueSeason) error); ok {
+	if rf, ok := ret.Get(1).(func(model.TeamLeagueSeasonId) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
@@ -52,14 +52,14 @@ type TeamLeagueSeason_GetById_Call struct {
 }
 
 // GetById is a helper method to define mock.On call
-//   - id model.TeamLeagueSeason
+//   - id model.TeamLeagueSeasonId
 func (_e *TeamLeagueSeason_Expecter) GetById(id interface{}) *TeamLeagueSeason_GetById_Call {
 	return &TeamLeagueSeason_GetById_Call{Call: _e.mock.On("GetById", id)}
 }
 
-func (_c *TeamLeagueSeason_GetById_Call) Run(run func(id model.TeamLeagueSeason)) *TeamLeagueSeason_GetById_Call {
+func (_c *TeamLeagueSeason_GetById_Call) Run(run func(id model.TeamLeagueSeasonId)) *TeamLeagueSeason_GetById_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.TeamLeagueSeason))
+		run(args[0].(model.TeamLeagueSeasonId))
 	})
 	return _c
 }
@@ -69,7 +69,7 @@ func (_c *TeamLeagueSeason_GetById_Call) Return(_a0 *model.TeamLeagueSeason, _a1
 	return _c
 }
 
-func (_c *TeamLeagueSeason_GetById_Call) RunAndReturn(run func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)) *TeamLeagueSeason_GetById_Call {
+func (_c *TeamLeagueSeason_GetById_Call) RunAndReturn(run func(model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error)) *TeamLeagueSeason_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }
