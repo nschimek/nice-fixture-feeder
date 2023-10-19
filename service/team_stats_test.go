@@ -58,6 +58,31 @@ func (s *teamStatsServiceTestSuite) SetupTest() {
 	s.fixtureIds = []int{100, 101, 102, 103}
 }
 
+func (s *teamStatsServiceTestSuite) TestGetById() {
+	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}}
+
+	s.mockTsRepo.EXPECT().GetById(ts.Id).Return(&ts, nil)
+
+	res, err := s.teamStatsService.GetById(ts.Id)
+
+	s.Nil(err)
+	s.Equal(&ts, res)
+	s.Contains(s.teamStatsService.statsMap, ts.Id.GetCurrentId())
+	s.Contains(s.teamStatsService.statsMap, ts.Id.GetNextId())
+}
+
+func (s *teamStatsServiceTestSuite) TestGetByIdFromMap() {
+	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}, Form: "W"}
+	s.teamStatsService.statsMap[ts.Id.GetCurrentId()] = ts
+
+	res, err := s.teamStatsService.GetById(ts.Id.GetCurrentId())
+
+	s.Nil(err)
+	s.Equal(&ts, res)
+	s.Contains(s.teamStatsService.statsMap, ts.Id.GetCurrentId())
+	s.Contains(s.teamStatsService.statsMap, ts.Id.GetNextId())
+}
+
 func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 	tlsHome := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 31, LeagueId: 39, Season: 2022}}
 	tlsAway := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
