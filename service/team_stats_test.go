@@ -61,9 +61,9 @@ func (s *teamStatsServiceTestSuite) SetupTest() {
 func (s *teamStatsServiceTestSuite) TestGetById() {
 	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}}
 
-	s.mockTsRepo.EXPECT().GetById(ts.Id).Return(&ts, nil)
+	s.mockTsRepo.EXPECT().GetById(ts.Id.GetCurrentId()).Return(&ts, nil)
 
-	res, err := s.teamStatsService.GetById(ts.Id)
+	res, err := s.teamStatsService.GetById(ts.Id.GetCurrentId())
 
 	s.Nil(err)
 	s.Equal(&ts, res)
@@ -73,7 +73,7 @@ func (s *teamStatsServiceTestSuite) TestGetById() {
 
 func (s *teamStatsServiceTestSuite) TestGetByIdFromMap() {
 	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}, Form: "W"}
-	s.teamStatsService.statsMap[ts.Id.GetCurrentId()] = ts
+	s.teamStatsService.statsMap[ts.Id.GetCurrentId()] = &ts
 
 	res, err := s.teamStatsService.GetById(ts.Id.GetCurrentId())
 
@@ -81,6 +81,54 @@ func (s *teamStatsServiceTestSuite) TestGetByIdFromMap() {
 	s.Equal(&ts, res)
 	s.Contains(s.teamStatsService.statsMap, ts.Id.GetCurrentId())
 	s.Contains(s.teamStatsService.statsMap, ts.Id.GetNextId())
+}
+
+func (s *teamStatsServiceTestSuite) TestGetByIdNotFound() {
+	id := model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100}
+
+	s.mockTsRepo.EXPECT().GetById(id).Return(nil, errors.New("not found"))
+
+	res, err := s.teamStatsService.GetById(id)
+
+	s.Nil(res)
+	s.ErrorContains(err, "no stats")
+}
+
+func (s *teamStatsServiceTestSuite) TestGetByIdBoth() {
+	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}}
+
+	res, err := s.teamStatsService.GetById(ts.Id)
+
+	s.Nil(res)
+	s.ErrorContains(err, "FixtureId and NextFixtureId")
+}
+
+func (s *teamStatsServiceTestSuite) TestGetByIdWithTLSCurrent() {
+	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 102, NextFixtureId: 103}}
+	tlsid := ts.Id.GetTlsId()
+	tls := model.TeamLeagueSeason{Id: tlsid, MaxFixtureId: 102}
+
+	s.mockTlsService.EXPECT().GetById(tlsid).Return(&tls, nil)
+	s.mockTsRepo.EXPECT().GetById(ts.Id.GetCurrentId()).Return(&ts, nil)
+
+	res, err := s.teamStatsService.GetByIdWithTLS(ts.Id, true)
+
+	s.Nil(err)
+	s.Equal(&ts, res)
+}
+
+func (s *teamStatsServiceTestSuite) TestGetByIdWithTLSNext() {
+	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 102, NextFixtureId: 103}}
+	tlsid := ts.Id.GetTlsId()
+	tls := model.TeamLeagueSeason{Id: tlsid, MaxFixtureId: 103}
+
+	s.mockTlsService.EXPECT().GetById(tlsid).Return(&tls, nil)
+	s.mockTsRepo.EXPECT().GetById(ts.Id.GetNextId()).Return(&ts, nil)
+
+	res, err := s.teamStatsService.GetByIdWithTLS(ts.Id, false)
+
+	s.Nil(err)
+	s.Equal(&ts, res)
 }
 
 func (s *teamStatsServiceTestSuite) TestMaintainStats() {
@@ -194,12 +242,12 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
 	tls := &model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	ts := model.TeamStats{Id: tsid, Form: "W"}
+	ts := &model.TeamStats{Id: tsid, Form: "W"}
 
 	s.teamStatsService.statsMap[tsid] = ts
 	a, err := s.teamStatsService.getPreviousStats(tls)
 
-	s.Equal(&ts, a)
+	s.Equal(ts, a)
 	s.Nil(err)
 }
 
@@ -288,7 +336,7 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStatsError() {
 }
 
 func (s *teamStatsServiceTestSuite) TestPersistSuccess() {
-	s.teamStatsService.statsMap = map[model.TeamStatsId]model.TeamStats{
+	s.teamStatsService.statsMap = map[model.TeamStatsId]*model.TeamStats{
 		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
 		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
 	}
@@ -316,7 +364,7 @@ func (s *teamStatsServiceTestSuite) TestPersistSuccess() {
 }
 
 func (s *teamStatsServiceTestSuite) TestPersistError() {
-	s.teamStatsService.statsMap = map[model.TeamStatsId]model.TeamStats{
+	s.teamStatsService.statsMap = map[model.TeamStatsId]*model.TeamStats{
 		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
 		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
 	}

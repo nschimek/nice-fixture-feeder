@@ -22,7 +22,7 @@ type teamStats struct {
 	tlsService TeamLeagueSeason
 	statusService FixtureStatus
 	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
-	statsMap map[model.TeamStatsId]model.TeamStats
+	statsMap map[model.TeamStatsId]*model.TeamStats // we use a pointer here because stats will be stored twice under different keys
 }
 
 func NewTeamStats(tsRepo repository.TeamStats, 
@@ -33,18 +33,24 @@ func NewTeamStats(tsRepo repository.TeamStats,
 		tlsService: tlsService,
 		statusService: statusService,
 		tlsMap: make(map[model.TeamLeagueSeasonId]model.TeamLeagueSeason),
-		statsMap: make(map[model.TeamStatsId]model.TeamStats),
+		statsMap: make(map[model.TeamStatsId]*model.TeamStats),
 	}
 }
 
+// Get Team Stats by ID.  Due to the way the stats are stored in the Map, populate either
+// FixtureId or NextFixtureId - but not both.
 func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season,
 	}).Debug("Getting team stats by ID...")
 
+	if id.FixtureId > 0 && id.NextFixtureId > 0 {
+		return nil, errors.New("cannot have both FixtureId and NextFixtureId")
+	}
+
 	var stats *model.TeamStats
 	if mv, ok := s.statsMap[id]; ok {
-		stats = &mv // use the map value, since we have it
+		stats = mv // use the map value, since we have it
 	} else {
 		stats, _ = s.tsRepo.GetById(id)
 	}
@@ -75,10 +81,10 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 */
 func (s *teamStats) AddToMap(stats *model.TeamStats) {
 	if stats.Id.FixtureId > 0 {
-		s.statsMap[stats.Id.GetCurrentId()] = *stats
+		s.statsMap[stats.Id.GetCurrentId()] = stats
 	}
 	if stats.Id.NextFixtureId > 0 {
-		s.statsMap[stats.Id.GetNextId()] = *stats
+		s.statsMap[stats.Id.GetNextId()] = stats
 	}
 }
 
@@ -98,11 +104,21 @@ func (s *teamStats) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fix
 }
 
 func (s *teamStats) Persist() {
+	stats := []model.TeamStats{}
+
+	// the map will potentially have two copies of stats (one keyed on current fixutre ID, the other on next fixture ID)
+	// we only need to persist one copy
+	for k, v := range s.statsMap {
+		if k.FixtureId > 0 && k.NextFixtureId == 0 {
+			stats = append(stats, *v)
+		}
+	}
+
 	core.Log.WithFields(logrus.Fields{
-		"team_stats": len(s.statsMap), "team_league_seasons": len(s.tlsMap),
+		"team_stats": len(stats), "team_league_seasons": len(s.tlsMap),
 	}).Info("Persisting Team Stats...")
 
-	_, err := s.tsRepo.Upsert(core.MapToArray[model.TeamStatsId, model.TeamStats](s.statsMap))
+	_, err := s.tsRepo.Upsert(stats)
 
 	if err == nil {
 		s.tlsService.Persist()
@@ -124,7 +140,10 @@ func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 			s.AddToMap(prev)
 		}
 	} else if err != nil {
-		// just log that there were errors.  by not populating the maps, they will not be persisted.
+		// remove current ID stats from the maps so they are not persisted
+		delete(s.statsMap, curr.Id.GetCurrentId())
+		delete(s.statsMap, prev.Id.GetCurrentId())
+		// log that there were errors
 		core.Log.Errorf("issues maintaing stats for fixture ID %d: %v", fixture.Fixture.Id, err)
 	}
 }
