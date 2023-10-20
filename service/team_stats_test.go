@@ -204,12 +204,12 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureErrorNoTLS() {
 func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
 	f := &s.fixtures[0]
 	tsidCurr := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	tlsReq := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsService.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(nil, nil)
+	s.mockTlsService.EXPECT().GetById(tlsId).Return(&tlsRes, nil)
+	s.mockTsRepo.EXPECT().GetById(tsidPrev).Return(nil, nil)
 
 	tls, curr, prev, err := s.teamStatsService.getUpdatedStats(&tsidCurr, f)
 
@@ -222,12 +222,12 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorPrevious() {
 func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 	f := &s.fixtures[0]
 	tsidCurr := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
-	tlsReq := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
 	tsidPrev := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 99}
 	tlsRes := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 99}
 
-	s.mockTlsService.EXPECT().GetById(tlsReq).Return(&tlsRes, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsidPrev}).Return(&model.TeamStats{
+	s.mockTlsService.EXPECT().GetById(tlsId).Return(&tlsRes, nil)
+	s.mockTsRepo.EXPECT().GetById(tsidPrev).Return(&model.TeamStats{
 		Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}, 
 	}, nil)
 
@@ -245,6 +245,9 @@ func (s *teamStatsServiceTestSuite) TestGetPreviousStatsExisting() {
 	ts := &model.TeamStats{Id: tsid, Form: "W"}
 
 	s.teamStatsService.statsMap[tsid] = ts
+
+	s.mockTlsService.EXPECT().GetById(tls.Id).Return(tls, nil)
+
 	a, err := s.teamStatsService.getPreviousStats(tls)
 
 	s.Equal(ts, a)
