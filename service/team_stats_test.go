@@ -137,21 +137,22 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 
 	s.mockStatusService.EXPECT().IsFinished("FT").Return(true)
 	s.mockStatusService.EXPECT().IsFinished("NS").Return(false)
-	s.mockTlsService.EXPECT().GetById(tlsHome).Return(&tlsHome, nil)
-	s.mockTlsService.EXPECT().GetById(tlsAway).Return(&tlsAway, nil)
+	s.mockTlsService.EXPECT().GetById(tlsHome.Id).Return(&tlsHome, nil)
+	s.mockTlsService.EXPECT().GetById(tlsAway.Id).Return(&tlsAway, nil)
 	s.mockTsRepo.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
+	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsHome.Id, MaxFixtureId: 100})
+	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
 	s.teamStatsService.MaintainStats([]int{s.fixtureIds[0], s.fixtureIds[1], s.fixtureIds[3]}, 
 		map[int]model.Fixture{100: s.fixtures[0], 103: s.fixtures[3]})
 
 	// assert that the invalid ID and the not started fixtures are not present in the results (with the len checks)
-	s.Len(s.teamStatsService.tlsMap, 2)
-	s.Equal(100, s.teamStatsService.tlsMap[tlsHome.Id].MaxFixtureId)
-	s.Equal(100, s.teamStatsService.tlsMap[tlsAway.Id].MaxFixtureId)
 	s.Len(s.teamStatsService.statsMap, 2)
 	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100})
 	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
+	s.mockTlsService.AssertCalled(s.T(), "AddToMap", &model.TeamLeagueSeason{Id: tlsHome.Id, MaxFixtureId: 100})
+	s.mockTlsService.AssertCalled(s.T(), "AddToMap", &model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
 }
 
 func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
@@ -160,16 +161,14 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 
-	s.mockTlsService.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
-	s.mockTsRepo.EXPECT().GetById(model.TeamStats{Id: tsid}).Return(&model.TeamStats{Id: tsid}, nil)
+	s.mockTlsService.EXPECT().GetById(tlsCurr.Id).Return(&tlsPrev, nil)
+	s.mockTsRepo.EXPECT().GetById(tsid).Return(&model.TeamStats{Id: tsid}, nil)
+	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsCurr.Id, MaxFixtureId: 101})
 
 	s.teamStatsService.maintainFixture(f, true)
 
-	s.Len(s.teamStatsService.tlsMap, 1)
-	s.Equal(101, s.teamStatsService.tlsMap[tlsCurr.Id].MaxFixtureId)
-	// this will have to be re-worked?
-	// s.Equal(101, s.teamStatsService.statsMap[model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}].Id.NextFixtureId)
 	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
+	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101})
 	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101})
 }
 
@@ -179,25 +178,40 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixturePrevIdHigher() {
 	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
 	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 999}
 
-	s.mockTlsService.EXPECT().GetById(tlsCurr).Return(&tlsPrev, nil)
+	s.mockTlsService.EXPECT().GetById(tlsCurr.Id).Return(&tlsPrev, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
-	// maps should not be populated because the end result should be that we skip persisting this fixture entirely
-	s.Len(s.teamStatsService.tlsMap, 0)
+	// map should not be populated because the end result should be that we skip persisting this fixture entirely
 	s.Len(s.teamStatsService.statsMap, 0)
+	s.mockTlsService.AssertNotCalled(s.T(), "AddToMap")
 }
 
 func (s *teamStatsServiceTestSuite) TestMaintainFixtureErrorNoTLS() {
 	f := &s.fixtures[1]
-	tls := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tlsid := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
 
-	s.mockTlsService.EXPECT().GetById(tls).Return(nil, nil)
+	s.mockTlsService.EXPECT().GetById(tlsid).Return(nil, errors.New("no TLS"))
 
 	s.teamStatsService.maintainFixture(f, true)
 
-	// maps should not be populated due to error from getTLS().
-	s.Len(s.teamStatsService.tlsMap, 0)
+	// map should not be populated due to error from getTLS().
+	s.Len(s.teamStatsService.statsMap, 0)
+}
+
+func (s *teamStatsServiceTestSuite) TestMaintainFixtureErrorRemovePrevious() {
+	f := &s.fixtures[1]
+	tlsCurr := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}}
+	tlsPrev := model.TeamLeagueSeason{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100}
+	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
+
+	s.mockTlsService.EXPECT().GetById(tlsCurr.Id).Return(&tlsPrev, nil)
+	s.mockTsRepo.EXPECT().GetById(tsid).Return(&model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 999}}, nil)
+	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsCurr.Id, MaxFixtureId: 101})
+
+	s.teamStatsService.maintainFixture(f, true)
+
+	// map should not be populated due to error from calculateCurrentStats()
 	s.Len(s.teamStatsService.statsMap, 0)
 }
 
@@ -235,7 +249,7 @@ func (s *teamStatsServiceTestSuite) TestGetUpdatedStatsErrorCurrent() {
 
 	s.Nil(tls)
 	s.Nil(curr)
-	s.Nil(prev)
+	s.NotNil(prev)
 	s.ErrorContains(err, "previous fixture ID")
 }
 
@@ -340,25 +354,20 @@ func (s *teamStatsServiceTestSuite) TestCalculateCurrentStatsError() {
 
 func (s *teamStatsServiceTestSuite) TestPersistSuccess() {
 	s.teamStatsService.statsMap = map[model.TeamStatsId]*model.TeamStats{
-		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
-		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
-	}
-	s.teamStatsService.tlsMap = map[model.TeamLeagueSeasonId]model.TeamLeagueSeason{
-		{TeamId: 40, LeagueId: 39, Season: 2022}: {Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
-		{TeamId: 41, LeagueId: 39, Season: 2022}: {Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
+		{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WWW"},
+		{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, Form: "WLD"},
+		{TeamId: 41, LeagueId: 39, Season: 2022, FixtureId: 100}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WLD"},
+		{TeamId: 41, LeagueId: 39, Season: 2022, NextFixtureId: 102}: {Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 102}, Form: "WLD"},
+
 	}
 
 	stats := []model.TeamStats{
-		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WWW"},
-		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022}, Form: "WLD"},
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WWW"},
+		{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WLD"},
 	}
 
-	// tls := []model.TeamLeagueSeason{
-	// 	{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
-	// 	{Id: model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, MaxFixtureId: 100},
-	// }
-
 	s.mockTsRepo.EXPECT().Upsert(stats).Return(stats, nil)
+	s.mockTlsService.EXPECT().Persist()
 
 	s.teamStatsService.Persist()
 
@@ -379,6 +388,7 @@ func (s *teamStatsServiceTestSuite) TestPersistError() {
 	s.mockTsRepo.EXPECT().Upsert(stats).Return(nil, errors.New("test"))
 
 	s.teamStatsService.Persist()
+
 	s.mockTsRepo.AssertCalled(s.T(), "Upsert", stats)
 	s.mockTlsService.AssertNotCalled(s.T(), "Persist")
 }

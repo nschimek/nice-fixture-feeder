@@ -21,7 +21,6 @@ type teamStats struct {
 	tsRepo repository.TeamStats
 	tlsService TeamLeagueSeason
 	statusService FixtureStatus
-	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
 	statsMap map[model.TeamStatsId]*model.TeamStats // we use a pointer here because stats will be stored twice under different keys
 }
 
@@ -32,7 +31,6 @@ func NewTeamStats(tsRepo repository.TeamStats,
 		tsRepo: tsRepo, 
 		tlsService: tlsService,
 		statusService: statusService,
-		tlsMap: make(map[model.TeamLeagueSeasonId]model.TeamLeagueSeason),
 		statsMap: make(map[model.TeamStatsId]*model.TeamStats),
 	}
 }
@@ -64,6 +62,8 @@ func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
 	return stats, nil
 }
 
+// Get Stats by TLS.  This will use the max fixture ID from TLS to obtain the stats.
+// Use the current boolean to match on FixtureId (true) or NextFixtureID (false).
 func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.TeamStats, error) {
 	tls, err := s.tlsService.GetById(id.GetTlsId())
 
@@ -74,11 +74,10 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 	return s.GetById(*tls.GetTeamStatsId(current))
 }
 
-/*
-	Add stats to the stats map
-	how we add these IDs to the map is important.  we have to support look-up via current fixture ID and next fixture ID.
-	to accomplish this, we zero out the unused ID field - this way, only one is required to get the stats
-*/
+
+// Add stats to the stats map.
+// But how we add these IDs to the map is important.  We have to support look-up via current fixture ID and next fixture ID.
+// To accomplish this, we zero out the unused ID field - this way, only one is required to get the stats.
 func (s *teamStats) AddToMap(stats *model.TeamStats) {
 	if stats.Id.FixtureId > 0 {
 		s.statsMap[stats.Id.GetCurrentId()] = stats
@@ -114,9 +113,7 @@ func (s *teamStats) Persist() {
 		}
 	}
 
-	core.Log.WithFields(logrus.Fields{
-		"team_stats": len(stats), "team_league_seasons": len(s.tlsMap),
-	}).Info("Persisting Team Stats...")
+	core.Log.WithField("team_stats", len(stats)).Info("Persisting Team Stats...")
 
 	_, err := s.tsRepo.Upsert(stats)
 
@@ -140,9 +137,11 @@ func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 			s.AddToMap(prev)
 		}
 	} else if err != nil {
-		// remove current ID stats from the maps so they are not persisted
-		delete(s.statsMap, curr.Id.GetCurrentId())
-		delete(s.statsMap, prev.Id.GetCurrentId())
+		// if we managed to get a previous stat, it will be in the map - so we need to remove it
+		if prev != nil {
+			core.Log.WithField("fixtureId", prev.Id.GetCurrentId()).Info("Removing prev stats from map due to error...")
+			delete(s.statsMap, prev.Id.GetCurrentId())
+		}
 		// log that there were errors
 		core.Log.Errorf("issues maintaing stats for fixture ID %d: %v", fixture.Fixture.Id, err)
 	}
@@ -173,7 +172,7 @@ func (s *teamStats) getUpdatedStats(tsid *model.TeamStatsId,
 	curr, err = s.calculateCurrentStats(prev, fixture)
 
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, prev, err
 	}
 
 	return
