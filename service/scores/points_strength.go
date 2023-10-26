@@ -8,11 +8,11 @@ import (
 
 type PointsStrength interface {
 	Score
-	SetStatsFunc(func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats))
+	SetStatsFunc(func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error))
 }
 
 type pointsStrength struct {
-	StatsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)
+	StatsFunc func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error)
 }
 
 func NewPointsStrength() *pointsStrength {
@@ -29,9 +29,9 @@ func (s *pointsStrength) CanScore(fixture *model.Fixture) bool {
 }
 
 func (s *pointsStrength) Score(fixture *model.Fixture) *model.FixtureScore {
-	hs, as := s.StatsFunc(fixture)
+	hs, as, err := s.StatsFunc(fixture)
 
-	if hs == nil || as == nil {
+	if err != nil {
 		return nil
 	}
 
@@ -51,6 +51,6 @@ func (s *pointsStrength) pointsPercent(points, played int) float64 {
 	return math.Round((float64)(points / (played * 3)))
 }
 
-func (s *pointsStrength) SetStatsFunc(f func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats)) {
+func (s *pointsStrength) SetStatsFunc(f func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error)) {
 	s.StatsFunc = f
 }

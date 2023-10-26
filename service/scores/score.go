@@ -18,11 +18,17 @@ type Score interface {
 }
 
 type ScoreRegistry struct {
+	AllScores []Score
 	PointsStrength PointsStrength
 }
 
 func Setup() *ScoreRegistry {
-	return &ScoreRegistry{
+	registry := &ScoreRegistry{
+		AllScores: []Score{},
 		PointsStrength: NewPointsStrength(),
 	}
+
+	registry.AllScores = append(registry.AllScores, registry.PointsStrength)
+
+	return registry
 }
