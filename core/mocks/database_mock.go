@@ -189,6 +189,60 @@ func (_c *Database_Upsert_Call) RunAndReturn(run func(interface{}) core.Database
 	return _c
 }
 
+// Where provides a mock function with given fields: dest, query, args
+func (_m *Database) Where(dest interface{}, query string, args ...interface{}) core.DatabaseResult {
+	var _ca []interface{}
+	_ca = append(_ca, dest, query)
+	_ca = append(_ca, args...)
+	ret := _m.Called(_ca...)
+
+	var r0 core.DatabaseResult
+	if rf, ok := ret.Get(0).(func(interface{}, string, ...interface{}) core.DatabaseResult); ok {
+		r0 = rf(dest, query, args...)
+	} else {
+		r0 = ret.Get(0).(core.DatabaseResult)
+	}
+
+	return r0
+}
+
+// Database_Where_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Where'
+type Database_Where_Call struct {
+	*mock.Call
+}
+
+// Where is a helper method to define mock.On call
+//   - dest interface{}
+//   - query string
+//   - args ...interface{}
+func (_e *Database_Expecter) Where(dest interface{}, query interface{}, args ...interface{}) *Database_Where_Call {
+	return &Database_Where_Call{Call: _e.mock.On("Where",
+		append([]interface{}{dest, query}, args...)...)}
+}
+
+func (_c *Database_Where_Call) Run(run func(dest interface{}, query string, args ...interface{})) *Database_Where_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]interface{}, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(interface{})
+			}
+		}
+		run(args[0].(interface{}), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *Database_Where_Call) Return(_a0 core.DatabaseResult) *Database_Where_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Database_Where_Call) RunAndReturn(run func(interface{}, string, ...interface{}) core.DatabaseResult) *Database_Where_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewDatabase interface {
 	mock.TestingT
 	Cleanup(func())

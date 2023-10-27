@@ -15,7 +15,7 @@ type fixtureRepositoryTestSuite struct {
 	suite.Suite
 	fixtures []model.Fixture
 	mockDatabase *mocks.Database
-	repo *Fixture
+	repo Fixture
 }
 
 func TestFixtureRepositoryTestSuite(t *testing.T) {

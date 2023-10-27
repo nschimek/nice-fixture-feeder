@@ -5,7 +5,7 @@ import (
 )
 
 type RepositoryRegistry struct {
-	Fixture *Fixture
+	Fixture Fixture
 	FixtureStatus FixtureStatus
 	League *League
 	TeamLeagueSeason TeamLeagueSeason

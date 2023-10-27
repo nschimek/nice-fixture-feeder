@@ -25,6 +25,7 @@ type Database interface {
 	Save(value interface{}) DatabaseResult
 	GetById(id interface{}, dest interface{}) DatabaseResult
 	GetAll(entities interface{}) DatabaseResult
+	Where(dest interface{}, query string, args ...interface{}) DatabaseResult
 }
 
 type DatabaseResult struct {
@@ -69,6 +70,10 @@ func (db *database) GetById(id interface{}, dest interface{}) DatabaseResult {
 
 func (db *database) GetAll(dest interface{}) DatabaseResult {
 	return gormReturn(db.gorm.Find(dest))
+}
+
+func (db *database) Where(dest interface{}, query string, args ...interface{}) DatabaseResult {
+	return gormReturn(db.gorm.Where(query, args...).Find(dest))
 }
 
 func (db *database) connect() {

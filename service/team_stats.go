@@ -22,6 +22,7 @@ type teamStats struct {
 	tlsService TeamLeagueSeason
 	statusService FixtureStatus
 	statsMap map[model.TeamStatsId]*model.TeamStats // we use a pointer here because stats will be stored twice under different keys
+	minFixtureMap map[model.TeamLeagueSeasonId]int 
 }
 
 func NewTeamStats(tsRepo repository.TeamStats, 
@@ -32,6 +33,7 @@ func NewTeamStats(tsRepo repository.TeamStats,
 		tlsService: tlsService,
 		statusService: statusService,
 		statsMap: make(map[model.TeamStatsId]*model.TeamStats),
+		minFixtureMap: make(map[model.TeamLeagueSeasonId]int),
 	}
 }
 
@@ -57,7 +59,7 @@ func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
 		return nil, errors.New("no stats for given ID")
 	}
 
-	s.AddToMap(stats)
+	s.addToStatsMap(stats)
 
 	return stats, nil
 }
@@ -75,15 +77,24 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 }
 
 
-// Add stats to the stats map.
-// But how we add these IDs to the map is important.  We have to support look-up via current fixture ID and next fixture ID.
+// Add stats to the Stats Map.
+// But how we add these IDs to the stats map is important.  We have to support look-up via current fixture ID and next fixture ID.
 // To accomplish this, we zero out the unused ID field - this way, only one is required to get the stats.
-func (s *teamStats) AddToMap(stats *model.TeamStats) {
+func (s *teamStats) addToStatsMap(stats *model.TeamStats) {
 	if stats.Id.FixtureId > 0 {
 		s.statsMap[stats.Id.GetCurrentId()] = stats
 	}
 	if stats.Id.NextFixtureId > 0 {
 		s.statsMap[stats.Id.GetNextId()] = stats
+	}
+}
+
+// Add to the Minimum Fixture Map.
+// The goal here is to keep track of the lowest fixture ID for each TLS that had stats maintained.
+// This fixture ID, along with all future ones for the given TLS, will need to be re-scored by the Scoring Service.
+func (s *teamStats) addToMinFixtureMap(stats *model.TeamStats) {
+	if fid, ok := s.minFixtureMap[stats.Id.GetTlsId()]; !ok || fid > stats.Id.FixtureId {
+		s.minFixtureMap[stats.Id.GetTlsId()] = stats.Id.FixtureId
 	}
 }
 
@@ -130,11 +141,12 @@ func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 		// if there are no errors, make the ID updates and save these stats in the maps (they will get persisted later)
 		tls.MaxFixtureId = fixture.Fixture.Id
 		s.tlsService.AddToMap(tls)
-		s.AddToMap(curr)
+		s.addToStatsMap(curr)
+		s.addToMinFixtureMap(curr)
 		// only persist non-zeroed previous stats (zeroed stats are used at start of season)
 		if prev.Id.FixtureId > 0 {
 			prev.Id.NextFixtureId = fixture.Fixture.Id
-			s.AddToMap(prev)
+			s.addToStatsMap(prev)
 		}
 	} else if err != nil {
 		// if we managed to get a previous stat, it will be in the map - so we need to remove it

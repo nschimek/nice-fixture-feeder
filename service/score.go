@@ -2,21 +2,26 @@ package service
 
 import (
 	"github.com/nschimek/nice-fixture-feeder/model"
+	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/service/scores"
 )
 
 type score struct {
 	scores *scores.ScoreRegistry
+	fixtureRepo repository.Fixture
 	statusService FixtureStatus
 	statsService *teamStats
+	fixturesMap map[int]model.Fixture
 	fixtureScores []model.FixtureScore
 }
 
 func NewScore(scores *scores.ScoreRegistry,
+	fixtureRepo repository.Fixture,
 	statsService *teamStats, 
 	statusService FixtureStatus) *score {
 	s := &score{
 		scores: scores,
+		fixtureRepo: fixtureRepo,
 		statusService: statusService,
 		statsService: statsService,
 	}
@@ -24,11 +29,26 @@ func NewScore(scores *scores.ScoreRegistry,
 	return s
 }
 
+func (s *score) AddFixturesFromMinMap(fixtureMap map[model.TeamLeagueSeasonId]int) {
+	for tlsId, minId := range fixtureMap {
+		fixtures, err := s.fixtureRepo.GetFutureFixturesByTLS(tlsId, minId)
+		if err == nil {
+			s.AddFixtures(fixtures)
+		}
+	}
+}
+
+func (s *score) AddFixtures(fixtures []model.Fixture) {
+	for _, f := range fixtures {
+		s.fixturesMap[f.Fixture.Id] = f
+	}
+}
+
 func (s *score) setup() {
 	s.scores.PointsStrength.SetStatsFunc(s.getStats)
 }
 
-func (s *score) ScoreAll(fixture *model.Fixture) {
+func (s *score) scoreAll(fixture *model.Fixture) {
 	// score registry keeps a list of AllScores for use here
 	for _, score := range s.scores.AllScores {
 		if (score.CanScore(fixture)) {
