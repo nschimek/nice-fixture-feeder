@@ -11,19 +11,18 @@ type ServiceRegistry struct {
 	Image Image
 	TeamLeagueSeason TeamLeagueSeason
 	TeamStats TeamStats
+	Scoring Scoring
 }
 
 func Setup(cfg *core.Config, s3 core.S3Client, repos *repository.RepositoryRegistry, scores *scores.ScoreRegistry) *ServiceRegistry {
 	fixtureStatus := NewFixtureStatus(repos.FixtureStatus)
 	teamLeagueSeason := NewTeamLeagueSeason(repos.TeamLeagueSeason)
+	teamStats := NewTeamStats(repos.TeamStats, teamLeagueSeason, fixtureStatus)
 	return &ServiceRegistry{
 		FixtureStatus: fixtureStatus,
 		Image: NewImage(s3),
 		TeamLeagueSeason: teamLeagueSeason,
-		TeamStats: NewTeamStats(
-			repos.TeamStats, 
-			teamLeagueSeason,
-			fixtureStatus,
-		),
+		TeamStats: teamStats,
+		Scoring: NewScoring(scores, repos.Fixture, repos.FixtureScore, teamStats, fixtureStatus),
 	}
 }

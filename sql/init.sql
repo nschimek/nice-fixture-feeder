@@ -134,3 +134,18 @@ CREATE TABLE `team_stats` (
   CONSTRAINT `team_stats.fixture_id2fixtures.id` FOREIGN KEY (`fixture_id`) REFERENCES `fixtures` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `team_stats2team_league_seasons` FOREIGN KEY (`team_id`, `league_id`, `season`) REFERENCES `team_league_seasons` (`team_id`, `league_id`, `season`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE nice_fixture.fixture_scores (
+	fixture_id int unsigned NOT NULL,
+	score_id int unsigned NOT NULL,
+	value int unsigned NOT NULL,
+	created_at datetime NOT NULL,
+	updated_at datetime NOT NULL,
+	CONSTRAINT fixture_scores_PK PRIMARY KEY (fixture_id,score_id),
+	CONSTRAINT `fixture_scores.fixture_id2fixtures.id` FOREIGN KEY (fixture_id) REFERENCES nice_fixture.fixtures(id) ON DELETE CASCADE,
+	CONSTRAINT `fixture_scores.score_id2scores.id` FOREIGN KEY (score_id) REFERENCES nice_fixture.scores(id) ON DELETE CASCADE
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+

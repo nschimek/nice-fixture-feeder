@@ -25,3 +25,10 @@ func MapToArray[K comparable, V any](m map[K]V) (values []V) {
 	}
 	return
 }
+
+func MapToKeyArray[K comparable, V any](m map[K]V) (keys []K) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return
+}

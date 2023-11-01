@@ -28,6 +28,7 @@ var (
 	configFile string
 	services *service.ServiceRegistry
 	requests *request.RequestRegistry
+	// pass through functions enable mocking
 	runSeasonFunc = runSeasonRequest
 	runFixturesFunc = runFixturesRequest
 	exitFunc = os.Exit
@@ -55,7 +56,7 @@ Running without parameters will limit the query to yesterday and today's fixture
 				runSeasonFunc(requests.League, requests.Team)
 			}
 			// always run fixtures
-			runFixturesFunc(requests.Fixture, services.TeamStats)
+			runFixturesFunc(requests.Fixture, services.TeamStats, services.Scoring)
 
 			return nil
 		},

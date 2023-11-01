@@ -14,6 +14,7 @@ type TeamStats interface {
 	GetById(tsid model.TeamStatsId) (*model.TeamStats, error)
 	GetByIdWithTLS(tsid model.TeamStatsId, current bool) (*model.TeamStats, error)
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
+	GetMinFixtureMap() map[model.TeamLeagueSeasonId]int
 	Persist()
 }
 
@@ -76,6 +77,9 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 	return s.GetById(*tls.GetTeamStatsId(current))
 }
 
+func (s *teamStats) GetMinFixtureMap() map[model.TeamLeagueSeasonId]int {
+	return s.minFixtureMap
+}
 
 // Add stats to the Stats Map.
 // But how we add these IDs to the stats map is important.  We have to support look-up via current fixture ID and next fixture ID.

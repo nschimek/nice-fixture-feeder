@@ -61,7 +61,7 @@ func stringToDate(dateString string) (time.Time, error) {
 	}
 }
 
-func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service.TeamStats) {
+func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service.TeamStats, scoringService service.Scoring) {
 	if ctx.season {
 		fixtureRequest.Request()
 	} else {
@@ -69,6 +69,12 @@ func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service
 	}
 	fixtureRequest.Persist()
 
+	// Maintain Stats
 	teamStatsService.MaintainStats(fixtureRequest.GetIds(), fixtureRequest.GetMap())
 	teamStatsService.Persist()
+
+	// Run Scoring Service
+	scoringService.SetFixtures(fixtureRequest.GetMap())
+	scoringService.AddFixturesFromMinMap(teamStatsService.GetMinFixtureMap())
+	scoringService.Score()
 }

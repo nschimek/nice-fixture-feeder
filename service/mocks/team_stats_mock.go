@@ -129,6 +129,49 @@ func (_c *TeamStats_GetByIdWithTLS_Call) RunAndReturn(run func(model.TeamStatsId
 	return _c
 }
 
+// GetMinFixtureMap provides a mock function with given fields:
+func (_m *TeamStats) GetMinFixtureMap() map[model.TeamLeagueSeasonId]int {
+	ret := _m.Called()
+
+	var r0 map[model.TeamLeagueSeasonId]int
+	if rf, ok := ret.Get(0).(func() map[model.TeamLeagueSeasonId]int); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[model.TeamLeagueSeasonId]int)
+		}
+	}
+
+	return r0
+}
+
+// TeamStats_GetMinFixtureMap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMinFixtureMap'
+type TeamStats_GetMinFixtureMap_Call struct {
+	*mock.Call
+}
+
+// GetMinFixtureMap is a helper method to define mock.On call
+func (_e *TeamStats_Expecter) GetMinFixtureMap() *TeamStats_GetMinFixtureMap_Call {
+	return &TeamStats_GetMinFixtureMap_Call{Call: _e.mock.On("GetMinFixtureMap")}
+}
+
+func (_c *TeamStats_GetMinFixtureMap_Call) Run(run func()) *TeamStats_GetMinFixtureMap_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *TeamStats_GetMinFixtureMap_Call) Return(_a0 map[model.TeamLeagueSeasonId]int) *TeamStats_GetMinFixtureMap_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TeamStats_GetMinFixtureMap_Call) RunAndReturn(run func() map[model.TeamLeagueSeasonId]int) *TeamStats_GetMinFixtureMap_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MaintainStats provides a mock function with given fields: fixtureIds, fixtureMap
 func (_m *TeamStats) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture) {
 	_m.Called(fixtureIds, fixtureMap)

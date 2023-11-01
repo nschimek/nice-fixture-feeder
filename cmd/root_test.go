@@ -38,7 +38,7 @@ func TestRootSeason(t *testing.T) {
 	runSeasonFunc = func(lr request.League, tr request.Team) {
 		ok1 = true
 	}
-	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats) {
+	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats, ss service.Scoring) {
 		ok2 = true
 	}
 	services = &service.ServiceRegistry{TeamStats: &svc_mocks.TeamStats{}}
@@ -63,7 +63,7 @@ func TestRootNoSeason(t *testing.T) {
 	runSeasonFunc = func(lr request.League, tr request.Team) {
 		ok1 = true
 	}
-	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats) {
+	runFixturesFunc = func(fr request.Fixture, ts service.TeamStats, ss service.Scoring) {
 		ok2 = true
 	}
 	services = &service.ServiceRegistry{TeamStats: &svc_mocks.TeamStats{}}

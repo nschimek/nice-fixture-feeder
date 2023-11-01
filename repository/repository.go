@@ -7,6 +7,7 @@ import (
 type RepositoryRegistry struct {
 	Fixture Fixture
 	FixtureStatus FixtureStatus
+	FixtureScore *FixtureScore
 	League *League
 	TeamLeagueSeason TeamLeagueSeason
 	TeamStats TeamStats
@@ -18,6 +19,7 @@ func Setup(db core.Database) *RepositoryRegistry {
 	return &RepositoryRegistry{
 		Fixture: NewFixture(db),
 		FixtureStatus: NewFixtureStatus(db),
+		FixtureScore: NewFixtureScore(db),
 		League: NewLeague(db),
 		TeamLeagueSeason: NewTeamLeagueSeason(db),
 		TeamStats: NewTeamStats(db),

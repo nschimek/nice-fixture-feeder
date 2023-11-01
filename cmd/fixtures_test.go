@@ -48,6 +48,7 @@ func TestRunFixturesRequestSeason(t *testing.T) {
 
 	fr := &req_mocks.Fixture{}
 	ts := &svc_mocks.TeamStats{}
+	ss := &svc_mocks.Scoring{}
 
 	fr.EXPECT().Request()
 	fr.EXPECT().Persist()
@@ -56,7 +57,7 @@ func TestRunFixturesRequestSeason(t *testing.T) {
 	ts.EXPECT().MaintainStats(ids, fixtures)
 	ts.EXPECT().Persist()
 
-	runFixturesRequest(fr, ts)
+	runFixturesRequest(fr, ts, ss)
 
 	fr.AssertCalled(t, "Request")
 	fr.AssertCalled(t, "Persist")
@@ -74,6 +75,7 @@ func TestRunFixturesRequestNoSeason(t *testing.T) {
 
 	fr := &req_mocks.Fixture{}
 	ts := &svc_mocks.TeamStats{}
+	ss := &svc_mocks.Scoring{}
 
 	fr.EXPECT().RequestDateRange(sd, ed)
 	fr.EXPECT().Persist()
@@ -82,7 +84,7 @@ func TestRunFixturesRequestNoSeason(t *testing.T) {
 	ts.EXPECT().MaintainStats(ids, fixtures)
 	ts.EXPECT().Persist()
 
-	runFixturesRequest(fr, ts)
+	runFixturesRequest(fr, ts, ss)
 
 	fr.AssertCalled(t, "RequestDateRange", sd, ed)
 	fr.AssertCalled(t, "Persist")
