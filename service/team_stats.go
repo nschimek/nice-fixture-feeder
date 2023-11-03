@@ -42,7 +42,7 @@ func NewTeamStats(tsRepo repository.TeamStats,
 // FixtureId or NextFixtureId - but not both.
 func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
 	core.Log.WithFields(logrus.Fields{
-		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season,
+		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season, "fixtureId": id.FixtureId, "nextFixtureId": id.NextFixtureId,
 	}).Debug("Getting team stats by ID...")
 
 	if id.FixtureId > 0 && id.NextFixtureId > 0 {

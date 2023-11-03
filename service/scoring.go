@@ -71,6 +71,9 @@ func (s *scoring) Score() {
 	for _, fixture := range s.fixturesMap {
 		s.scoreFixture(&fixture)
 	}
+	// Persist!
+	core.Log.WithField("fixture_scores", len(s.fixtureScores)).Info("Persisting Fixture Scores...")
+	s.fixtureScoreRepo.Upsert(s.fixtureScores)
 }
 
 func (s *scoring) setup() {
@@ -81,15 +84,14 @@ func (s *scoring) scoreFixture(fixture *model.Fixture) {
 	// score registry keeps a list of AllScores for use here
 	for _, score := range s.scores.AllScores {
 		if (score.CanScore(fixture)) {
-			fs := score.Score(fixture)
-			if fs != nil {
+			fs, err := score.Score(fixture)
+			if fs != nil && err == nil {
 				s.fixtureScores = append(s.fixtureScores, *fs)
+			} else if err != nil {
+				core.Log.WithField("fixture_id", fixture.Fixture.Id).Warn("Could not score fixture: ", err)
 			}
 		}
 	}
-	// Persist!
-	core.Log.WithField("fixture_scores", len(s.fixtureScores)).Info("Persisting Fixture Scores...")
-	s.fixtureScoreRepo.Upsert(s.fixtureScores)
 }
 
 func (s *scoring) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error) {	

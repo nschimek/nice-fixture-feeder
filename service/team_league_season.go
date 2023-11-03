@@ -41,7 +41,7 @@ func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeag
 	}
 
 	if tls == nil {
-		return nil, errors.New("could not get TLS, was the league setup?")
+		return nil, errors.New("could not get TLS - league may not be setup, or promoted team")
 	}
 
 	s.AddToMap(tls) // cache in the map

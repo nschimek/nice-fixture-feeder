@@ -14,7 +14,7 @@ const (
 type Score interface {
 	GetId() ScoreId
 	CanScore(fixture *model.Fixture) bool
-	Score(fixture *model.Fixture) *model.FixtureScore
+	Score(fixture *model.Fixture) (*model.FixtureScore, error)
 }
 
 type ScoreRegistry struct {
