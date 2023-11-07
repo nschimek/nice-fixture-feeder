@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTeamStatsId(t *testing.T) {
+func FixtureTestGetTeamStatsId(t *testing.T) {
 	f := Fixture{
 		Fixture: FixtureFixture{
 			Id: 100,
@@ -28,6 +28,33 @@ func TestGetTeamStatsId(t *testing.T) {
 	assert.Equal(t, f.Teams.Away.Id, a.TeamId)
 	assert.Equal(t, f.Fixture.Id, h.FixtureId)
 	assert.Equal(t, f.Fixture.Id, a.FixtureId)
+	assert.Equal(t, f.League.Id, h.LeagueId)
+	assert.Equal(t, f.League.Id, a.LeagueId)
+	assert.Equal(t, f.League.Season, h.Season)
+	assert.Equal(t, f.League.Season, a.Season)
+}
+
+func TestGetTeamStatsNextId(t *testing.T) {
+	f := Fixture{
+		Fixture: FixtureFixture{
+			Id: 100,
+			Date: time.Date(2023, 3, 5, 16, 30, 0, 0, core.UTC),
+		},
+		League: FixtureLeague{Id: 39, Season: 2022},
+		Teams: FixtureTeams{
+			Home: FixtureTeam{Id: 40},
+			Away: FixtureTeam{Id: 33},
+		},
+		Goals: FixtureGoals{Home: 7, Away: 0},
+	}
+
+	h := f.GetTeamStatsNextId(true)
+	a := f.GetTeamStatsNextId(false)
+
+	assert.Equal(t, f.Teams.Home.Id, h.TeamId)
+	assert.Equal(t, f.Teams.Away.Id, a.TeamId)
+	assert.Equal(t, f.Fixture.Id, h.NextFixtureId)
+	assert.Equal(t, f.Fixture.Id, a.NextFixtureId)
 	assert.Equal(t, f.League.Id, h.LeagueId)
 	assert.Equal(t, f.League.Id, a.LeagueId)
 	assert.Equal(t, f.League.Season, h.Season)
