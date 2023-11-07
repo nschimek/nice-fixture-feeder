@@ -7,6 +7,7 @@ import (
 
 const futureFixtureSQL = "league_id = ? AND season = ? AND (team_home_id = ? OR team_away_id = ?) AND fixture_id >= ? AND fixture_id NOT IN ?"
 
+//go:generate mockery --name Fixture --filename fixture_mock.go
 type Fixture interface {
 	UpsertRepository[model.Fixture]
 	GetFutureFixturesByTLS(tlsId model.TeamLeagueSeasonId, minId int, notId []int) ([]model.Fixture, error)

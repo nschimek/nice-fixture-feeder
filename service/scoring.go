@@ -17,7 +17,7 @@ type Scoring interface {
 type scoring struct {
 	scores *scores.ScoreRegistry
 	fixtureRepo repository.Fixture
-	fixtureScoreRepo *repository.FixtureScore
+	fixtureScoreRepo repository.UpsertRepository[model.FixtureScore]
 	statusService FixtureStatus
 	statsService TeamStats
 	fixturesMap map[int]model.Fixture
@@ -26,7 +26,7 @@ type scoring struct {
 
 func NewScoring(scores *scores.ScoreRegistry,
 	fixtureRepo repository.Fixture,
-	fixtureScoreRepo *repository.FixtureScore,
+	fixtureScoreRepo repository.UpsertRepository[model.FixtureScore],
 	statsService TeamStats, 
 	statusService FixtureStatus) *scoring {
 	s := &scoring{

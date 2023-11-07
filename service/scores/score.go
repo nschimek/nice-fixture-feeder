@@ -11,6 +11,7 @@ const (
 	FormId ScoreId = 4
 )
 
+//go:generate mockery --name Score --filename score_mock.go
 type Score interface {
 	GetId() ScoreId
 	CanScore(fixture *model.Fixture) bool

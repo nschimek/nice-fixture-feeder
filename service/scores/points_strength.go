@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate mockery --name PointsStrength --filename points_strength_mock.go
 type PointsStrength interface {
 	Score
 	SetStatsFunc(func(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error))
