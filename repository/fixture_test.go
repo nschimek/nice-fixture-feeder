@@ -65,3 +65,37 @@ func (s *fixtureRepositoryTestSuite) TestUpsertEmptyAndNil() {
 	s.Nil(a2)
 	s.Nil(e2)
 }
+
+func (s *fixtureRepositoryTestSuite) TestGetFixturesByTLSSuccess() {
+	var entities []model.Fixture
+
+	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
+	minId := 100
+	notId := []int{101, 102, 103}
+
+	s.mockDatabase.EXPECT().Where(&entities, futureFixtureSQL, tlsId.LeagueId, 
+		tlsId.Season, tlsId.TeamId, tlsId.TeamId, minId, notId).Return(core.DatabaseResult{RowsAffected: 1})
+
+	actual, err := s.repo.GetFutureFixturesByTLS(tlsId, minId, notId)
+
+	s.mockDatabase.AssertExpectations(s.T())
+	s.Equal(entities, actual)
+	s.Nil(err)
+}
+
+func (s *fixtureRepositoryTestSuite) TestGetFixturesByTLSFailure() {
+	var entities []model.Fixture
+
+	tlsId := model.TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}
+	minId := 100
+	notId := []int{101, 102, 103}
+
+	s.mockDatabase.EXPECT().Where(&entities, futureFixtureSQL, tlsId.LeagueId, 
+		tlsId.Season, tlsId.TeamId, tlsId.TeamId, minId, notId).Return(core.DatabaseResult{Error: errors.New("test")})
+
+	actual, err := s.repo.GetFutureFixturesByTLS(tlsId, minId, notId)
+
+	s.mockDatabase.AssertExpectations(s.T())
+	s.Nil(actual)
+	s.ErrorContains(err, "test")
+}
