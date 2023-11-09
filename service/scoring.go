@@ -84,6 +84,7 @@ func (s *scoring) scoreFixture(fixture *model.Fixture) {
 	// score registry keeps a list of AllScores for use here
 	for _, score := range s.scores.AllScores {
 		if (score.CanScore(fixture)) {
+			core.Log.WithField("fixture_id", fixture.Fixture.Id).Info("Scoring fixture...")
 			fs, err := score.Score(fixture)
 			if fs != nil && err == nil {
 				s.fixtureScores = append(s.fixtureScores, *fs)
