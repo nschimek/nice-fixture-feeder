@@ -94,6 +94,8 @@ func bindViperEnvVars() {
 	viper.BindEnv("database.location")
 	viper.BindEnv("database.port")
 	viper.BindEnv("database.name")
+	viper.BindEnv("cache.host")
+	viper.BindEnv("cache.port")
 	viper.BindEnv("aws.region")
 	viper.BindEnv("aws.access-key-id")
 	viper.BindEnv("aws.secret-access-key")
