@@ -16,6 +16,7 @@ type Config struct {
 	Debug         bool
 	API ConfigAPI
 	Database ConfigDatabase
+	Cache ConfigCache
 	AWS ConfigAWS
 }
 
@@ -26,6 +27,11 @@ type ConfigAPI struct {
 type ConfigDatabase struct {
 	User, Password, Location, Name string
 	Port                           int
+}
+
+type ConfigCache struct {
+	Host string
+	Port int
 }
 type ConfigAWS struct {
 	Region string

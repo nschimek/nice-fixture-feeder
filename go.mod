@@ -11,8 +11,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.33.1
 	github.com/aws/smithy-go v1.13.5
 	github.com/sirupsen/logrus v1.9.0
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
-  github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.3
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/gorm v1.25.1
@@ -44,6 +44,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rainycape/memcache v0.0.0-20150622160815-1031fa0ce2f2 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

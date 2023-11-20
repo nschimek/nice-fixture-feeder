@@ -11,5 +11,9 @@ services:
     volumes:
       - db:/var/lib/mysql
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
 volumes:
   db:
