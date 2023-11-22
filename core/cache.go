@@ -18,21 +18,21 @@ var (
 	MCC *memcache.Client
 )
 
-//go:generate mockery --name MC --filename mc_mock.go
-type MC interface {
+//go:generate mockery --name CacheClient --filename cache_client_mock.go
+type CacheClient interface {
 	Get(key string) (*memcache.Item, error)
 	Set(item *memcache.Item) error
 }
 
 //go:generate mockery --name Cache --filename cache_mock.go
 type Cache[T any] interface {
-	Get(key string) (*T, error)
-	Set(key string, value *T) error
+	Get(key interface{}) (*T, error)
+	Set(key interface{}, value *T) error
 }
 
 type cache[T any] struct {
 	prefix string
-	mc MC
+	client CacheClient
 }
 
 // Sets up the Memcached Client global variable for injection into NewCache().
@@ -50,10 +50,10 @@ func SetupCache(config *Config) {
 	MCC = mcc
 }
 
-// Create a new instance of Cache with the given type.
-func NewCache[T any](mc MC, prefix string) Cache[T] {
+// Create a new instance of Cache.  Requires a CacheClient.
+func NewCache[T any](cc CacheClient, prefix string) Cache[T] {
 	return &cache[T]{
-		mc: mc,
+		client: cc,
 		prefix: prefix,
 	}
 }
@@ -61,14 +61,23 @@ func NewCache[T any](mc MC, prefix string) Cache[T] {
 // Attempt to get a value from the cache.  Returns nil on a cache miss.
 // Error will only be returned if it's not a CacheMiss.
 // This function will log its errors, so its optional to handle them.
-func (c *cache[T]) Get(key string) (*T, error) {
+func (c *cache[T]) Get(key interface{}) (*T, error) {
+	ks, err := c.keyString(key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	Log.WithField("key", ks).Debug("Getting key from cache")
+
 	var value T
-	item, err := c.mc.Get(fmt.Sprintf(keyFormat, c.prefix, key))
+	item, err := c.client.Get(ks)
 
 	if err != nil && err != memcache.ErrCacheMiss {
 		Log.Error("Cache Get error: ", err)
 		return nil, err
 	} else if err != nil {
+		Log.WithField("key", ks).Debug("Cache miss")
 		// on a cache miss, just return nil for both
 		return nil, nil
 	}
@@ -80,20 +89,28 @@ func (c *cache[T]) Get(key string) (*T, error) {
 		return nil, err
 	}
 
+	Log.WithField("key", ks).Debug("Cache hit")
+
 	return &value, nil
 }
 
 // Set a value in the Cache.  Returns an error if there is one, and also logs it.
-func (c *cache[T]) Set(key string, value *T) error {
-	bytes, err := json.Marshal(value)
+func (c *cache[T]) Set(key interface{}, value *T) error {
+	ks, err := c.keyString(key)
 
 	if err != nil {
-		Log.Error("Cache Marshall error: ", err)
 		return err
 	}
 
-	err = c.mc.Set(&memcache.Item{
-		Key: fmt.Sprintf(keyFormat, c.prefix, key),
+	bytes, err := json.Marshal(value)
+
+	if err != nil {
+		Log.Error("Cache value Marshall error: ", err)
+		return err
+	}
+
+	err = c.client.Set(&memcache.Item{
+		Key: ks,
 		Value: bytes,
 		Expiration: expiration,
 	})
@@ -103,5 +120,19 @@ func (c *cache[T]) Set(key string, value *T) error {
 		return err
 	}
 
+	Log.WithField("key", ks).Debug("Cache set successfully")
+
 	return nil
+}
+
+// Converts a key of any type to a string.
+func (c *cache[T]) keyString(key interface{}) (string, error) {
+	bytes, err := json.Marshal(key)
+
+	if err != nil {
+		Log.Error("Cache key Marshall error: ", err)
+		return "", err
+	}
+
+	return fmt.Sprintf(keyFormat, c.prefix, string(bytes)), nil
 }
