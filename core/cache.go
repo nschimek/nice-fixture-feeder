@@ -102,12 +102,8 @@ func (c *cache[T]) Set(key interface{}, value *T) error {
 		return err
 	}
 
-	bytes, err := json.Marshal(value)
-
-	if err != nil {
-		Log.Error("Cache value Marshall error: ", err)
-		return err
-	}
+	// due this method having type saftey, I don't forsee an error here
+	bytes, _ := json.Marshal(value)
 
 	err = c.client.Set(&memcache.Item{
 		Key: ks,

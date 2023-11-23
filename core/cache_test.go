@@ -30,11 +30,11 @@ func (s *cacheTestSuite) TestGetHit() {
 	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
 	value := model.TeamLeagueSeason{Id: key, MaxFixtureId: 100}
 
-	ks, _ := json.Marshal(key)
-	vs, _ := json.Marshal(value)
+	kb, _ := json.Marshal(key)
+	vb, _ := json.Marshal(value)
 
-	s.mockCacheClient.EXPECT().Get("tls-" + string(ks)).Return(&memcache.Item{
-		Value: vs,
+	s.mockCacheClient.EXPECT().Get("tls-" + string(kb)).Return(&memcache.Item{
+		Value: vb,
 	}, nil)
 
 	res, err := s.cache.Get(key)
@@ -45,9 +45,9 @@ func (s *cacheTestSuite) TestGetHit() {
 
 func (s *cacheTestSuite) TestGetMiss() {
 	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
-	ks, _ := json.Marshal(key)
+	kb, _ := json.Marshal(key)
 
-	s.mockCacheClient.EXPECT().Get("tls-" + string(ks)).Return(nil, memcache.ErrCacheMiss)
+	s.mockCacheClient.EXPECT().Get("tls-" + string(kb)).Return(nil, memcache.ErrCacheMiss)
 
 	res, err := s.cache.Get(key)
 	
@@ -57,12 +57,63 @@ func (s *cacheTestSuite) TestGetMiss() {
 
 func (s *cacheTestSuite) TestGetError() {
 	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
-	ks, _ := json.Marshal(key)
+	kb, _ := json.Marshal(key)
 
-	s.mockCacheClient.EXPECT().Get("tls-" + string(ks)).Return(nil, memcache.ErrBadMagic)
+	s.mockCacheClient.EXPECT().Get("tls-" + string(kb)).Return(nil, memcache.ErrBadMagic)
 
 	res, err := s.cache.Get(key)
 	
 	s.Nil(res)
+	s.Error(err, memcache.ErrBadMagic)
+}
+
+func (s *cacheTestSuite) TestGetErrorUnmarshall() {
+	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
+	kb, _ := json.Marshal(key)
+
+	s.mockCacheClient.EXPECT().Get("tls-" + string(kb)).Return(&memcache.Item{
+		Value: []byte("invalid json"),
+	}, nil)
+
+	res, err := s.cache.Get(key)
+	
+	s.Nil(res)
+	s.Error(err, "Unmarshal")
+}
+
+func (s *cacheTestSuite) TestSet() {
+	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
+	kb, _ := json.Marshal(key)
+
+	value := model.TeamLeagueSeason{Id: key, MaxFixtureId: 100}
+	vb, _ := json.Marshal(value)
+
+	s.mockCacheClient.EXPECT().Set(&memcache.Item{
+		Key: "tls-" + string(kb),
+		Value: vb,
+		Expiration: 900,
+	}).Return(nil)
+
+	err := s.cache.Set(key, &value)
+
+	s.Nil(err)
+	s.mockCacheClient.AssertExpectations(s.T())
+}
+
+func (s *cacheTestSuite) TestSetError() {
+	key := model.TeamLeagueSeasonId{TeamId: 1, LeagueId: 37, Season: 2022}
+	kb, _ := json.Marshal(key)
+
+	value := model.TeamLeagueSeason{Id: key, MaxFixtureId: 100}
+	vb, _ := json.Marshal(value)
+
+	s.mockCacheClient.EXPECT().Set(&memcache.Item{
+		Key: "tls-" + string(kb),
+		Value: vb,
+		Expiration: 900,
+	}).Return(memcache.ErrBadMagic)
+
+	err := s.cache.Set(key, &value)
+
 	s.Error(err, memcache.ErrBadMagic)
 }
