@@ -15,7 +15,7 @@ const (
 )
 
 var (	
-	MCC *memcache.Client
+	CC CacheClient
 )
 
 //go:generate mockery --name CacheClient --filename cache_client_mock.go
@@ -47,7 +47,7 @@ func SetupCache(config *Config) {
 		Log.Fatal(err)
 	}
 
-	MCC = mcc
+	CC = mcc
 }
 
 // Create a new instance of Cache.  Requires a CacheClient.
