@@ -130,6 +130,58 @@ func (_c *Fixture_Upsert_Call) RunAndReturn(run func([]model.Fixture) ([]model.F
 	return _c
 }
 
+// UpsertOne provides a mock function with given fields: entity
+func (_m *Fixture) UpsertOne(entity model.Fixture) (model.Fixture, error) {
+	ret := _m.Called(entity)
+
+	var r0 model.Fixture
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.Fixture) (model.Fixture, error)); ok {
+		return rf(entity)
+	}
+	if rf, ok := ret.Get(0).(func(model.Fixture) model.Fixture); ok {
+		r0 = rf(entity)
+	} else {
+		r0 = ret.Get(0).(model.Fixture)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.Fixture) error); ok {
+		r1 = rf(entity)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Fixture_UpsertOne_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertOne'
+type Fixture_UpsertOne_Call struct {
+	*mock.Call
+}
+
+// UpsertOne is a helper method to define mock.On call
+//   - entity model.Fixture
+func (_e *Fixture_Expecter) UpsertOne(entity interface{}) *Fixture_UpsertOne_Call {
+	return &Fixture_UpsertOne_Call{Call: _e.mock.On("UpsertOne", entity)}
+}
+
+func (_c *Fixture_UpsertOne_Call) Run(run func(entity model.Fixture)) *Fixture_UpsertOne_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.Fixture))
+	})
+	return _c
+}
+
+func (_c *Fixture_UpsertOne_Call) Return(_a0 model.Fixture, _a1 error) *Fixture_UpsertOne_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Fixture_UpsertOne_Call) RunAndReturn(run func(model.Fixture) (model.Fixture, error)) *Fixture_UpsertOne_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewFixture interface {
 	mock.TestingT
 	Cleanup(func())

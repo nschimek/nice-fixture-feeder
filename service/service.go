@@ -17,7 +17,7 @@ type ServiceRegistry struct {
 
 func Setup(cfg *core.Config, s3 core.S3Client, repos *repository.RepositoryRegistry, cc core.CacheClient, scores *scores.ScoreRegistry) *ServiceRegistry {
 	fixtureStatus := NewFixtureStatus(repos.FixtureStatus, core.NewCache[model.FixtureStatus](cc, "fs"))
-	teamLeagueSeason := NewTeamLeagueSeason(repos.TeamLeagueSeason)
+	teamLeagueSeason := NewTeamLeagueSeason(repos.TeamLeagueSeason, core.NewCache[model.TeamLeagueSeason](cc, "tls"))
 	teamStats := NewTeamStats(repos.TeamStats, teamLeagueSeason, fixtureStatus)
 	return &ServiceRegistry{
 		FixtureStatus: fixtureStatus,
