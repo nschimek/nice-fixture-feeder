@@ -30,22 +30,25 @@ func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeag
 	}).Debug("Getting team league season (TLS)...")
 
 	var tls *model.TeamLeagueSeason
-	if mv, _ := s.cache.Get(id); mv != nil {
-		tls = mv // use the cached value, since we have it
+	if cv, _ := s.cache.Get(id); cv != nil {
+		tls = cv // use the cached value, since we have it
 	} else {
 		tls, _ = s.tlsRepo.GetById(id)
+
+		if tls == nil {
+			return nil, errors.New("could not get TLS - league may not be setup, or newly promoted team")
+		}
+
+		s.cache.Set(id, tls)
 	}
 
-	if tls == nil {
-		return nil, errors.New("could not get TLS - league may not be setup, or newly promoted team")
-	}
-
-	s.cache.Set(id, tls)
-	
 	return tls, nil
 }
 
 func (s *teamLeagueSeason) PersistOne(tls *model.TeamLeagueSeason) {
+	core.Log.WithFields(logrus.Fields{
+		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season,
+	}).Info("Persisting TLS...")
 	res, err := s.tlsRepo.UpsertOne(*tls)
 	if err == nil {
 		s.cache.Set(res.Id, &res)
