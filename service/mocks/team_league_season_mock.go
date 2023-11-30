@@ -20,39 +20,6 @@ func (_m *TeamLeagueSeason) EXPECT() *TeamLeagueSeason_Expecter {
 	return &TeamLeagueSeason_Expecter{mock: &_m.Mock}
 }
 
-// AddToMap provides a mock function with given fields: tls
-func (_m *TeamLeagueSeason) AddToMap(tls *model.TeamLeagueSeason) {
-	_m.Called(tls)
-}
-
-// TeamLeagueSeason_AddToMap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddToMap'
-type TeamLeagueSeason_AddToMap_Call struct {
-	*mock.Call
-}
-
-// AddToMap is a helper method to define mock.On call
-//   - tls *model.TeamLeagueSeason
-func (_e *TeamLeagueSeason_Expecter) AddToMap(tls interface{}) *TeamLeagueSeason_AddToMap_Call {
-	return &TeamLeagueSeason_AddToMap_Call{Call: _e.mock.On("AddToMap", tls)}
-}
-
-func (_c *TeamLeagueSeason_AddToMap_Call) Run(run func(tls *model.TeamLeagueSeason)) *TeamLeagueSeason_AddToMap_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*model.TeamLeagueSeason))
-	})
-	return _c
-}
-
-func (_c *TeamLeagueSeason_AddToMap_Call) Return() *TeamLeagueSeason_AddToMap_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *TeamLeagueSeason_AddToMap_Call) RunAndReturn(run func(*model.TeamLeagueSeason)) *TeamLeagueSeason_AddToMap_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetById provides a mock function with given fields: tsid
 func (_m *TeamLeagueSeason) GetById(tsid model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error) {
 	ret := _m.Called(tsid)
@@ -107,34 +74,35 @@ func (_c *TeamLeagueSeason_GetById_Call) RunAndReturn(run func(model.TeamLeagueS
 	return _c
 }
 
-// Persist provides a mock function with given fields:
-func (_m *TeamLeagueSeason) Persist() {
-	_m.Called()
+// PersistOne provides a mock function with given fields: tls
+func (_m *TeamLeagueSeason) PersistOne(tls *model.TeamLeagueSeason) {
+	_m.Called(tls)
 }
 
-// TeamLeagueSeason_Persist_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Persist'
-type TeamLeagueSeason_Persist_Call struct {
+// TeamLeagueSeason_PersistOne_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PersistOne'
+type TeamLeagueSeason_PersistOne_Call struct {
 	*mock.Call
 }
 
-// Persist is a helper method to define mock.On call
-func (_e *TeamLeagueSeason_Expecter) Persist() *TeamLeagueSeason_Persist_Call {
-	return &TeamLeagueSeason_Persist_Call{Call: _e.mock.On("Persist")}
+// PersistOne is a helper method to define mock.On call
+//   - tls *model.TeamLeagueSeason
+func (_e *TeamLeagueSeason_Expecter) PersistOne(tls interface{}) *TeamLeagueSeason_PersistOne_Call {
+	return &TeamLeagueSeason_PersistOne_Call{Call: _e.mock.On("PersistOne", tls)}
 }
 
-func (_c *TeamLeagueSeason_Persist_Call) Run(run func()) *TeamLeagueSeason_Persist_Call {
+func (_c *TeamLeagueSeason_PersistOne_Call) Run(run func(tls *model.TeamLeagueSeason)) *TeamLeagueSeason_PersistOne_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(*model.TeamLeagueSeason))
 	})
 	return _c
 }
 
-func (_c *TeamLeagueSeason_Persist_Call) Return() *TeamLeagueSeason_Persist_Call {
+func (_c *TeamLeagueSeason_PersistOne_Call) Return() *TeamLeagueSeason_PersistOne_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *TeamLeagueSeason_Persist_Call) RunAndReturn(run func()) *TeamLeagueSeason_Persist_Call {
+func (_c *TeamLeagueSeason_PersistOne_Call) RunAndReturn(run func(*model.TeamLeagueSeason)) *TeamLeagueSeason_PersistOne_Call {
 	_c.Call.Return(run)
 	return _c
 }

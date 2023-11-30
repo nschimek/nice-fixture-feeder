@@ -11,7 +11,7 @@ import (
 
 //go:generate mockery --name TeamStats --filename team_stats_mock.go
 type TeamStats interface {
-	GetById(tsid model.TeamStatsId) (*model.TeamStats, error)
+	GetById(tsid model.TeamStatsId, current bool) (*model.TeamStats, error)
 	GetByIdWithTLS(tsid model.TeamStatsId, current bool) (*model.TeamStats, error)
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
 	GetMinFixtureMap() map[model.TeamLeagueSeasonId]int
@@ -39,15 +39,18 @@ func NewTeamStats(tsRepo repository.TeamStats,
 	}
 }
 
-// Get Team Stats by ID.  Due to the way the stats are stored in the Map, populate either
-// FixtureId or NextFixtureId - but not both.
-func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
+// Get Team Stats by ID
+// If current is True, the Fixture ID will be used.  If current is false, the Next Fixture ID will be used.
+func (s *teamStats) GetById(id model.TeamStatsId, current bool) (*model.TeamStats, error)  {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season, "fixtureId": id.FixtureId, "nextFixtureId": id.NextFixtureId,
 	}).Debug("Getting team stats by ID...")
 
-	if id.FixtureId > 0 && id.NextFixtureId > 0 {
-		return nil, errors.New("cannot have both FixtureId and NextFixtureId")
+	// check to make sure we have ana ID based on the boolean value (this is really just a sanity check)
+	if (id.FixtureId == 0 && current) {
+		return nil, errors.New("current is true but FixtureId is 0")
+	} else if (id.NextFixtureId == 0 && !current) {
+		return nil, errors.New("current is false but NextFixtureId is 0")
 	}
 
 	var stats *model.TeamStats
@@ -73,7 +76,7 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 		return nil, err
 	}
 
-	return s.GetById(*tls.GetTeamStatsId(current))
+	return s.GetById(*tls.GetTeamStatsId(current), current)
 }
 
 func (s *teamStats) GetMinFixtureMap() map[model.TeamLeagueSeasonId]int {

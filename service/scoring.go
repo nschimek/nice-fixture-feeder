@@ -121,5 +121,5 @@ func (s *scoring) getStatsTeam(fixture *model.Fixture, home bool) (*model.TeamSt
 		return s.statsService.GetByIdWithTLS(tsid, curr)
 	} 
 
-	return s.statsService.GetById(tsid)
+	return s.statsService.GetById(tsid, false)
 }

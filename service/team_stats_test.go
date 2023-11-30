@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	core_mocks "github.com/nschimek/nice-fixture-feeder/core/mocks"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	repo_mocks "github.com/nschimek/nice-fixture-feeder/repository/mocks"
 	"github.com/nschimek/nice-fixture-feeder/service/mocks"
@@ -14,6 +15,7 @@ import (
 type teamStatsServiceTestSuite struct {
 	suite.Suite
 	mockTsRepo *repo_mocks.TeamStats
+	mockCache *core_mocks.Cache[model.TeamStats]
 	mockTlsService *mocks.TeamLeagueSeason
 	mockStatusService *mocks.FixtureStatus
 	teamStatsService *teamStats
@@ -27,9 +29,10 @@ func TestTeamStatsServiceTestSuite(t *testing.T) {
 
 func (s *teamStatsServiceTestSuite) SetupTest() {
 	s.mockTsRepo = &repo_mocks.TeamStats{}
+	s.mockCache = &core_mocks.Cache[model.TeamStats]{}
 	s.mockTlsService = &mocks.TeamLeagueSeason{}
 	s.mockStatusService = &mocks.FixtureStatus{}
-	s.teamStatsService = NewTeamStats(s.mockTsRepo, s.mockTlsService, s.mockStatusService)
+	s.teamStatsService = NewTeamStats(s.mockTsRepo, s.mockCache, s.mockTlsService, s.mockStatusService)
 	s.fixtures = []model.Fixture{
 		{
 			Fixture: model.FixtureFixture{Id: 100, Status: model.FixtureStatusId{Id: "FT"}},
@@ -58,49 +61,56 @@ func (s *teamStatsServiceTestSuite) SetupTest() {
 	s.fixtureIds = []int{100, 101, 102, 103}
 }
 
-func (s *teamStatsServiceTestSuite) TestGetById() {
+func (s *teamStatsServiceTestSuite) TestGetByIdCurrentCacheMiss() {
 	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}}
 
+	s.mockCache.EXPECT().Get(ts.Id.GetCurrentId()).Return(nil, nil)
 	s.mockTsRepo.EXPECT().GetById(ts.Id.GetCurrentId()).Return(&ts, nil)
+	s.mockCache.EXPECT().Set(ts.Id.GetCurrentId(), &ts).Return(nil)
 
-	res, err := s.teamStatsService.GetById(ts.Id.GetCurrentId())
+	res, err := s.teamStatsService.GetById(ts.Id, true)
 
 	s.Nil(err)
 	s.Equal(&ts, res)
-	s.Contains(s.teamStatsService.statsMap, ts.Id.GetCurrentId())
-	s.Contains(s.teamStatsService.statsMap, ts.Id.GetNextId())
+	s.mockCache.AssertExpectations(s.T())
 }
 
-func (s *teamStatsServiceTestSuite) TestGetByIdFromMap() {
+func (s *teamStatsServiceTestSuite) TestGetByIdFalseCacheHit() {
 	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}, Form: "W"}
-	s.teamStatsService.statsMap[ts.Id.GetCurrentId()] = &ts
 
-	res, err := s.teamStatsService.GetById(ts.Id.GetCurrentId())
+	res, err := s.teamStatsService.GetById(ts.Id, false)
+	s.mockCache.EXPECT().Get(ts.Id.GetNextId()).Return(&ts, nil)
+	s.mockTsRepo.AssertNotCalled(s.T(), "GetById", ts.Id.GetNextId())
 
 	s.Nil(err)
 	s.Equal(&ts, res)
-	s.Contains(s.teamStatsService.statsMap, ts.Id.GetCurrentId())
-	s.Contains(s.teamStatsService.statsMap, ts.Id.GetNextId())
 }
 
 func (s *teamStatsServiceTestSuite) TestGetByIdNotFound() {
 	id := model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100}
 
+	s.mockCache.EXPECT().Get(id).Return(nil, nil)
 	s.mockTsRepo.EXPECT().GetById(id).Return(nil, errors.New("not found"))
 
-	res, err := s.teamStatsService.GetById(id)
+	res, err := s.teamStatsService.GetById(id, true)
 
 	s.Nil(res)
 	s.ErrorContains(err, "no stats")
 }
 
-func (s *teamStatsServiceTestSuite) TestGetByIdBoth() {
-	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}}
+func (s *teamStatsServiceTestSuite) TestGetByIdInvalid() {
+	tsc := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100}}
+	tsn := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, NextFixtureId: 100}}
 
-	res, err := s.teamStatsService.GetById(ts.Id)
+	res1, err1 := s.teamStatsService.GetById(tsn.Id, false)
 
-	s.Nil(res)
-	s.ErrorContains(err, "FixtureId and NextFixtureId")
+	s.Nil(res1)
+	s.ErrorContains(err1, "current is true but FixtureId is 0")
+
+	res2, err2 := s.teamStatsService.GetById(tsc.Id, true)
+
+	s.Nil(res2)
+	s.ErrorContains(err2, "current is false but NextFixtureId is 0")
 }
 
 func (s *teamStatsServiceTestSuite) TestGetByIdWithTLSCurrent() {
