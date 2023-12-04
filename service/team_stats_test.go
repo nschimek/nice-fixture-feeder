@@ -9,6 +9,7 @@ import (
 	repo_mocks "github.com/nschimek/nice-fixture-feeder/repository/mocks"
 	"github.com/nschimek/nice-fixture-feeder/service/mocks"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -119,7 +120,7 @@ func (s *teamStatsServiceTestSuite) TestGetByIdWithTLSCurrent() {
 	tls := model.TeamLeagueSeason{Id: tlsid, MaxFixtureId: 102}
 
 	s.mockTlsService.EXPECT().GetById(tlsid).Return(&tls, nil)
-	s.mockTsRepo.EXPECT().GetById(ts.Id.GetCurrentId()).Return(&ts, nil)
+	s.mockCache.EXPECT().Get(ts.Id.GetCurrentId()).Return(&ts, nil)
 
 	res, err := s.teamStatsService.GetByIdWithTLS(ts.Id, true)
 
@@ -133,7 +134,7 @@ func (s *teamStatsServiceTestSuite) TestGetByIdWithTLSNext() {
 	tls := model.TeamLeagueSeason{Id: tlsid, MaxFixtureId: 103}
 
 	s.mockTlsService.EXPECT().GetById(tlsid).Return(&tls, nil)
-	s.mockTsRepo.EXPECT().GetById(ts.Id.GetNextId()).Return(&ts, nil)
+	s.mockCache.EXPECT().Get(ts.Id.GetNextId()).Return(&ts, nil)
 
 	res, err := s.teamStatsService.GetByIdWithTLS(ts.Id, false)
 
@@ -149,20 +150,18 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 	s.mockStatusService.EXPECT().IsFinished("NS").Return(false)
 	s.mockTlsService.EXPECT().GetById(tlsHome.Id).Return(&tlsHome, nil)
 	s.mockTlsService.EXPECT().GetById(tlsAway.Id).Return(&tlsAway, nil)
-	s.mockTsRepo.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
-	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsHome.Id, MaxFixtureId: 100})
-	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
+	s.mockTlsService.AssertNotCalled(s.T(), "GetById") // TLS has max fixture ID of 0, so this should not be called
+	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsHome.Id, MaxFixtureId: 100})
+	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
+	// we are not concerned with what the persist methods are being called with in this test
+	s.mockCache.EXPECT().Set(mock.AnythingOfType("model.TeamStatsId"), mock.AnythingOfType("*model.TeamStats")).Return(nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("*model.TeamStats")).Return(model.TeamStats{}, nil)
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
 	s.teamStatsService.MaintainStats([]int{s.fixtureIds[0], s.fixtureIds[1], s.fixtureIds[3]}, 
 		map[int]model.Fixture{100: s.fixtures[0], 103: s.fixtures[3]})
 
-	// assert that the invalid ID and the not started fixtures are not present in the results (with the len checks)
-	s.Len(s.teamStatsService.statsMap, 2)
-	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100})
-	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
-	s.mockTlsService.AssertCalled(s.T(), "AddToMap", &model.TeamLeagueSeason{Id: tlsHome.Id, MaxFixtureId: 100})
-	s.mockTlsService.AssertCalled(s.T(), "AddToMap", &model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
+	s.mockTlsService.AssertExpectations(s.T())
 }
 
 func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
@@ -172,15 +171,23 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	tsid := model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}
 
 	s.mockTlsService.EXPECT().GetById(tlsCurr.Id).Return(&tlsPrev, nil)
-	s.mockTsRepo.EXPECT().GetById(tsid).Return(&model.TeamStats{Id: tsid}, nil)
-	s.mockTlsService.EXPECT().AddToMap(&model.TeamLeagueSeason{Id: tlsCurr.Id, MaxFixtureId: 101})
+	s.mockCache.EXPECT().Get(tsid).Return(&model.TeamStats{Id: tsid}, nil)
+	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsCurr.Id, MaxFixtureId: 101})
 
 	s.teamStatsService.maintainFixture(f, true)
 
-	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100})
-	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101})
-	s.Contains(s.teamStatsService.statsMap, model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101})
+	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, 
+		mock.AnythingOfType("*model.TeamStats")).Return(nil)
+	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, 
+		mock.AnythingOfType("*model.TeamStats")).Return(nil)
+	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, 
+		mock.AnythingOfType("*model.TeamStats")).Return(nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("*model.TeamStats")).Return(model.TeamStats{}, nil)
+
+	s.mockTsRepo.AssertNumberOfCalls(s.T(), "UpsertOne", 3)
 }
+
+// TODO: update the tests after this line to remove map checks and use cache mocks instead
 
 // Test a common possiblity: the curent MaxFixtureId is GTE the incoming one (this can happen on re-runs)
 func (s *teamStatsServiceTestSuite) TestMaintainFixturePrevIdHigher() {

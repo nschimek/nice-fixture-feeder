@@ -53,6 +53,9 @@ func (s *teamStats) GetById(id model.TeamStatsId, current bool) (*model.TeamStat
 		return nil, errors.New("current is false but NextFixtureId is 0")
 	}
 
+	// recreate ID using the current setting - this will zero out the unused FixtureId (just in case)
+	id = id.FromCurrent(current)
+
 	var stats *model.TeamStats
 	if cv, _ := s.cache.Get(id); cv != nil {
 		stats = cv // use the cached value, since we have it
