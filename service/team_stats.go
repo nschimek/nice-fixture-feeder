@@ -188,7 +188,7 @@ func (s *teamStats) getPreviousStats(tls *model.TeamLeagueSeason) (*model.TeamSt
 		return &model.TeamStats{Id: id}, nil
 	}
 
-	return s.GetByIdWithTLS(id, true)
+	return s.GetById(id, true)
 }
 
 func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.Fixture) (*model.TeamStats, error) {
