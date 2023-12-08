@@ -102,7 +102,7 @@ func (c *cache[T]) Set(key interface{}, value *T) error {
 		return err
 	}
 
-	// due this method having type saftey, I don't forsee an error here
+	// due this method having type safety, I don't forsee errors occurring here
 	bytes, _ := json.Marshal(value)
 
 	err = c.client.Set(&memcache.Item{

@@ -151,7 +151,7 @@ func (s *scoringTestSuite) TestGetStatsTeamEarlyRound() {
 	}
 	stats := model.TeamStats{Id: model.TeamStatsId{FixtureId: 100}}
 
-	s.mockStatusService.EXPECT().IsScheduled("SC").Return(false)
+	s.mockStatusService.EXPECT().IsScheduled("FT").Return(false)
 	s.mockStatsService.EXPECT().GetByIdWithTLS(model.TeamStatsId{
 		TeamId: 1, LeagueId: 10, Season: 2021, NextFixtureId: 100}, true).Return(&stats, nil)
 

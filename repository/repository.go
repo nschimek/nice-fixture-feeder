@@ -65,8 +65,12 @@ func (r upsertRepository[T]) Upsert(entities []T) ([]T, error) {
 	return entities, nil
 }
 
+// TODO: We should probably return a pointer to T instead of just T here.
 func (r upsertRepository[T]) UpsertOne(entity T) (T, error) {
 	res, err := r.Upsert([]T{entity})
+	if err != nil {
+		return *new(T), err
+	}
 	return res[0], err 
 }
 
