@@ -71,7 +71,6 @@ func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service
 
 	// Maintain Stats
 	teamStatsService.MaintainStats(fixtureRequest.GetIds(), fixtureRequest.GetMap())
-	teamStatsService.Persist()
 
 	// Run Scoring Service
 	scoringService.SetFixtures(fixtureRequest.GetMap())

@@ -117,7 +117,7 @@ func (s *scoringTestSuite) TestGetStatsTeam() {
 
 	s.mockStatusService.EXPECT().IsScheduled("FT").Return(false)
 	s.mockStatsService.EXPECT().GetById(model.TeamStatsId{
-		TeamId: 1, LeagueId: 10, Season: 2022, NextFixtureId: 100}).Return(&stats, nil)
+		TeamId: 1, LeagueId: 10, Season: 2022, NextFixtureId: 100}, false).Return(&stats, nil)
 
 	res, err := s.scoring.getStatsTeam(&fixture, true)
 

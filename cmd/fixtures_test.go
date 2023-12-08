@@ -55,7 +55,6 @@ func TestRunFixturesRequestSeason(t *testing.T) {
 	fr.EXPECT().GetIds().Return(ids)
 	fr.EXPECT().GetMap().Return(fixtures)
 	ts.EXPECT().MaintainStats(ids, fixtures)
-	ts.EXPECT().Persist()
 
 	runFixturesRequest(fr, ts, ss)
 
@@ -82,7 +81,6 @@ func TestRunFixturesRequestNoSeason(t *testing.T) {
 	fr.EXPECT().GetIds().Return(ids)
 	fr.EXPECT().GetMap().Return(fixtures)
 	ts.EXPECT().MaintainStats(ids, fixtures)
-	ts.EXPECT().Persist()
 
 	runFixturesRequest(fr, ts, ss)
 

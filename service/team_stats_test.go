@@ -79,9 +79,10 @@ func (s *teamStatsServiceTestSuite) TestGetByIdCurrentCacheMiss() {
 func (s *teamStatsServiceTestSuite) TestGetByIdFalseCacheHit() {
 	ts := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100, NextFixtureId: 101}, Form: "W"}
 
-	res, err := s.teamStatsService.GetById(ts.Id, false)
 	s.mockCache.EXPECT().Get(ts.Id.GetNextId()).Return(&ts, nil)
 	s.mockTsRepo.AssertNotCalled(s.T(), "GetById", ts.Id.GetNextId())
+
+	res, err := s.teamStatsService.GetById(ts.Id, false)
 
 	s.Nil(err)
 	s.Equal(&ts, res)
@@ -103,12 +104,12 @@ func (s *teamStatsServiceTestSuite) TestGetByIdInvalid() {
 	tsc := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, FixtureId: 100}}
 	tsn := model.TeamStats{Id: model.TeamStatsId{TeamId: 31, LeagueId: 39, Season: 2022, NextFixtureId: 100}}
 
-	res1, err1 := s.teamStatsService.GetById(tsn.Id, false)
+	res1, err1 := s.teamStatsService.GetById(tsn.Id, true)
 
 	s.Nil(res1)
 	s.ErrorContains(err1, "current is true but FixtureId is 0")
 
-	res2, err2 := s.teamStatsService.GetById(tsc.Id, true)
+	res2, err2 := s.teamStatsService.GetById(tsc.Id, false)
 
 	s.Nil(res2)
 	s.ErrorContains(err2, "current is false but NextFixtureId is 0")
@@ -155,7 +156,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
 	// we are not concerned with what the persist methods are being called with in this test
 	s.mockCache.EXPECT().Set(mock.AnythingOfType("model.TeamStatsId"), mock.AnythingOfType("*model.TeamStats")).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("*model.TeamStats")).Return(model.TeamStats{}, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(model.TeamStats{}, nil)
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
 	s.teamStatsService.MaintainStats([]int{s.fixtureIds[0], s.fixtureIds[1], s.fixtureIds[3]}, 
@@ -174,20 +175,21 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 	s.mockCache.EXPECT().Get(tsid).Return(&model.TeamStats{Id: tsid}, nil)
 	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsCurr.Id, MaxFixtureId: 101})
 
-	s.teamStatsService.maintainFixture(f, true)
-
+	// once again we are not concerned with the stat values here, just that persist is getting called	
 	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, 
 		mock.AnythingOfType("*model.TeamStats")).Return(nil)
 	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, 
 		mock.AnythingOfType("*model.TeamStats")).Return(nil)
-	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, 
+	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}, 
 		mock.AnythingOfType("*model.TeamStats")).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("*model.TeamStats")).Return(model.TeamStats{}, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(model.TeamStats{}, nil)
 
-	s.mockTsRepo.AssertNumberOfCalls(s.T(), "UpsertOne", 3)
+	s.teamStatsService.maintainFixture(f, true)
+
+	// should end up with just 2 persist calls
+	s.mockTsRepo.AssertNumberOfCalls(s.T(), "UpsertOne", 2)
+	s.mockCache.AssertExpectations(s.T())
 }
-
-// TODO: update the tests after this line to remove map checks and use cache mocks instead
 
 // Test a common possiblity: the curent MaxFixtureId is GTE the incoming one (this can happen on re-runs)
 func (s *teamStatsServiceTestSuite) TestMaintainFixturePrevIdHigher() {
@@ -361,7 +363,7 @@ func (s *teamStatsServiceTestSuite) TestPersistOneBothIds() {
 
 	s.mockCache.EXPECT().Set(ts.Id.GetCurrentId(), ts).Return(nil)
 	s.mockCache.EXPECT().Set(ts.Id.GetNextId(), ts).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(ts).Return(*ts, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts).Return(*ts, nil)
 
 	s.teamStatsService.PersistOne(ts)
 }
@@ -370,14 +372,14 @@ func (s *teamStatsServiceTestSuite) TestPersistOneOneId() {
 	ts1 := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WWW"}
 
 	s.mockCache.EXPECT().Set(ts1.Id.GetCurrentId(), ts1).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(ts1).Return(*ts1, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts1).Return(*ts1, nil)
 
 	s.teamStatsService.PersistOne(ts1)
 
 	ts2 := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, Form: "WWW"}
 
 	s.mockCache.EXPECT().Set(ts2.Id.GetNextId(), ts2).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(ts2).Return(*ts2, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts2).Return(*ts2, nil)
 
 	s.teamStatsService.PersistOne(ts2)
 }
