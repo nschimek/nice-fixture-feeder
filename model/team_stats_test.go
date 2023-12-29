@@ -14,20 +14,15 @@ func TestGetTlsId(t *testing.T) {
 	assert.Equal(t, TeamLeagueSeasonId{TeamId: 40, LeagueId: 39, Season: 2022}, a)
 }
 
-func TestGetCurrentId(t *testing.T) {
+func TestFromCurrent(t *testing.T) {
 	ts := TeamStats{Id: TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022, NextFixtureId: 12346}}
 
-	a := ts.Id.GetCurrentId()
+	// this also covers GetCurrentId and GetNextId
+	ct := ts.Id.FromCurrent(true)
+	cf := ts.Id.FromCurrent(false)
 
-	assert.Equal(t, TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022, NextFixtureId: 0}, a)
-}
-
-func TestGetNextId(t *testing.T) {
-	ts := TeamStats{Id: TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022, NextFixtureId: 12346}}
-
-	a := ts.Id.GetNextId()
-
-	assert.Equal(t, TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 0, Season: 2022, NextFixtureId: 12346}, a)
+	assert.Equal(t, TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 12345, Season: 2022, NextFixtureId: 0}, ct)
+	assert.Equal(t, TeamStatsId{TeamId: 40, LeagueId: 39, FixtureId: 0, Season: 2022, NextFixtureId: 12346}, cf)
 }
 
 func TestTeamStatsIncrement(t *testing.T) {

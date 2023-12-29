@@ -11,56 +11,61 @@ import (
 
 //go:generate mockery --name TeamStats --filename team_stats_mock.go
 type TeamStats interface {
-	GetById(tsid model.TeamStatsId) (*model.TeamStats, error)
+	GetById(tsid model.TeamStatsId, current bool) (*model.TeamStats, error)
 	GetByIdWithTLS(tsid model.TeamStatsId, current bool) (*model.TeamStats, error)
 	MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fixture)
 	GetMinFixtureMap() map[model.TeamLeagueSeasonId]int
-	Persist()
+	PersistOne(stats *model.TeamStats)
 }
 
 type teamStats struct {
 	tsRepo repository.TeamStats
+	cache core.Cache[model.TeamStats]
 	tlsService TeamLeagueSeason
 	statusService FixtureStatus
-	statsMap map[model.TeamStatsId]*model.TeamStats // we use a pointer here because stats will be stored twice under different keys
 	minFixtureMap map[model.TeamLeagueSeasonId]int 
 }
 
 func NewTeamStats(tsRepo repository.TeamStats, 
+	cache core.Cache[model.TeamStats],
 	tlsService TeamLeagueSeason,
 	statusService FixtureStatus) *teamStats {
 	return &teamStats{
 		tsRepo: tsRepo, 
+		cache: cache,
 		tlsService: tlsService,
 		statusService: statusService,
-		statsMap: make(map[model.TeamStatsId]*model.TeamStats),
 		minFixtureMap: make(map[model.TeamLeagueSeasonId]int),
 	}
 }
 
-// Get Team Stats by ID.  Due to the way the stats are stored in the Map, populate either
-// FixtureId or NextFixtureId - but not both.
-func (s *teamStats) GetById(id model.TeamStatsId) (*model.TeamStats, error)  {
+// Get Team Stats by ID
+// If current is True, the Fixture ID will be used.  If current is false, the Next Fixture ID will be used.
+func (s *teamStats) GetById(id model.TeamStatsId, current bool) (*model.TeamStats, error)  {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season, "fixtureId": id.FixtureId, "nextFixtureId": id.NextFixtureId,
 	}).Debug("Getting team stats by ID...")
 
-	if id.FixtureId > 0 && id.NextFixtureId > 0 {
-		return nil, errors.New("cannot have both FixtureId and NextFixtureId")
+	// check to make sure we have ana ID based on the boolean value (this is really just a sanity check)
+	if (id.FixtureId == 0 && current) {
+		return nil, errors.New("current is true but FixtureId is 0")
+	} else if (id.NextFixtureId == 0 && !current) {
+		return nil, errors.New("current is false but NextFixtureId is 0")
 	}
+
+	// recreate ID using the current setting - this will zero out the unused FixtureId (just in case)
+	id = id.FromCurrent(current)
 
 	var stats *model.TeamStats
-	if mv, ok := s.statsMap[id]; ok {
-		stats = mv // use the map value, since we have it
+	if cv, _ := s.cache.Get(id); cv != nil {
+		stats = cv // use the cached value, since we have it
 	} else {
 		stats, _ = s.tsRepo.GetById(id)
+		if stats == nil {
+			return nil, errors.New("no stats for given ID")
+		}
+		s.cache.Set(id, stats)
 	}
-
-	if stats == nil {
-		return nil, errors.New("no stats for given ID")
-	}
-
-	s.addToStatsMap(stats)
 
 	return stats, nil
 }
@@ -74,23 +79,11 @@ func (s *teamStats) GetByIdWithTLS(id model.TeamStatsId, current bool) (*model.T
 		return nil, err
 	}
 
-	return s.GetById(*tls.GetTeamStatsId(current))
+	return s.GetById(*tls.GetTeamStatsId(current), current)
 }
 
 func (s *teamStats) GetMinFixtureMap() map[model.TeamLeagueSeasonId]int {
 	return s.minFixtureMap
-}
-
-// Add stats to the Stats Map.
-// But how we add these IDs to the stats map is important.  We have to support look-up via current fixture ID and next fixture ID.
-// To accomplish this, we zero out the unused ID field - this way, only one is required to get the stats.
-func (s *teamStats) addToStatsMap(stats *model.TeamStats) {
-	if stats.Id.FixtureId > 0 {
-		s.statsMap[stats.Id.GetCurrentId()] = stats
-	}
-	if stats.Id.NextFixtureId > 0 {
-		s.statsMap[stats.Id.GetNextId()] = stats
-	}
 }
 
 // Add to the Minimum Fixture Map.
@@ -117,24 +110,19 @@ func (s *teamStats) MaintainStats(fixtureIds []int, fixtureMap map[int]model.Fix
 	}
 }
 
-func (s *teamStats) Persist() {
-	stats := []model.TeamStats{}
+func (s *teamStats) PersistOne(stats *model.TeamStats) {
+	core.Log.WithFields(logrus.Fields{
+		"teamId": stats.Id.TeamId, "leagueId": stats.Id.LeagueId, "season": stats.Id.Season, "fixtureId": stats.Id.FixtureId, "nextFixtureId": stats.Id.NextFixtureId,
+	}).Info("Persisting team stats...")
 
-	// the map will potentially have two copies of stats (one keyed on current fixutre ID, the other on next fixture ID)
-	// we only need to persist one copy
-	for k, v := range s.statsMap {
-		if k.FixtureId > 0 && k.NextFixtureId == 0 {
-			stats = append(stats, *v)
-		}
+	if stats.Id.FixtureId > 0 {
+		s.cache.Set(stats.Id.GetCurrentId(), stats)
 	}
-
-	core.Log.WithField("team_stats", len(stats)).Info("Persisting Team Stats...")
-
-	_, err := s.tsRepo.Upsert(stats)
-
-	if err == nil {
-		s.tlsService.Persist()
+	if stats.Id.NextFixtureId > 0 {
+		s.cache.Set(stats.Id.GetNextId(), stats)
 	}
+	
+	s.tsRepo.UpsertOne(*stats)
 }
 
 func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
@@ -144,21 +132,15 @@ func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 	if err == nil && tls != nil {
 		// if there are no errors, make the ID updates and save these stats in the maps (they will get persisted later)
 		tls.MaxFixtureId = fixture.Fixture.Id
-		s.tlsService.AddToMap(tls)
-		s.addToStatsMap(curr)
+		s.tlsService.PersistOne(tls)
+		s.PersistOne(curr)
 		s.addToMinFixtureMap(curr)
 		// only persist non-zeroed previous stats (zeroed stats are used at start of season)
 		if prev.Id.FixtureId > 0 {
 			prev.Id.NextFixtureId = fixture.Fixture.Id
-			s.addToStatsMap(prev)
+			s.PersistOne(prev)
 		}
 	} else if err != nil {
-		// if we managed to get a previous stat, it will be in the map - so we need to remove it
-		if prev != nil {
-			core.Log.WithField("fixtureId", prev.Id.GetCurrentId()).Info("Removing prev stats from map due to error...")
-			delete(s.statsMap, prev.Id.GetCurrentId())
-		}
-		// log that there were errors
 		core.Log.Errorf("issues maintaing stats for fixture ID %d: %v", fixture.Fixture.Id, err)
 	}
 }
@@ -206,7 +188,7 @@ func (s *teamStats) getPreviousStats(tls *model.TeamLeagueSeason) (*model.TeamSt
 		return &model.TeamStats{Id: id}, nil
 	}
 
-	return s.GetByIdWithTLS(id, true)
+	return s.GetById(id, true)
 }
 
 func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.Fixture) (*model.TeamStats, error) {

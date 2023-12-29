@@ -12,20 +12,16 @@ import (
 //go:generate mockery --name TeamLeagueSeason --filename team_league_season_mock.go
 type TeamLeagueSeason interface {
 	GetById(tsid model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error)
-	AddToMap(tls *model.TeamLeagueSeason) 
-	Persist()
+	PersistOne(tls *model.TeamLeagueSeason)
 }
 
 type teamLeagueSeason struct {
 	tlsRepo repository.TeamLeagueSeason
-	tlsMap map[model.TeamLeagueSeasonId]model.TeamLeagueSeason
+	cache core.Cache[model.TeamLeagueSeason]
 }
 
-func NewTeamLeagueSeason(tlsRepo repository.TeamLeagueSeason) *teamLeagueSeason {
-	return &teamLeagueSeason{
-		tlsRepo: tlsRepo,
-		tlsMap: make(map[model.TeamLeagueSeasonId]model.TeamLeagueSeason),
-	}
+func NewTeamLeagueSeason(tlsRepo repository.TeamLeagueSeason, cache core.Cache[model.TeamLeagueSeason]) *teamLeagueSeason {
+	return &teamLeagueSeason{tlsRepo: tlsRepo, cache: cache}
 }
 
 func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeagueSeason, error) {
@@ -34,26 +30,30 @@ func (s *teamLeagueSeason) GetById(id model.TeamLeagueSeasonId) (*model.TeamLeag
 	}).Debug("Getting team league season (TLS)...")
 
 	var tls *model.TeamLeagueSeason
-	if mv, ok := s.tlsMap[id]; ok {
-		tls = &mv // use the map value, since we have it
+	if cv, _ := s.cache.Get(id); cv != nil {
+		tls = cv // use the cached value, since we have it
 	} else {
 		tls, _ = s.tlsRepo.GetById(id)
+
+		if tls == nil {
+			return nil, errors.New("could not get TLS - league may not be setup, or newly promoted team")
+		}
+
+		s.cache.Set(id, tls)
 	}
 
-	if tls == nil {
-		return nil, errors.New("could not get TLS - league may not be setup, or promoted team")
-	}
-
-	s.AddToMap(tls) // cache in the map
-	
 	return tls, nil
 }
 
-func (s *teamLeagueSeason) AddToMap(tls *model.TeamLeagueSeason) {
-	s.tlsMap[tls.Id] = *tls
+func (s *teamLeagueSeason) PersistOne(tls *model.TeamLeagueSeason) {
+	core.Log.WithFields(logrus.Fields{
+		"teamId": tls.Id.TeamId, "leagueId": tls.Id.LeagueId, "season": tls.Id.Season,
+	}).Info("Persisting TLS...")
+	res, err := s.tlsRepo.UpsertOne(*tls)
+	if err == nil {
+		s.cache.Set(res.Id, &res)
+	}
 }
 
-func (s *teamLeagueSeason) Persist() {
-	s.tlsRepo.Upsert(core.MapToArray[model.TeamLeagueSeasonId, model.TeamLeagueSeason](s.tlsMap))
-}
+
 

@@ -93,7 +93,7 @@ func setup() {
 	
 	repos := repository.Setup(core.DB)
 	scores := scores.Setup()
-	services = service.Setup(core.Cfg, core.S3, repos, scores)
+	services = service.Setup(core.Cfg, core.S3, repos, core.CC, scores)
 	requests = request.Setup(core.Cfg, repos, services)
 
 	ctx = new(commandContext)

@@ -16,6 +16,7 @@ type Config struct {
 	Debug         bool
 	API ConfigAPI
 	Database ConfigDatabase
+	Cache ConfigCache
 	AWS ConfigAWS
 }
 
@@ -26,6 +27,11 @@ type ConfigAPI struct {
 type ConfigDatabase struct {
 	User, Password, Location, Name string
 	Port                           int
+}
+
+type ConfigCache struct {
+	Host string
+	Port int
 }
 type ConfigAWS struct {
 	Region string
@@ -88,6 +94,8 @@ func bindViperEnvVars() {
 	viper.BindEnv("database.location")
 	viper.BindEnv("database.port")
 	viper.BindEnv("database.name")
+	viper.BindEnv("cache.host")
+	viper.BindEnv("cache.port")
 	viper.BindEnv("aws.region")
 	viper.BindEnv("aws.access-key-id")
 	viper.BindEnv("aws.secret-access-key")

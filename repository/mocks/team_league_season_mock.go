@@ -128,6 +128,58 @@ func (_c *TeamLeagueSeason_Upsert_Call) RunAndReturn(run func([]model.TeamLeague
 	return _c
 }
 
+// UpsertOne provides a mock function with given fields: entity
+func (_m *TeamLeagueSeason) UpsertOne(entity model.TeamLeagueSeason) (model.TeamLeagueSeason, error) {
+	ret := _m.Called(entity)
+
+	var r0 model.TeamLeagueSeason
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) (model.TeamLeagueSeason, error)); ok {
+		return rf(entity)
+	}
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) model.TeamLeagueSeason); ok {
+		r0 = rf(entity)
+	} else {
+		r0 = ret.Get(0).(model.TeamLeagueSeason)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TeamLeagueSeason) error); ok {
+		r1 = rf(entity)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TeamLeagueSeason_UpsertOne_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertOne'
+type TeamLeagueSeason_UpsertOne_Call struct {
+	*mock.Call
+}
+
+// UpsertOne is a helper method to define mock.On call
+//   - entity model.TeamLeagueSeason
+func (_e *TeamLeagueSeason_Expecter) UpsertOne(entity interface{}) *TeamLeagueSeason_UpsertOne_Call {
+	return &TeamLeagueSeason_UpsertOne_Call{Call: _e.mock.On("UpsertOne", entity)}
+}
+
+func (_c *TeamLeagueSeason_UpsertOne_Call) Run(run func(entity model.TeamLeagueSeason)) *TeamLeagueSeason_UpsertOne_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.TeamLeagueSeason))
+	})
+	return _c
+}
+
+func (_c *TeamLeagueSeason_UpsertOne_Call) Return(_a0 model.TeamLeagueSeason, _a1 error) *TeamLeagueSeason_UpsertOne_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TeamLeagueSeason_UpsertOne_Call) RunAndReturn(run func(model.TeamLeagueSeason) (model.TeamLeagueSeason, error)) *TeamLeagueSeason_UpsertOne_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewTeamLeagueSeason interface {
 	mock.TestingT
 	Cleanup(func())

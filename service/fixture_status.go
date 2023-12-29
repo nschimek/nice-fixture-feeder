@@ -3,6 +3,7 @@ package service
 import (
 	"strings"
 
+	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
 )
@@ -16,18 +17,18 @@ type FixtureStatus interface {
 
 type fixtureStatus struct {
 	repo repository.FixtureStatus
-	idMap map[string]string
+	cache core.Cache[model.FixtureStatus]
 }
 
-func NewFixtureStatus(repo repository.FixtureStatus) *fixtureStatus {
-	return &fixtureStatus{repo: repo}
+func NewFixtureStatus(repo repository.FixtureStatus, cache core.Cache[model.FixtureStatus]) *fixtureStatus {
+	s := &fixtureStatus{repo: repo, cache: cache}
+	s.initialize()
+	return s
 }
 
 func (s *fixtureStatus) GetType(id string) string {
-	if (s.idMap == nil) {
-		s.initializeMap()
-	}
-	return s.idMap[strings.ToUpper(id)]
+	sts, _ := s.cache.Get(strings.ToUpper(id))
+	return sts.Type
 }
 
 func (s *fixtureStatus) IsFinished(id string) bool {
@@ -38,11 +39,10 @@ func (s *fixtureStatus) IsScheduled(id string) bool {
 	return s.GetType(id) == model.StatusTypeScheduled
 }
 
-func (s *fixtureStatus) initializeMap() {
-	s.idMap = make(map[string]string)
+func (s *fixtureStatus) initialize() {
 	all, _ := s.repo.GetAll()
 	for _, fs := range all {
-		s.idMap[fs.Id] = fs.Type
+		s.cache.Set(fs.Id, &fs)
 	}
 }
 

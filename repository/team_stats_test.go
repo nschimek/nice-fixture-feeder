@@ -100,3 +100,27 @@ func (s *teamStatsRepositoryTestSuite) TestUpsertEmptyAndNil() {
 	s.Nil(a2)
 	s.Nil(e2)
 }
+
+func (s *teamStatsRepositoryTestSuite) TestUpsertOne() {
+	r := core.DatabaseResult{RowsAffected: 1, Error: nil}
+	exp := s.teamStats[0:1] // have to create the slice first, then can get the address in the mock
+
+	s.mockDatabase.EXPECT().Upsert(&exp).Return(r)
+
+	actual, err := s.repo.UpsertOne(s.teamStats[0])
+
+	s.Equal(s.teamStats[0], actual)
+	s.Nil(err)
+}
+
+func (s *teamStatsRepositoryTestSuite) TestUpsertOneError() {
+	r := core.DatabaseResult{RowsAffected: 0, Error: errors.New("test")}
+	exp := s.teamStats[0:1] // have to create the slice first, then can get the address in the mock
+
+	s.mockDatabase.EXPECT().Upsert(&exp).Return(r)
+
+	actual, err := s.repo.UpsertOne(s.teamStats[0])
+
+	s.Equal(model.TeamStats{}, actual)
+	s.ErrorContains(err, "test")
+}

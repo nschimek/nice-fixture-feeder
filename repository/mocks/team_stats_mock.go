@@ -128,6 +128,58 @@ func (_c *TeamStats_Upsert_Call) RunAndReturn(run func([]model.TeamStats) ([]mod
 	return _c
 }
 
+// UpsertOne provides a mock function with given fields: entity
+func (_m *TeamStats) UpsertOne(entity model.TeamStats) (model.TeamStats, error) {
+	ret := _m.Called(entity)
+
+	var r0 model.TeamStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TeamStats) (model.TeamStats, error)); ok {
+		return rf(entity)
+	}
+	if rf, ok := ret.Get(0).(func(model.TeamStats) model.TeamStats); ok {
+		r0 = rf(entity)
+	} else {
+		r0 = ret.Get(0).(model.TeamStats)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TeamStats) error); ok {
+		r1 = rf(entity)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TeamStats_UpsertOne_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertOne'
+type TeamStats_UpsertOne_Call struct {
+	*mock.Call
+}
+
+// UpsertOne is a helper method to define mock.On call
+//   - entity model.TeamStats
+func (_e *TeamStats_Expecter) UpsertOne(entity interface{}) *TeamStats_UpsertOne_Call {
+	return &TeamStats_UpsertOne_Call{Call: _e.mock.On("UpsertOne", entity)}
+}
+
+func (_c *TeamStats_UpsertOne_Call) Run(run func(entity model.TeamStats)) *TeamStats_UpsertOne_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(model.TeamStats))
+	})
+	return _c
+}
+
+func (_c *TeamStats_UpsertOne_Call) Return(_a0 model.TeamStats, _a1 error) *TeamStats_UpsertOne_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TeamStats_UpsertOne_Call) RunAndReturn(run func(model.TeamStats) (model.TeamStats, error)) *TeamStats_UpsertOne_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewTeamStats interface {
 	mock.TestingT
 	Cleanup(func())

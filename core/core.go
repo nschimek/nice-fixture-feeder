@@ -14,4 +14,5 @@ func Setup(configFile string) {
 	SetupConfigFile(configFile)
 	SetupDatabase(Cfg)
 	SetupS3(Cfg)
+	SetupCache(Cfg)
 }

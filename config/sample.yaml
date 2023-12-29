@@ -12,6 +12,9 @@ database:
   location: localhost
   port: 3306
   name: database
+cache:
+  host: localhost
+  port: 11211
 aws:
   region: us-east-1
   access-key-id: fake-access-key-id

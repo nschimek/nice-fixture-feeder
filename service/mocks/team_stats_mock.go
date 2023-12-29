@@ -20,25 +20,25 @@ func (_m *TeamStats) EXPECT() *TeamStats_Expecter {
 	return &TeamStats_Expecter{mock: &_m.Mock}
 }
 
-// GetById provides a mock function with given fields: tsid
-func (_m *TeamStats) GetById(tsid model.TeamStatsId) (*model.TeamStats, error) {
-	ret := _m.Called(tsid)
+// GetById provides a mock function with given fields: tsid, current
+func (_m *TeamStats) GetById(tsid model.TeamStatsId, current bool) (*model.TeamStats, error) {
+	ret := _m.Called(tsid, current)
 
 	var r0 *model.TeamStats
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TeamStatsId) (*model.TeamStats, error)); ok {
-		return rf(tsid)
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId, bool) (*model.TeamStats, error)); ok {
+		return rf(tsid, current)
 	}
-	if rf, ok := ret.Get(0).(func(model.TeamStatsId) *model.TeamStats); ok {
-		r0 = rf(tsid)
+	if rf, ok := ret.Get(0).(func(model.TeamStatsId, bool) *model.TeamStats); ok {
+		r0 = rf(tsid, current)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamStats)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.TeamStatsId) error); ok {
-		r1 = rf(tsid)
+	if rf, ok := ret.Get(1).(func(model.TeamStatsId, bool) error); ok {
+		r1 = rf(tsid, current)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -53,13 +53,14 @@ type TeamStats_GetById_Call struct {
 
 // GetById is a helper method to define mock.On call
 //   - tsid model.TeamStatsId
-func (_e *TeamStats_Expecter) GetById(tsid interface{}) *TeamStats_GetById_Call {
-	return &TeamStats_GetById_Call{Call: _e.mock.On("GetById", tsid)}
+//   - current bool
+func (_e *TeamStats_Expecter) GetById(tsid interface{}, current interface{}) *TeamStats_GetById_Call {
+	return &TeamStats_GetById_Call{Call: _e.mock.On("GetById", tsid, current)}
 }
 
-func (_c *TeamStats_GetById_Call) Run(run func(tsid model.TeamStatsId)) *TeamStats_GetById_Call {
+func (_c *TeamStats_GetById_Call) Run(run func(tsid model.TeamStatsId, current bool)) *TeamStats_GetById_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(model.TeamStatsId))
+		run(args[0].(model.TeamStatsId), args[1].(bool))
 	})
 	return _c
 }
@@ -69,7 +70,7 @@ func (_c *TeamStats_GetById_Call) Return(_a0 *model.TeamStats, _a1 error) *TeamS
 	return _c
 }
 
-func (_c *TeamStats_GetById_Call) RunAndReturn(run func(model.TeamStatsId) (*model.TeamStats, error)) *TeamStats_GetById_Call {
+func (_c *TeamStats_GetById_Call) RunAndReturn(run func(model.TeamStatsId, bool) (*model.TeamStats, error)) *TeamStats_GetById_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -206,34 +207,35 @@ func (_c *TeamStats_MaintainStats_Call) RunAndReturn(run func([]int, map[int]mod
 	return _c
 }
 
-// Persist provides a mock function with given fields:
-func (_m *TeamStats) Persist() {
-	_m.Called()
+// PersistOne provides a mock function with given fields: stats
+func (_m *TeamStats) PersistOne(stats *model.TeamStats) {
+	_m.Called(stats)
 }
 
-// TeamStats_Persist_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Persist'
-type TeamStats_Persist_Call struct {
+// TeamStats_PersistOne_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PersistOne'
+type TeamStats_PersistOne_Call struct {
 	*mock.Call
 }
 
-// Persist is a helper method to define mock.On call
-func (_e *TeamStats_Expecter) Persist() *TeamStats_Persist_Call {
-	return &TeamStats_Persist_Call{Call: _e.mock.On("Persist")}
+// PersistOne is a helper method to define mock.On call
+//   - stats *model.TeamStats
+func (_e *TeamStats_Expecter) PersistOne(stats interface{}) *TeamStats_PersistOne_Call {
+	return &TeamStats_PersistOne_Call{Call: _e.mock.On("PersistOne", stats)}
 }
 
-func (_c *TeamStats_Persist_Call) Run(run func()) *TeamStats_Persist_Call {
+func (_c *TeamStats_PersistOne_Call) Run(run func(stats *model.TeamStats)) *TeamStats_PersistOne_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(*model.TeamStats))
 	})
 	return _c
 }
 
-func (_c *TeamStats_Persist_Call) Return() *TeamStats_Persist_Call {
+func (_c *TeamStats_PersistOne_Call) Return() *TeamStats_PersistOne_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *TeamStats_Persist_Call) RunAndReturn(run func()) *TeamStats_Persist_Call {
+func (_c *TeamStats_PersistOne_Call) RunAndReturn(run func(*model.TeamStats)) *TeamStats_PersistOne_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -28,6 +28,14 @@ func (t TeamStatsId) GetTlsId() TeamLeagueSeasonId {
 	}
 }
 
+func (t TeamStatsId) FromCurrent(current bool) TeamStatsId {
+	if current {
+		return t.GetCurrentId()
+	} else {
+		return t.GetNextId()
+	}
+}
+
 // These methods create instances of the ID struct with the unused Fixture ID field set to 0 (for map look-ups)
 func (t TeamStatsId) GetCurrentId() TeamStatsId {
 	return TeamStatsId{
