@@ -129,18 +129,20 @@ func (_c *TeamStats_Upsert_Call) RunAndReturn(run func([]model.TeamStats) ([]mod
 }
 
 // UpsertOne provides a mock function with given fields: entity
-func (_m *TeamStats) UpsertOne(entity model.TeamStats) (model.TeamStats, error) {
+func (_m *TeamStats) UpsertOne(entity model.TeamStats) (*model.TeamStats, error) {
 	ret := _m.Called(entity)
 
-	var r0 model.TeamStats
+	var r0 *model.TeamStats
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TeamStats) (model.TeamStats, error)); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamStats) (*model.TeamStats, error)); ok {
 		return rf(entity)
 	}
-	if rf, ok := ret.Get(0).(func(model.TeamStats) model.TeamStats); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamStats) *model.TeamStats); ok {
 		r0 = rf(entity)
 	} else {
-		r0 = ret.Get(0).(model.TeamStats)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamStats)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(model.TeamStats) error); ok {
@@ -170,12 +172,12 @@ func (_c *TeamStats_UpsertOne_Call) Run(run func(entity model.TeamStats)) *TeamS
 	return _c
 }
 
-func (_c *TeamStats_UpsertOne_Call) Return(_a0 model.TeamStats, _a1 error) *TeamStats_UpsertOne_Call {
+func (_c *TeamStats_UpsertOne_Call) Return(_a0 *model.TeamStats, _a1 error) *TeamStats_UpsertOne_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TeamStats_UpsertOne_Call) RunAndReturn(run func(model.TeamStats) (model.TeamStats, error)) *TeamStats_UpsertOne_Call {
+func (_c *TeamStats_UpsertOne_Call) RunAndReturn(run func(model.TeamStats) (*model.TeamStats, error)) *TeamStats_UpsertOne_Call {
 	_c.Call.Return(run)
 	return _c
 }

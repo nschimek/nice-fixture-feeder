@@ -72,18 +72,20 @@ func (_c *UpsertRepository_Upsert_Call[T]) RunAndReturn(run func([]T) ([]T, erro
 }
 
 // UpsertOne provides a mock function with given fields: entity
-func (_m *UpsertRepository[T]) UpsertOne(entity T) (T, error) {
+func (_m *UpsertRepository[T]) UpsertOne(entity T) (*T, error) {
 	ret := _m.Called(entity)
 
-	var r0 T
+	var r0 *T
 	var r1 error
-	if rf, ok := ret.Get(0).(func(T) (T, error)); ok {
+	if rf, ok := ret.Get(0).(func(T) (*T, error)); ok {
 		return rf(entity)
 	}
-	if rf, ok := ret.Get(0).(func(T) T); ok {
+	if rf, ok := ret.Get(0).(func(T) *T); ok {
 		r0 = rf(entity)
 	} else {
-		r0 = ret.Get(0).(T)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*T)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(T) error); ok {
@@ -113,12 +115,12 @@ func (_c *UpsertRepository_UpsertOne_Call[T]) Run(run func(entity T)) *UpsertRep
 	return _c
 }
 
-func (_c *UpsertRepository_UpsertOne_Call[T]) Return(_a0 T, _a1 error) *UpsertRepository_UpsertOne_Call[T] {
+func (_c *UpsertRepository_UpsertOne_Call[T]) Return(_a0 *T, _a1 error) *UpsertRepository_UpsertOne_Call[T] {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UpsertRepository_UpsertOne_Call[T]) RunAndReturn(run func(T) (T, error)) *UpsertRepository_UpsertOne_Call[T] {
+func (_c *UpsertRepository_UpsertOne_Call[T]) RunAndReturn(run func(T) (*T, error)) *UpsertRepository_UpsertOne_Call[T] {
 	_c.Call.Return(run)
 	return _c
 }

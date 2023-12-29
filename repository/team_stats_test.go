@@ -109,7 +109,7 @@ func (s *teamStatsRepositoryTestSuite) TestUpsertOne() {
 
 	actual, err := s.repo.UpsertOne(s.teamStats[0])
 
-	s.Equal(s.teamStats[0], actual)
+	s.Equal(&s.teamStats[0], actual)
 	s.Nil(err)
 }
 
@@ -121,6 +121,6 @@ func (s *teamStatsRepositoryTestSuite) TestUpsertOneError() {
 
 	actual, err := s.repo.UpsertOne(s.teamStats[0])
 
-	s.Equal(model.TeamStats{}, actual)
+	s.Nil(actual)
 	s.ErrorContains(err, "test")
 }

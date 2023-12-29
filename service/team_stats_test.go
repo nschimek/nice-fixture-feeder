@@ -156,7 +156,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainStats() {
 	s.mockTlsService.EXPECT().PersistOne(&model.TeamLeagueSeason{Id: tlsAway.Id, MaxFixtureId: 100})
 	// we are not concerned with what the persist methods are being called with in this test
 	s.mockCache.EXPECT().Set(mock.AnythingOfType("model.TeamStatsId"), mock.AnythingOfType("*model.TeamStats")).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(model.TeamStats{}, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(&model.TeamStats{}, nil)
 
 	// test with one completed fixture, one not started, and one ID not in the map (to cover all branches)
 	s.teamStatsService.MaintainStats([]int{s.fixtureIds[0], s.fixtureIds[1], s.fixtureIds[3]}, 
@@ -182,7 +182,7 @@ func (s *teamStatsServiceTestSuite) TestMaintainFixtureWithPrevious() {
 		mock.AnythingOfType("*model.TeamStats")).Return(nil)
 	s.mockCache.EXPECT().Set(model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 101}, 
 		mock.AnythingOfType("*model.TeamStats")).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(model.TeamStats{}, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(mock.AnythingOfType("model.TeamStats")).Return(&model.TeamStats{}, nil)
 
 	s.teamStatsService.maintainFixture(f, true)
 
@@ -363,7 +363,7 @@ func (s *teamStatsServiceTestSuite) TestPersistOneBothIds() {
 
 	s.mockCache.EXPECT().Set(ts.Id.GetCurrentId(), ts).Return(nil)
 	s.mockCache.EXPECT().Set(ts.Id.GetNextId(), ts).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(*ts).Return(*ts, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts).Return(ts, nil)
 
 	s.teamStatsService.PersistOne(ts)
 }
@@ -372,14 +372,14 @@ func (s *teamStatsServiceTestSuite) TestPersistOneOneId() {
 	ts1 := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, FixtureId: 100}, Form: "WWW"}
 
 	s.mockCache.EXPECT().Set(ts1.Id.GetCurrentId(), ts1).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(*ts1).Return(*ts1, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts1).Return(ts1, nil)
 
 	s.teamStatsService.PersistOne(ts1)
 
 	ts2 := &model.TeamStats{Id: model.TeamStatsId{TeamId: 40, LeagueId: 39, Season: 2022, NextFixtureId: 101}, Form: "WWW"}
 
 	s.mockCache.EXPECT().Set(ts2.Id.GetNextId(), ts2).Return(nil)
-	s.mockTsRepo.EXPECT().UpsertOne(*ts2).Return(*ts2, nil)
+	s.mockTsRepo.EXPECT().UpsertOne(*ts2).Return(ts2, nil)
 
 	s.teamStatsService.PersistOne(ts2)
 }

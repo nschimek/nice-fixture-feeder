@@ -37,9 +37,9 @@ func (s *teamLeagueSeasonServiceTestSuite) SetupTest() {
 func (s* teamLeagueSeasonServiceTestSuite) TestGetByIdCacheHit() {
 	id := s.tls[0].Id
 
-	tls, err := s.tlsService.GetById(id)
-
 	s.mockCache.EXPECT().Get(id).Return(&s.tls[0], nil)
+
+	tls, err := s.tlsService.GetById(id)
 
 	assert.Nil(s.T(), err)
 	assert.Equal(s.T(), s.tls[0], *tls)
@@ -51,6 +51,7 @@ func (s *teamLeagueSeasonServiceTestSuite) TestGetByIdRepoFound() {
 
 	s.mockCache.EXPECT().Get(id).Return(nil, nil)
 	s.mockRepo.EXPECT().GetById(id).Return(&s.tls[0], nil)
+	s.mockCache.EXPECT().Set(id, &s.tls[0]).Return(nil)
 
 	tls, err := s.tlsService.GetById(id)
 
@@ -73,7 +74,7 @@ func (s *teamLeagueSeasonServiceTestSuite) TestGetByIdNotFound() {
 
 func (s *teamLeagueSeasonServiceTestSuite) TestPersistOne() {
 
-	s.mockRepo.EXPECT().UpsertOne(s.tls[0]).Return(s.tls[0], nil)
+	s.mockRepo.EXPECT().UpsertOne(s.tls[0]).Return(&s.tls[0], nil)
 	s.mockCache.EXPECT().Set(s.tls[0].Id, &s.tls[0]).Return(nil)
 
 	s.tlsService.PersistOne(&s.tls[0])

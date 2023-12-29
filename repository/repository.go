@@ -39,7 +39,7 @@ func newRepo(db core.Database, label string) *repository {
 //go:generate mockery --name UpsertRepository --filename repository_upsert_mock.go
 type UpsertRepository[T any] interface {
 	Upsert(entities []T) ([]T, error)
-	UpsertOne(entity T) (T, error)
+	UpsertOne(entity T) (*T, error)
 }
 
 type upsertRepository[T any] struct {
@@ -65,13 +65,12 @@ func (r upsertRepository[T]) Upsert(entities []T) ([]T, error) {
 	return entities, nil
 }
 
-// TODO: We should probably return a pointer to T instead of just T here.
-func (r upsertRepository[T]) UpsertOne(entity T) (T, error) {
+func (r upsertRepository[T]) UpsertOne(entity T) (*T, error) {
 	res, err := r.Upsert([]T{entity})
 	if err != nil {
-		return *new(T), err
+		return nil, err
 	}
-	return res[0], err 
+	return &res[0], err 
 }
 
 //go:generate mockery --name GetByIdRepository --filename repository_id_mock.go

@@ -51,7 +51,7 @@ func (s *teamLeagueSeason) PersistOne(tls *model.TeamLeagueSeason) {
 	}).Info("Persisting TLS...")
 	res, err := s.tlsRepo.UpsertOne(*tls)
 	if err == nil {
-		s.cache.Set(res.Id, &res)
+		s.cache.Set(res.Id, res)
 	}
 }
 

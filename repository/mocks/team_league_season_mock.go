@@ -129,18 +129,20 @@ func (_c *TeamLeagueSeason_Upsert_Call) RunAndReturn(run func([]model.TeamLeague
 }
 
 // UpsertOne provides a mock function with given fields: entity
-func (_m *TeamLeagueSeason) UpsertOne(entity model.TeamLeagueSeason) (model.TeamLeagueSeason, error) {
+func (_m *TeamLeagueSeason) UpsertOne(entity model.TeamLeagueSeason) (*model.TeamLeagueSeason, error) {
 	ret := _m.Called(entity)
 
-	var r0 model.TeamLeagueSeason
+	var r0 *model.TeamLeagueSeason
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) (model.TeamLeagueSeason, error)); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)); ok {
 		return rf(entity)
 	}
-	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) model.TeamLeagueSeason); ok {
+	if rf, ok := ret.Get(0).(func(model.TeamLeagueSeason) *model.TeamLeagueSeason); ok {
 		r0 = rf(entity)
 	} else {
-		r0 = ret.Get(0).(model.TeamLeagueSeason)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamLeagueSeason)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(model.TeamLeagueSeason) error); ok {
@@ -170,12 +172,12 @@ func (_c *TeamLeagueSeason_UpsertOne_Call) Run(run func(entity model.TeamLeagueS
 	return _c
 }
 
-func (_c *TeamLeagueSeason_UpsertOne_Call) Return(_a0 model.TeamLeagueSeason, _a1 error) *TeamLeagueSeason_UpsertOne_Call {
+func (_c *TeamLeagueSeason_UpsertOne_Call) Return(_a0 *model.TeamLeagueSeason, _a1 error) *TeamLeagueSeason_UpsertOne_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TeamLeagueSeason_UpsertOne_Call) RunAndReturn(run func(model.TeamLeagueSeason) (model.TeamLeagueSeason, error)) *TeamLeagueSeason_UpsertOne_Call {
+func (_c *TeamLeagueSeason_UpsertOne_Call) RunAndReturn(run func(model.TeamLeagueSeason) (*model.TeamLeagueSeason, error)) *TeamLeagueSeason_UpsertOne_Call {
 	_c.Call.Return(run)
 	return _c
 }
