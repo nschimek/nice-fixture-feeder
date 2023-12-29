@@ -68,8 +68,6 @@ func (c *cache[T]) Get(key interface{}) (*T, error) {
 		return nil, err
 	}
 
-	Log.WithField("key", ks).Debug("Getting key from cache")
-
 	var value T
 	item, err := c.client.Get(ks)
 
