@@ -35,7 +35,7 @@ type cache[T any] struct {
 	client CacheClient
 }
 
-// Sets up the Memcached Client global variable for injection into NewCache().
+// SetupCache sets up the Memcached Client global variable for injection into NewCache().
 func SetupCache(config *Config) {
 	Log.WithFields(logrus.Fields{
 		"host": config.Cache.Host,
@@ -50,7 +50,7 @@ func SetupCache(config *Config) {
 	CC = mcc
 }
 
-// Create a new instance of Cache.  Requires a CacheClient.
+// NewCache creates a new instance of Cache.  Requires a CacheClient.
 func NewCache[T any](cc CacheClient, prefix string) Cache[T] {
 	return &cache[T]{
 		client: cc,
@@ -58,7 +58,7 @@ func NewCache[T any](cc CacheClient, prefix string) Cache[T] {
 	}
 }
 
-// Attempt to get a value from the cache.  Returns nil on a cache miss.
+// Get attempts to get a value from the cache.  Returns nil on a cache miss.
 // Error will only be returned if it's not a CacheMiss.
 // This function will log its errors, so its optional to handle them.
 func (c *cache[T]) Get(key interface{}) (*T, error) {
@@ -92,7 +92,7 @@ func (c *cache[T]) Get(key interface{}) (*T, error) {
 	return &value, nil
 }
 
-// Set a value in the Cache.  Returns an error if there is one, and also logs it.
+// Set sets a value in the Cache.  Returns an error if there is one, and also logs it.
 func (c *cache[T]) Set(key interface{}, value *T) error {
 	ks, err := c.keyString(key)
 
@@ -119,7 +119,7 @@ func (c *cache[T]) Set(key interface{}, value *T) error {
 	return nil
 }
 
-// Converts a key of any type to a string.
+// keyString converts a key of any type to a string.
 func (c *cache[T]) keyString(key interface{}) (string, error) {
 	bytes, err := json.Marshal(key)
 

@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
@@ -30,6 +31,7 @@ type fixture struct {
 	requestedData []model.Fixture
 	fixtureMap map[int]model.Fixture
 	fixtureIds []int
+	done chan struct{}
 }
 
 func NewFixture(config *core.Config, repo repository.UpsertRepository[model.Fixture]) Fixture {
@@ -38,6 +40,7 @@ func NewFixture(config *core.Config, repo repository.UpsertRepository[model.Fixt
 		requester: NewRequester[model.Fixture](config),
 		fixtureMap: make(map[int]model.Fixture),
 		repo: repo,
+		done: make(chan struct{}),
 	}
 }
 
@@ -51,15 +54,53 @@ func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 		"startDate": startDate.Format(core.YYYY_MM_DD),
 		"endDate": startDate.Format(core.YYYY_MM_DD),
 	}).Info("Requesting fixtures for leagues...")
-	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
-		if fixtures, err := r.request(startDate, endDate, leagueId); err == nil {
-			r.requestedData = append(r.requestedData, fixtures...)
-		} else {
-			core.Log.Errorf("Could not get fixtures for league ID %d: %v", leagueId, err)
-		}
+
+	leagues := r.emitLeagues(r.config.Leagues)
+
+
+	fixtures := make(chan []model.Fixture)
+	errc := make(chan error, 1)
+
+	// start-up one goroutine for each league (TODO: set a configurable max)
+	var wg sync.WaitGroup
+	wg.Add(len(r.config.Leagues))
+	for i := 0; i < len(r.config.Leagues); i++ {
+		go func() {
+			// listen for league Ids and request fixtures
+			for leagueId := range leagues {
+				if res, err := r.request(startDate, endDate, leagueId); err == nil {
+					fixtures <- res
+				} else {
+					errc <- err
+				}
+			}
+			wg.Done()
+		}()
 	}
+
+	// for leagueId := range core.IdArrayToMap(r.config.Leagues) {
+	// 	if fixtures, err := r.request(startDate, endDate, leagueId); err == nil {
+	// 		r.requestedData = append(r.requestedData, fixtures...)
+	// 	} else {
+	// 		core.Log.Errorf("Could not get fixtures for league ID %d: %v", leagueId, err)
+	// 	}
+	// }
+
 }
 
+func (r *fixture) emitLeagues(leagueIds []int) (<- chan int) {
+	leagues := make(chan int)
+	go func() {
+		defer close(leagues)
+		for leagueId := range core.IdArrayToMap(leagueIds) {
+			select {
+			case leagues <- leagueId:
+			case <-r.done: return
+			}
+		}
+	}()
+	return leagues
+}
 
 func (r *fixture) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
 	p := url.Values{}
