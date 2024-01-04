@@ -55,27 +55,48 @@ func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 		"endDate": startDate.Format(core.YYYY_MM_DD),
 	}).Info("Requesting fixtures for leagues...")
 
-	leagues := r.emitLeagues(r.config.Leagues)
-
+	leagues := r.produceLeagues(r.config.Leagues)
 
 	fixtures := make(chan []model.Fixture)
 	errc := make(chan error, 1)
 
 	// start-up one goroutine for each league (TODO: set a configurable max)
 	var wg sync.WaitGroup
-	wg.Add(len(r.config.Leagues))
 	for i := 0; i < len(r.config.Leagues); i++ {
+		wg.Add(1)
 		go func() {
 			// listen for league Ids and request fixtures
 			for leagueId := range leagues {
-				if res, err := r.request(startDate, endDate, leagueId); err == nil {
-					fixtures <- res
-				} else {
-					errc <- err
+				res, err := r.request(startDate, endDate, leagueId)
+				select {
+				case fixtures <- res:
+				case errc <- err:
+				case <-r.done: return
 				}
 			}
 			wg.Done()
 		}()
+	}
+	go func() {
+		wg.Wait()
+		close(fixtures)
+	}()
+
+	for f := range fixtures {
+		go func(f []model.Fixture) {
+			rd, err := r.repo.Upsert(f)
+			if err == nil {
+				r.requestedData = append(r.requestedData, rd...)
+			}
+			select {		
+			case errc <- err:
+			case <-r.done: return
+			}
+		}(f)
+	}
+	
+	if err := <-errc; err != nil {
+		core.Log.Errorf("Could not get fixtures: %v", err)
 	}
 
 	// for leagueId := range core.IdArrayToMap(r.config.Leagues) {
@@ -88,7 +109,7 @@ func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 
 }
 
-func (r *fixture) emitLeagues(leagueIds []int) (<- chan int) {
+func (r *fixture) produceLeagues(leagueIds []int) (<- chan int) {
 	leagues := make(chan int)
 	go func() {
 		defer close(leagues)
