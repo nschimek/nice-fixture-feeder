@@ -1,4 +1,4 @@
-package core
+package util
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ func TestIdMapToArray(t *testing.T) {
 	}
 	e := []int{1, 2}
 	a := IdMapToArray(m)
-	
+
 	assert.ElementsMatch(t, e, a)
 }
 
