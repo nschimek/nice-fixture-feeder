@@ -23,6 +23,9 @@ docker.env
 .vscode/*
 .history/*
 
+# Goland
+.idea/*
+
 # System files
 .DS_Store
 Thumbs.db

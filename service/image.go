@@ -28,12 +28,12 @@ func NewImage(s3 core.S3Client) *image {
 }
 
 func (is *image) TransferURL(url, bucket, keyFormat string) bool {
-	time.Sleep(500 * time.Millisecond) // half second rate limit 
+	time.Sleep(500 * time.Millisecond) // half second rate limit
 	finalKeyName := fmt.Sprintf(keyFormat, path.Base(url))
 	core.Log.WithFields(logrus.Fields{
-		"url": url,
+		"url":    url,
 		"bucket": bucket,
-		"key": finalKeyName,
+		"key":    finalKeyName,
 	}).Infof("Transferring image to S3...")
 
 	if e, err := is.s3.Exists(bucket, finalKeyName); !e {
@@ -48,7 +48,7 @@ func (is *image) TransferURL(url, bucket, keyFormat string) bool {
 			core.Log.Errorf("Issue while uploading image: %v", err)
 			return false
 		}
-		
+
 		return true
 	} else if err != nil {
 		core.Log.Errorf("Issue while determining if image exists: %v", err)
@@ -64,10 +64,10 @@ func (is *image) download(url string) ([]byte, error) {
 
 	if err != nil {
 		return nil, err
-	} else if (res.StatusCode != http.StatusOK) {
+	} else if res.StatusCode != http.StatusOK {
 		return nil, errors.New("received non-200 response code")
 	}
-	
+
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 

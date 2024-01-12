@@ -19,37 +19,37 @@ type TeamStats interface {
 }
 
 type teamStats struct {
-	tsRepo repository.TeamStats
-	cache core.Cache[model.TeamStats]
-	tlsService TeamLeagueSeason
+	tsRepo        repository.TeamStats
+	cache         core.Cache[model.TeamStats]
+	tlsService    TeamLeagueSeason
 	statusService FixtureStatus
-	minFixtureMap map[model.TeamLeagueSeasonId]int 
+	minFixtureMap map[model.TeamLeagueSeasonId]int
 }
 
-func NewTeamStats(tsRepo repository.TeamStats, 
+func NewTeamStats(tsRepo repository.TeamStats,
 	cache core.Cache[model.TeamStats],
 	tlsService TeamLeagueSeason,
 	statusService FixtureStatus) *teamStats {
 	return &teamStats{
-		tsRepo: tsRepo, 
-		cache: cache,
-		tlsService: tlsService,
+		tsRepo:        tsRepo,
+		cache:         cache,
+		tlsService:    tlsService,
 		statusService: statusService,
 		minFixtureMap: make(map[model.TeamLeagueSeasonId]int),
 	}
 }
 
-// Get Team Stats by ID
+// GetById gets the Team Stats by ID.
 // If current is True, the Fixture ID will be used.  If current is false, the Next Fixture ID will be used.
-func (s *teamStats) GetById(id model.TeamStatsId, current bool) (*model.TeamStats, error)  {
+func (s *teamStats) GetById(id model.TeamStatsId, current bool) (*model.TeamStats, error) {
 	core.Log.WithFields(logrus.Fields{
 		"teamId": id.TeamId, "leagueId": id.LeagueId, "season": id.Season, "fixtureId": id.FixtureId, "nextFixtureId": id.NextFixtureId,
 	}).Debug("Getting team stats by ID...")
 
 	// check to make sure we have ana ID based on the boolean value (this is really just a sanity check)
-	if (id.FixtureId == 0 && current) {
+	if id.FixtureId == 0 && current {
 		return nil, errors.New("current is true but FixtureId is 0")
-	} else if (id.NextFixtureId == 0 && !current) {
+	} else if id.NextFixtureId == 0 && !current {
 		return nil, errors.New("current is false but NextFixtureId is 0")
 	}
 
@@ -121,7 +121,7 @@ func (s *teamStats) PersistOne(stats *model.TeamStats) {
 	if stats.Id.NextFixtureId > 0 {
 		s.cache.Set(stats.Id.GetNextId(), stats)
 	}
-	
+
 	s.tsRepo.UpsertOne(*stats)
 }
 
@@ -145,7 +145,7 @@ func (s *teamStats) maintainFixture(fixture *model.Fixture, home bool) {
 	}
 }
 
-func (s *teamStats) getUpdatedStats(tsid *model.TeamStatsId, 
+func (s *teamStats) getUpdatedStats(tsid *model.TeamStatsId,
 	fixture *model.Fixture) (tls *model.TeamLeagueSeason, curr, prev *model.TeamStats, err error) {
 	// get Team League Season (TLS), which contains the current max fixture ID (which will be the last played fixture)
 	tls, err = s.tlsService.GetById(tsid.GetTlsId())
@@ -155,7 +155,7 @@ func (s *teamStats) getUpdatedStats(tsid *model.TeamStatsId,
 	} else if tls.MaxFixtureId >= tsid.FixtureId {
 		// this will allow completed games to be safely re-requested without causing errors or currupting the team_stats table
 		core.Log.WithFields(logrus.Fields{
-			"fixtureId": tsid.FixtureId,
+			"fixtureId":    tsid.FixtureId,
 			"maxFixtureId": tls.MaxFixtureId,
 		}).Warn("Max Fixture ID is GTE incoming fixture ID (likely a re-run) - cannot maintain stats, skipping...")
 		return nil, nil, nil, nil
@@ -205,14 +205,14 @@ func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.
 
 	curr.Id.FixtureId = fixture.Fixture.Id // this is just a little important...
 	rs := fixture.GetResultStats(curr.Id.TeamId)
-	
+
 	curr.TeamStatsFixtures.FixturesPlayed.Increment(1, rs.Home)
-	
+
 	// result (and points)
-	if (rs.Result == model.ResultWin) {
+	if rs.Result == model.ResultWin {
 		curr.TeamStatsFixtures.FixturesWins.Increment(1, rs.Home)
 		curr.Points = curr.Points + 3
-	} else if (rs.Result == model.ResultLoss) {
+	} else if rs.Result == model.ResultLoss {
 		curr.TeamStatsFixtures.FixturesLosses.Increment(1, rs.Home)
 	} else {
 		curr.TeamStatsFixtures.FixturesDraws.Increment(1, rs.Home)
@@ -220,14 +220,14 @@ func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.
 	}
 	// form
 	curr.Form = curr.Form + rs.Result
-	// goals 
+	// goals
 	curr.TeamStatsGoals.GoalsFor.Increment(rs.GoalsFor, rs.Home)
 	curr.TeamStatsGoals.GoalsAgainst.Increment(rs.GoalsAgainst, rs.Home)
 	// clean sheets and failed to score
-	if (rs.GoalsAgainst == 0) {
+	if rs.GoalsAgainst == 0 {
 		curr.CleanSheets.Increment(1, rs.Home)
 	}
-	if (rs.GoalsFor == 0) {
+	if rs.GoalsFor == 0 {
 		curr.FailedToScore.Increment(1, rs.Home)
 	}
 	// goal differential
@@ -235,4 +235,3 @@ func (s *teamStats) calculateCurrentStats(prev *model.TeamStats, fixture *model.
 
 	return curr, nil
 }
-

@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/nschimek/nice-fixture-feeder/core"
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 	"github.com/nschimek/nice-fixture-feeder/model"
 	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/service/scores"
@@ -15,26 +16,26 @@ type Scoring interface {
 }
 
 type scoring struct {
-	scores *scores.ScoreRegistry
-	fixtureRepo repository.Fixture
+	scores           *scores.ScoreRegistry
+	fixtureRepo      repository.Fixture
 	fixtureScoreRepo repository.UpsertRepository[model.FixtureScore]
-	statusService FixtureStatus
-	statsService TeamStats
-	fixturesMap map[int]model.Fixture
-	fixtureScores []model.FixtureScore
+	statusService    FixtureStatus
+	statsService     TeamStats
+	fixturesMap      map[int]model.Fixture
+	fixtureScores    []model.FixtureScore
 }
 
 func NewScoring(scores *scores.ScoreRegistry,
 	fixtureRepo repository.Fixture,
 	fixtureScoreRepo repository.UpsertRepository[model.FixtureScore],
-	statsService TeamStats, 
+	statsService TeamStats,
 	statusService FixtureStatus) *scoring {
 	s := &scoring{
-		scores: scores,
-		fixtureRepo: fixtureRepo,
+		scores:           scores,
+		fixtureRepo:      fixtureRepo,
 		fixtureScoreRepo: fixtureScoreRepo,
-		statusService: statusService,
-		statsService: statsService,
+		statusService:    statusService,
+		statsService:     statsService,
 	}
 	s.setup()
 	return s
@@ -49,7 +50,7 @@ func (s *scoring) SetFixtures(fixtures map[int]model.Fixture) {
 // The min ID, along with all future fixtures with the same league, season, and team will be scored.
 // This will also exclude any Fixture IDs already in the Fixture map.
 func (s *scoring) AddFixturesFromMinMap(fixtureMap map[model.TeamLeagueSeasonId]int) {
-	notIn := core.MapToKeyArray[int, model.Fixture](s.fixturesMap)
+	notIn := util.MapToKeyArray[int, model.Fixture](s.fixturesMap)
 	for tlsId, minId := range fixtureMap {
 		fixtures, err := s.fixtureRepo.GetFutureFixturesByTLS(tlsId, minId, notIn)
 		if err == nil {
@@ -64,7 +65,6 @@ func (s *scoring) addFixtures(fixtures []model.Fixture) {
 		s.fixturesMap[f.Fixture.Id] = f
 	}
 }
-
 
 func (s *scoring) Score() {
 	core.Log.WithField("fixtures", len(s.fixturesMap)).Info("Scoring Fixtures...")
@@ -83,7 +83,7 @@ func (s *scoring) setup() {
 func (s *scoring) scoreFixture(fixture *model.Fixture) {
 	// score registry keeps a list of AllScores for use here
 	for _, score := range s.scores.AllScores {
-		if (score.CanScore(fixture)) {
+		if score.CanScore(fixture) {
 			core.Log.WithField("fixture_id", fixture.Fixture.Id).Info("Scoring fixture...")
 			fs, err := score.Score(fixture)
 			if fs != nil && err == nil {
@@ -95,7 +95,7 @@ func (s *scoring) scoreFixture(fixture *model.Fixture) {
 	}
 }
 
-func (s *scoring) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error) {	
+func (s *scoring) getStats(fixture *model.Fixture) (*model.TeamStats, *model.TeamStats, error) {
 	homeStats, err := s.getStatsTeam(fixture, true)
 	if err != nil {
 		return nil, nil, err
@@ -109,17 +109,17 @@ func (s *scoring) getStats(fixture *model.Fixture) (*model.TeamStats, *model.Tea
 
 func (s *scoring) getStatsTeam(fixture *model.Fixture, home bool) (*model.TeamStats, error) {
 	tsid := *fixture.GetTeamStatsNextId(home)
-	
-	// if the match has not been played or we are within the first 3 fixtures of the new season, we want to use TLS
+
+	// if the match has not been played, or we are within the first 3 fixtures of the new season, we want to use TLS
 	if s.statusService.IsScheduled(fixture.Fixture.Status.Id) || fixture.League.Round <= 3 {
 		curr := false // by default, use TLS and then look-up stats by next fixture ID
 		if fixture.League.Round <= 3 {
 			tsid.Season--
 			// the exception is when using last season's stats - in this case, we want the current
-			curr = true 
+			curr = true
 		}
 		return s.statsService.GetByIdWithTLS(tsid, curr)
-	} 
+	}
 
 	return s.statsService.GetById(tsid, false)
 }

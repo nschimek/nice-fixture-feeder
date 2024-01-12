@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 	"net/url"
 	"strconv"
 
@@ -22,25 +23,25 @@ type Team interface {
 }
 
 type team struct {
-	config *core.Config
-	requester Requester[model.Team]
-	repo repository.UpsertRepository[model.Team]
-	imageService service.Image
+	config        *core.Config
+	requester     Requester[model.Team]
+	repo          repository.UpsertRepository[model.Team]
+	imageService  service.Image
 	requestedData []model.Team
 }
 
 func NewTeam(config *core.Config, repo repository.UpsertRepository[model.Team], is service.Image) Team {
 	return &team{
-		config: config,
-		requester: NewRequester[model.Team](config),
+		config:       config,
+		requester:    NewRequester[model.Team](config),
 		imageService: is,
-		repo: repo,
+		repo:         repo,
 	}
 }
 
 func (r *team) Request() {
 	core.Log.WithField("leagues", r.config.Leagues).Info("Requesting teams for leagues...")
-	for leagueId := range core.IdArrayToMap(r.config.Leagues) {
+	for leagueId := range util.IdArrayToMap(r.config.Leagues) {
 		if teams, err := r.request(leagueId); err == nil {
 			r.requestedData = append(r.requestedData, teams...)
 		} else {

@@ -2,6 +2,7 @@ package util
 
 var Exists = struct{}{}
 
+// IdMapToArray converts a map of ID integers into an array.
 func IdMapToArray(idMap map[int]struct{}) (ids []int) {
 	for id := range idMap {
 		ids = append(ids, id)
@@ -9,6 +10,7 @@ func IdMapToArray(idMap map[int]struct{}) (ids []int) {
 	return
 }
 
+// IdArrayToMap converts an array of integers into a map of integers as they key, with an empty struct value.
 func IdArrayToMap(ids []int) (idMap map[int]struct{}) {
 	idMap = make(map[int]struct{})
 

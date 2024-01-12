@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 	"net/url"
 	"sort"
 	"strconv"
@@ -25,22 +26,22 @@ type Fixture interface {
 }
 
 type fixture struct {
-	config *core.Config
-	requester Requester[model.Fixture]
-	repo repository.UpsertRepository[model.Fixture]
+	config        *core.Config
+	requester     Requester[model.Fixture]
+	repo          repository.UpsertRepository[model.Fixture]
 	requestedData []model.Fixture
-	fixtureMap map[int]model.Fixture
-	fixtureIds []int
-	done chan struct{}
+	fixtureMap    map[int]model.Fixture
+	fixtureIds    []int
+	done          chan struct{}
 }
 
 func NewFixture(config *core.Config, repo repository.UpsertRepository[model.Fixture]) Fixture {
 	return &fixture{
-		config: config,
-		requester: NewRequester[model.Fixture](config),
+		config:     config,
+		requester:  NewRequester[model.Fixture](config),
 		fixtureMap: make(map[int]model.Fixture),
-		repo: repo,
-		done: make(chan struct{}),
+		repo:       repo,
+		done:       make(chan struct{}),
 	}
 }
 
@@ -50,9 +51,9 @@ func (r *fixture) Request() {
 
 func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 	core.Log.WithFields(logrus.Fields{
-		"leagues": r.config.Leagues,
+		"leagues":   r.config.Leagues,
 		"startDate": startDate.Format(core.YYYY_MM_DD),
-		"endDate": startDate.Format(core.YYYY_MM_DD),
+		"endDate":   startDate.Format(core.YYYY_MM_DD),
 	}).Info("Requesting fixtures for leagues...")
 
 	defer close(r.done)
@@ -61,20 +62,21 @@ func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 	fixtures, errc := r.concurrentRequest(leagues, startDate, endDate)
 
 	r.concurrentPersist(fixtures, errc)
-	
+
 	if err := <-errc; err != nil {
 		core.Log.Errorf("Could not get fixtures: %v", err)
 	}
 }
 
-func (r *fixture) produceLeagues(leagueIds []int) (<-chan int) {
+func (r *fixture) produceLeagues(leagueIds []int) <-chan int {
 	leagues := make(chan int)
 	go func() {
 		defer close(leagues)
-		for leagueId := range core.IdArrayToMap(leagueIds) {
+		for leagueId := range util.IdArrayToMap(leagueIds) {
 			select {
 			case leagues <- leagueId:
-			case <-r.done: return
+			case <-r.done:
+				return
 			}
 		}
 	}()
@@ -95,7 +97,8 @@ func (r *fixture) concurrentRequest(leagues <-chan int, startDate, endDate time.
 				select {
 				case fixtures <- res:
 				case errc <- err:
-				case <-r.done: return
+				case <-r.done:
+					return
 				}
 			}
 			wg.Done()
@@ -117,7 +120,7 @@ func (r *fixture) request(startDate, endDate time.Time, leagueId int) ([]model.F
 	if !startDate.IsZero() && !endDate.IsZero() {
 		p.Add("from", startDate.Format(core.YYYY_MM_DD))
 		p.Add("to", endDate.Format(core.YYYY_MM_DD))
-	} 
+	}
 
 	resp, err := r.requester.Get(fixturesEndpoint, p)
 
@@ -135,9 +138,10 @@ func (r *fixture) concurrentPersist(fixtures <-chan []model.Fixture, errc chan<-
 			if err == nil {
 				r.requestedData = append(r.requestedData, rd...)
 			}
-			select {		
+			select {
 			case errc <- err:
-			case <-r.done: return
+			case <-r.done:
+				return
 			}
 		}(f)
 	}

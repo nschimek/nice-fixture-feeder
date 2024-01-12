@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 	"net/url"
 	"strconv"
 
@@ -11,8 +12,8 @@ import (
 )
 
 const (
-	leaguesEndpoint = "leagues"
-	leagueKeyFormat = "images/logos/leagues/%s"
+	leaguesEndpoint  = "leagues"
+	leagueKeyFormat  = "images/logos/leagues/%s"
 	countryKeyFormat = "images/flags/%s"
 )
 
@@ -23,25 +24,25 @@ type League interface {
 }
 
 type league struct {
-	config *core.Config
-	requester Requester[model.League]
-	repo repository.UpsertRepository[model.League]
-	imageService service.Image
+	config        *core.Config
+	requester     Requester[model.League]
+	repo          repository.UpsertRepository[model.League]
+	imageService  service.Image
 	requestedData []model.League
 }
 
 func NewLeague(config *core.Config, repo repository.UpsertRepository[model.League], is service.Image) League {
 	return &league{
-		config: config,
-		requester: NewRequester[model.League](config),
+		config:       config,
+		requester:    NewRequester[model.League](config),
 		imageService: is,
-		repo: repo,
+		repo:         repo,
 	}
 }
 
 func (r *league) Request() {
 	core.Log.WithField("leagues", r.config.Leagues).Info("Requesting leagues...")
-	for id := range core.IdArrayToMap(r.config.Leagues) {
+	for id := range util.IdArrayToMap(r.config.Leagues) {
 		if leagues, err := r.request(id); err == nil {
 			r.requestedData = append(r.requestedData, leagues...)
 		} else {
