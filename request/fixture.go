@@ -94,7 +94,7 @@ func (r *fixture) concurrentRequest(lc <-chan int, startDate, endDate time.Time)
 
 	pool.Go(func(worker int) error {
 		for leagueId := range lc {
-			core.Log.Debug("Worker %d requesting fixtures for league %d...", worker, leagueId)
+			core.Log.WithFields(logrus.Fields{"leagueId": leagueId, "worker": worker}).Debug("Requesting fixtures...")
 			res, err := r.request(startDate, endDate, leagueId)
 			if err != nil {
 				return fmt.Errorf("(worker %d, league %d) requesting: %v", worker, leagueId, err)
@@ -140,6 +140,7 @@ func (r *fixture) concurrentPersist(fc <-chan []model.Fixture) <-chan []model.Fi
 
 	pool.Go(func(worker int) error {
 		for fixtures := range fc {
+			core.Log.WithField("worker", worker).Debug("Persisting fixtures...")
 			pd, err := r.repo.Upsert(fixtures)
 			if err != nil {
 				return fmt.Errorf("(worker %d) persisting: %v", worker, err)

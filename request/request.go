@@ -1,6 +1,8 @@
 package request
 
 import (
+	"context"
+
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/repository"
 	"github.com/nschimek/nice-fixture-feeder/service"
@@ -8,14 +10,15 @@ import (
 
 type RequestRegistry struct {
 	Fixture Fixture
-	League League
-	Team Team
+	League  League
+	Team    Team
 }
 
 func Setup(cfg *core.Config, repos *repository.RepositoryRegistry, svcs *service.ServiceRegistry) *RequestRegistry {
+	ctx := context.Background()
 	return &RequestRegistry{
-		Fixture: NewFixture(cfg, repos.Fixture),
-		League: NewLeague(cfg, repos.League, svcs.Image),
-		Team: NewTeam(cfg, repos.Team, svcs.Image),
+		Fixture: NewFixture(ctx, cfg, repos.Fixture),
+		League:  NewLeague(cfg, repos.League, svcs.Image),
+		Team:    NewTeam(cfg, repos.Team, svcs.Image),
 	}
 }
