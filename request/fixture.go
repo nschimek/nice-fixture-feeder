@@ -1,12 +1,14 @@
 package request
 
 import (
-	"github.com/nschimek/nice-fixture-feeder/core/util"
+	"context"
+	"fmt"
 	"net/url"
 	"sort"
 	"strconv"
-	"sync"
 	"time"
+
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
@@ -32,16 +34,16 @@ type fixture struct {
 	requestedData []model.Fixture
 	fixtureMap    map[int]model.Fixture
 	fixtureIds    []int
-	done          chan struct{}
+	ctx           context.Context
 }
 
-func NewFixture(config *core.Config, repo repository.UpsertRepository[model.Fixture]) Fixture {
+func NewFixture(ctx context.Context, config *core.Config, repo repository.UpsertRepository[model.Fixture]) Fixture {
 	return &fixture{
 		config:     config,
 		requester:  NewRequester[model.Fixture](config),
 		fixtureMap: make(map[int]model.Fixture),
 		repo:       repo,
-		done:       make(chan struct{}),
+		ctx:        ctx,
 	}
 }
 
@@ -56,60 +58,61 @@ func (r *fixture) RequestDateRange(startDate, endDate time.Time) {
 		"endDate":   startDate.Format(core.YYYY_MM_DD),
 	}).Info("Requesting fixtures for leagues...")
 
-	defer close(r.done)
+	var cancel context.CancelFunc
+	r.ctx, cancel = context.WithTimeout(r.ctx, time.Second*5)
+	defer cancel()
 
-	leagues := r.produceLeagues(r.config.Leagues)
-	fixtures, errc := r.concurrentRequest(leagues, startDate, endDate)
+	leagues := make(chan int)
 
-	r.concurrentPersist(fixtures, errc)
+	// 2-stage pipeline: 1. request fixtures, 2. persist fixtures
+	fixtures := r.concurrentRequest(leagues, startDate, endDate)
+	persisted := r.concurrentPersist(fixtures)
 
-	if err := <-errc; err != nil {
-		core.Log.Errorf("Could not get fixtures: %v", err)
+	r.produceLeagues(r.config.Leagues, leagues)
+
+	for result := range persisted {
+		r.requestedData = append(r.requestedData, result...)
 	}
 }
 
-func (r *fixture) produceLeagues(leagueIds []int) <-chan int {
-	leagues := make(chan int)
+func (r *fixture) produceLeagues(leagueIds []int, leagues chan int) {
 	go func() {
 		defer close(leagues)
 		for leagueId := range util.IdArrayToMap(leagueIds) {
 			select {
 			case leagues <- leagueId:
-			case <-r.done:
+			case <-r.ctx.Done():
 				return
 			}
 		}
 	}()
-	return leagues
 }
 
-func (r *fixture) concurrentRequest(leagues <-chan int, startDate, endDate time.Time) (<-chan []model.Fixture, chan error) {
+func (r *fixture) concurrentRequest(lc <-chan int, startDate, endDate time.Time) <-chan []model.Fixture {
 	fixtures := make(chan []model.Fixture)
-	errc := make(chan error, 1)
+	pool := util.NewWorkerPool(len(r.config.Leagues))
 
-	// start-up one goroutine for each league (TODO: set a configurable max)
-	var wg sync.WaitGroup
-	for i := 0; i < len(r.config.Leagues); i++ {
-		wg.Add(1)
-		go func() {
-			for leagueId := range leagues {
-				res, err := r.request(startDate, endDate, leagueId)
-				select {
-				case fixtures <- res:
-				case errc <- err:
-				case <-r.done:
-					return
-				}
+	pool.Go(func(worker int) error {
+		for leagueId := range lc {
+			core.Log.Debug("Worker %d requesting fixtures for league %d...", worker, leagueId)
+			res, err := r.request(startDate, endDate, leagueId)
+			if err != nil {
+				return fmt.Errorf("(worker %d, league %d) requesting: %v", worker, leagueId, err)
 			}
-			wg.Done()
-		}()
-	}
-	go func() {
-		wg.Wait()
+			select {
+			case fixtures <- res:
+			case <-r.ctx.Done():
+				return r.ctx.Err()
+			}
+		}
+		return nil
+	})
+	pool.Wait(func() {
 		close(fixtures)
-	}()
+		pool.LogErrors("Errors occurred while requesting fixtures!")
+	})
 
-	return fixtures, errc
+	return fixtures
 }
 
 func (r *fixture) request(startDate, endDate time.Time, leagueId int) ([]model.Fixture, error) {
@@ -131,20 +134,29 @@ func (r *fixture) request(startDate, endDate time.Time, leagueId int) ([]model.F
 	return resp.Response, nil
 }
 
-func (r *fixture) concurrentPersist(fixtures <-chan []model.Fixture, errc chan<- error) {
-	for f := range fixtures {
-		go func(f []model.Fixture) {
-			rd, err := r.repo.Upsert(f)
-			if err == nil {
-				r.requestedData = append(r.requestedData, rd...)
+func (r *fixture) concurrentPersist(fc <-chan []model.Fixture) <-chan []model.Fixture {
+	persisted := make(chan []model.Fixture)
+	pool := util.NewWorkerPool(len(r.config.Leagues))
+
+	pool.Go(func(worker int) error {
+		for fixtures := range fc {
+			pd, err := r.repo.Upsert(fixtures)
+			if err != nil {
+				return fmt.Errorf("(worker %d) persisting: %v", worker, err)
 			}
 			select {
-			case errc <- err:
-			case <-r.done:
-				return
+			case persisted <- pd:
+			case <-r.ctx.Done():
+				return r.ctx.Err()
 			}
-		}(f)
-	}
+		}
+		return nil
+	})
+	pool.Wait(func() {
+		close(persisted)
+		pool.LogErrors("Errors occurred while persisting fixtures!")
+	})
+	return persisted
 }
 
 func (r *fixture) Persist() {

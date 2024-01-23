@@ -2,6 +2,8 @@ package util
 
 import (
 	"sync"
+
+	"github.com/nschimek/nice-fixture-feeder/core"
 )
 
 type WorkerPool struct {
@@ -47,7 +49,7 @@ func (pool *WorkerPool) Wait(fn func()) {
 	}()
 }
 
-// HasErrors returns whether or not erorrs were output by the Go function.
+// HasErrors returns whether errors were output by the Go function.
 func (pool *WorkerPool) HasErrors() bool {
 	return len(pool.errors) > 0
 }
@@ -55,4 +57,13 @@ func (pool *WorkerPool) HasErrors() bool {
 // Errors returns the collected errors.
 func (pool *WorkerPool) Errors() []error {
 	return pool.errors
+}
+
+func (pool *WorkerPool) LogErrors(msg string) {
+	if pool.HasErrors() {
+		core.Log.Error(msg)
+		for _, err := range pool.errors {
+			core.Log.Error(err)
+		}
+	}
 }
