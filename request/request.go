@@ -19,6 +19,6 @@ func Setup(cfg *core.Config, repos *repository.RepositoryRegistry, svcs *service
 	return &RequestRegistry{
 		Fixture: NewFixture(ctx, cfg, repos.Fixture),
 		League:  NewLeague(cfg, repos.League, svcs.Image),
-		Team:    NewTeam(cfg, repos.Team, svcs.Image),
+		Team:    NewTeam(cfg, repos.Team, repos.TeamLeagueSeason, svcs.Image),
 	}
 }

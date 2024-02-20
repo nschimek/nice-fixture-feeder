@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	startDateString, endDateString  string
-	fixtureCmd = &cobra.Command{
-		Use: "fixtures",
+	startDateString, endDateString string
+	fixtureCmd                     = &cobra.Command{
+		Use:   "fixtures",
 		Short: "Request fixtures by date range",
 		Long: `Request fixtures by date range, without setting up a new season.  Team stats will be maintained.
 This should primarily be used if there are issues with the daily request that result in catch-up runs being necessary.
@@ -70,10 +70,10 @@ func runFixturesRequest(fixtureRequest request.Fixture, teamStatsService service
 	fixtureRequest.Persist()
 
 	// Maintain Stats
-	teamStatsService.MaintainStats(fixtureRequest.GetIds(), fixtureRequest.GetMap())
+	// teamStatsService.MaintainStats(fixtureRequest.GetIds(), fixtureRequest.GetMap())
 
 	// Run Scoring Service
-	scoringService.SetFixtures(fixtureRequest.GetMap())
-	scoringService.AddFixturesFromMinMap(teamStatsService.GetMinFixtureMap())
-	scoringService.Score()
+	// scoringService.SetFixtures(fixtureRequest.GetMap())
+	// scoringService.AddFixturesFromMinMap(teamStatsService.GetMinFixtureMap())
+	// scoringService.Score()
 }

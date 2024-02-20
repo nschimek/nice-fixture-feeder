@@ -1,9 +1,10 @@
 package request
 
 import (
-	"github.com/nschimek/nice-fixture-feeder/core/util"
 	"net/url"
 	"strconv"
+
+	"github.com/nschimek/nice-fixture-feeder/core/util"
 
 	"github.com/nschimek/nice-fixture-feeder/core"
 	"github.com/nschimek/nice-fixture-feeder/model"
@@ -26,16 +27,22 @@ type team struct {
 	config        *core.Config
 	requester     Requester[model.Team]
 	repo          repository.UpsertRepository[model.Team]
+	tlsRepo       repository.UpsertRepository[model.TeamLeagueSeason]
 	imageService  service.Image
 	requestedData []model.Team
+	tlsData       []model.TeamLeagueSeason
 }
 
-func NewTeam(config *core.Config, repo repository.UpsertRepository[model.Team], is service.Image) Team {
+func NewTeam(config *core.Config,
+	repo repository.UpsertRepository[model.Team],
+	tlsRepo repository.UpsertRepository[model.TeamLeagueSeason],
+	is service.Image) Team {
 	return &team{
 		config:       config,
 		requester:    NewRequester[model.Team](config),
 		imageService: is,
 		repo:         repo,
+		tlsRepo:      tlsRepo,
 	}
 }
 
@@ -61,20 +68,31 @@ func (r *team) request(leagueId int) ([]model.Team, error) {
 		return nil, err
 	}
 
-	teams := make([]model.Team, len(resp.Response))
-	for i, t := range resp.Response {
-		t.SetTLS(leagueId, r.config.Season)
-		teams[i] = t
+	for _, t := range resp.Response {
+		r.tlsData = append(r.tlsData, t.GetTLS(leagueId, r.config.Season))
 	}
 
-	return teams, nil
+	return resp.Response, nil
 }
 
 func (r *team) Persist() {
 	var err error
+
+	// persist teams first...
 	r.requestedData, err = r.repo.Upsert(r.requestedData)
+
+	if err != nil {
+		core.Log.Errorf("Could not persist Teams from Team request: %v", err)
+		return
+	}
+
+	// ... then do TLS (gorm should have been able to do this automatically but it wouldn't work)
+	_, err = r.tlsRepo.Upsert(r.tlsData)
+
 	if err == nil {
 		r.postPersist()
+	} else {
+		core.Log.Errorf("Could not persist TLS from Team request: %v", err)
 	}
 }
 

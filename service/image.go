@@ -28,7 +28,7 @@ func NewImage(s3 core.S3Client) *image {
 }
 
 func (is *image) TransferURL(url, bucket, keyFormat string) bool {
-	time.Sleep(500 * time.Millisecond) // half second rate limit
+	time.Sleep(200 * time.Millisecond) // rate limit
 	finalKeyName := fmt.Sprintf(keyFormat, path.Base(url))
 	core.Log.WithFields(logrus.Fields{
 		"url":    url,
